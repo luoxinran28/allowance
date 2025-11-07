@@ -65,8 +65,8 @@ impl LicenseService {
             .bind(user_id)
             .bind(product_version_id)
             .bind(&license_key)
-            .bind(Utc::now())
-            .bind(expires_at)
+            .bind(Utc::now().naive_utc())
+            .bind(expires_at.naive_utc())
             .execute(pool)
             .await?;
 
@@ -137,7 +137,7 @@ impl LicenseService {
             WHERE id = $2
             "#
         )
-            .bind(Utc::now())
+            .bind(Utc::now().naive_utc())
             .bind(license.id)
             .execute(pool)
             .await?;
@@ -153,7 +153,7 @@ impl LicenseService {
         sqlx::query(
             "UPDATE user_licenses SET revoked_at = $1 WHERE id = $2"
         )
-            .bind(Utc::now())
+            .bind(Utc::now().naive_utc())
             .bind(license_id)
             .execute(pool)
             .await?;

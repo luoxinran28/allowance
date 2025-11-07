@@ -1,13 +1,91 @@
+# Node.js
+node_modules/
+.pnp/
+.pnp.js
+.yarn/
+
+# Next.js build output
+.next/
+out/
+build/
+dist/
+
+# Rust/WASM
+target/
+Cargo.lock
+**/pkg/
+**/wasm-pack.log
+
+# Env files
 .env
 .env.local
-target/
-node_modules/
-.DS_Store
-*.swp
-*.swo
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+logs/
 *.log
-.idea/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Database
+*.sqlite
+*.sqlite3
+*.db
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE specific files
 .vscode/
-*.iml
+.vs/
+
+# Docker specific
+.docker/data/
+docker-volumes/
+
+# Temporary files
+tmp/
+temp/
+public/uploads/
+uploads/
+*-bak/
+
+# Documentation
 *.md
-*.txt
+!README.md
+!AGENTS.md
+!basic-chat-style.chatmode.md
+!basic-needs.prompt.md
+
+# Testing
+coverage/
+
+# Build artifacts
+*.tsbuildinfo
+.vercel
+.serverless/
+.eslintcache
+
+# Media and large files
+*.gz
+*.zip
+*.tar
+*.rar
+*.7z
+*.mp4
+*.mov
+*.wmv
+*.avi
+*.csv
+*.xls
+*.xlsx
+```

@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
-use chrono::{DateTime, Utc};
+use chrono::NaiveDateTime;
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
 pub struct Organization {
@@ -9,8 +9,8 @@ pub struct Organization {
     pub name: String,
     pub description: Option<String>,
     pub created_by: i64,
-    pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
+    pub created_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
@@ -21,8 +21,8 @@ pub struct Group {
     pub name: String,
     pub description: Option<String>,
     pub created_by: i64,
-    pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
+    pub created_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
@@ -31,7 +31,7 @@ pub struct UserGroup {
     pub user_id: i64,
     pub group_id: i64,
     pub role: String,  // 'member', 'leader', 'admin'
-    pub created_at: DateTime<Utc>,
+    pub created_at: NaiveDateTime,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

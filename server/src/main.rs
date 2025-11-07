@@ -73,11 +73,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .route("/auth/register", post(handlers::auth::register))
         .route("/auth/login", post(handlers::auth::login))
         .route("/auth/activate", post(handlers::auth::activate))
+        .route("/auth/request-password-reset", post(handlers::auth::request_password_reset))
+        .route("/auth/reset-password", post(handlers::auth::reset_password))
+        .route("/product/list", get(handlers::product::list_products))
+        .route("/product/:product_id", get(handlers::product::get_product))
+        .route("/product/license/generate", post(handlers::product::generate_license))
+        .route("/user/profile", get(handlers::user::get_profile).put(handlers::user::update_profile))
+        .route("/user/licenses", get(handlers::user::get_licenses))
         .route("/health", get(health_check))
         .layer(DefaultBodyLimit::max(5_242_880)) // 5MB
         .layer(TraceLayer::new_for_http())
         .layer(cors)
-        .with_state(auth_handler);
+        .with_state(auth_handler.clone());
 
     // Start server
     let bind_addr = format!("{}:{}", config.server_host, config.server_port);

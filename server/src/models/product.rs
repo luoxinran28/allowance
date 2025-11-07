@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
-use chrono::{DateTime, Utc};
+use chrono::NaiveDateTime;
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
 pub struct Product {
@@ -9,8 +9,8 @@ pub struct Product {
     pub name: String,
     pub description: Option<String>,
     pub owner_id: Option<i64>,
-    pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
+    pub created_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
@@ -23,7 +23,7 @@ pub struct ProductVersion {
     pub tier_required: String,
     pub daily_limit: Option<i32>,
     pub monthly_limit: Option<i32>,
-    pub created_at: DateTime<Utc>,
+    pub created_at: NaiveDateTime,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
@@ -44,7 +44,7 @@ pub struct LicenseResponse {
     pub license_key: String,
     pub product_id: String,
     pub version_name: String,
-    pub expires_at: DateTime<Utc>,
+    pub expires_at: NaiveDateTime,
     pub features: Option<serde_json::Value>,
     pub daily_limit: Option<i32>,
 }
@@ -69,13 +69,13 @@ pub struct UserLicense {
     pub user_id: i64,
     pub product_version_id: i64,
     pub license_key: String,
-    pub starts_at: DateTime<Utc>,
-    pub expires_at: DateTime<Utc>,
+    pub starts_at: NaiveDateTime,
+    pub expires_at: NaiveDateTime,
     pub daily_usage: i32,
     pub monthly_usage: i32,
-    pub last_used_at: Option<DateTime<Utc>>,
-    pub revoked_at: Option<DateTime<Utc>>,
+    pub last_used_at: Option<NaiveDateTime>,
+    pub revoked_at: Option<NaiveDateTime>,
     pub metadata: Option<serde_json::Value>,
-    pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
+    pub created_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
 }

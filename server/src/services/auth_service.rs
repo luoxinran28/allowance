@@ -79,7 +79,7 @@ impl AuthService {
         let _ = sqlx::query(
             "UPDATE users SET last_login = $1 WHERE id = $2"
         )
-            .bind(Utc::now())
+            .bind(Utc::now().naive_utc())
             .bind(user.id)
             .execute(pool)
             .await;
@@ -105,7 +105,7 @@ impl AuthService {
             .bind(user_id)
             .bind(&token)
             .bind(email)
-            .bind(expires_at)
+            .bind(expires_at.naive_utc())
             .execute(pool)
             .await?;
 
@@ -129,7 +129,7 @@ impl AuthService {
             .ok_or(AppError::InvalidToken)?;
 
         // Check if token expired
-        if email_token.expires_at < Utc::now() {
+        if email_token.expires_at < Utc::now().naive_utc() {
             return Err(AppError::TokenExpired);
         }
 
@@ -144,7 +144,7 @@ impl AuthService {
         let user = sqlx::query_as::<_, User>(
             "UPDATE users SET status = 'active', updated_at = $1 WHERE id = $2 RETURNING *"
         )
-            .bind(Utc::now())
+            .bind(Utc::now().naive_utc())
             .bind(user_id)
             .fetch_one(&mut *tx)
             .await?;
@@ -153,7 +153,7 @@ impl AuthService {
         sqlx::query(
             "UPDATE email_tokens SET used_at = $1 WHERE id = $2"
         )
-            .bind(Utc::now())
+            .bind(Utc::now().naive_utc())
             .bind(email_token.id)
             .execute(&mut *tx)
             .await?;
@@ -188,7 +188,7 @@ impl AuthService {
             .bind(user.id)
             .bind(&token)
             .bind(email)
-            .bind(expires_at)
+            .bind(expires_at.naive_utc())
             .execute(pool)
             .await?;
 
@@ -211,7 +211,7 @@ impl AuthService {
             .await?
             .ok_or(AppError::InvalidToken)?;
 
-        if email_token.expires_at < Utc::now() {
+        if email_token.expires_at < Utc::now().naive_utc() {
             return Err(AppError::TokenExpired);
         }
 
@@ -226,7 +226,7 @@ impl AuthService {
             "UPDATE users SET password_hash = $1, updated_at = $2 WHERE id = $3"
         )
             .bind(password_hash)
-            .bind(Utc::now())
+            .bind(Utc::now().naive_utc())
             .bind(user_id)
             .execute(&mut *tx)
             .await?;
@@ -234,7 +234,7 @@ impl AuthService {
         sqlx::query(
             "UPDATE email_tokens SET used_at = $1 WHERE id = $2"
         )
-            .bind(Utc::now())
+            .bind(Utc::now().naive_utc())
             .bind(email_token.id)
             .execute(&mut *tx)
             .await?;

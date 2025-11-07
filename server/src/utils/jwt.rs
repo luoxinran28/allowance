@@ -34,6 +34,11 @@ impl JwtManager {
         }
     }
 
+    /// Get JWT secret
+    pub fn get_secret(&self) -> String {
+        self.secret.clone()
+    }
+
     /// Generate access token (JWT)
     pub fn generate_token(&self, user_id: i64, email: String) -> AppResult<String> {
         let now = Utc::now();

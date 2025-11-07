@@ -175,6 +175,7 @@ npm run dev
 - ✅ Tier-based access control
 - ✅ Usage limits (daily, monthly)
 - ✅ License generation with JWT format
+- ✅ Product listing and details retrieval
 - ✅ Offline license verification capability
 
 #### 4. Organization & Teams
@@ -410,6 +411,25 @@ allowance/
 3. [ ] Email service integration
 4. [ ] Approval workflow UI
 5. [ ] User permission UI display
+
+### Phase 2: Enhanced Features
+1. [x] **Product endpoints** - Product listing, retrieval, and license generation
+   - `GET /product/list` - Lists all available products
+   - `GET /product/:product_id` - Retrieves product details
+   - `POST /product/license/generate` - Generates JWT-based product license
+   - Permission-based access control integrated
+
+2. [x] **User endpoints** - Profile and license management
+   - `GET /user/profile` - Retrieves user information
+   - `GET /user/licenses` - Lists user's active licenses
+   - `PUT /user/profile` - Updates user profile (placeholder)
+
+3. [ ] **JWT token extraction middleware** - Extract user from request context
+4. [ ] **Team management endpoints** - Team CRUD and membership operations
+5. [ ] **Admin dashboard implementation** - User management, approval workflows
+6. [ ] **Email service integration** - Activation emails, password reset
+7. [ ] **Approval workflow UI** - Frontend for approval management
+8. [ ] **User permission display** - Show permissions based on roles
 
 ### Phase 3: Integration
 1. [ ] Payment system integration (mock first)

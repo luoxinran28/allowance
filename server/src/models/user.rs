@@ -1,8 +1,9 @@
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, NaiveDateTime};
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, sqlx::Type)]
+#[sqlx(type_name = "user_status")]
 pub enum UserStatus {
     #[serde(rename = "active")]
     Active,
@@ -10,6 +11,19 @@ pub enum UserStatus {
     Inactive,
     #[serde(rename = "suspended")]
     Suspended,
+}
+
+impl std::str::FromStr for UserStatus {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "active" => Ok(UserStatus::Active),
+            "inactive" => Ok(UserStatus::Inactive),
+            "suspended" => Ok(UserStatus::Suspended),
+            _ => Err(format!("Unknown user status: {}", s)),
+        }
+    }
 }
 
 impl std::fmt::Display for UserStatus {
@@ -22,7 +36,8 @@ impl std::fmt::Display for UserStatus {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, sqlx::Type)]
+#[sqlx(type_name = "user_tier")]
 pub enum UserTier {
     #[serde(rename = "free")]
     Free,
@@ -30,6 +45,19 @@ pub enum UserTier {
     Standard,
     #[serde(rename = "premium")]
     Premium,
+}
+
+impl std::str::FromStr for UserTier {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "free" => Ok(UserTier::Free),
+            "standard" => Ok(UserTier::Standard),
+            "premium" => Ok(UserTier::Premium),
+            _ => Err(format!("Unknown user tier: {}", s)),
+        }
+    }
 }
 
 impl std::fmt::Display for UserTier {
@@ -52,9 +80,9 @@ pub struct User {
     pub tier: String,
     pub status: String,
     pub profile_data: Option<serde_json::Value>,
-    pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
-    pub last_login: Option<DateTime<Utc>>,
+    pub created_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
+    pub last_login: Option<NaiveDateTime>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -64,7 +92,7 @@ pub struct UserResponse {
     pub email: String,
     pub tier: String,
     pub status: String,
-    pub created_at: DateTime<Utc>,
+    pub created_at: NaiveDateTime,
 }
 
 impl From<User> for UserResponse {
@@ -104,6 +132,17 @@ pub struct ActivateRequest {
     pub token: String,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct RequestPasswordResetRequest {
+    pub email: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ResetPasswordRequest {
+    pub token: String,
+    pub new_password: String,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
 pub struct EmailToken {
     pub id: i64,
@@ -111,7 +150,7 @@ pub struct EmailToken {
     pub token: String,
     pub token_type: String,
     pub email: Option<String>,
-    pub expires_at: DateTime<Utc>,
-    pub used_at: Option<DateTime<Utc>>,
-    pub created_at: DateTime<Utc>,
+    pub expires_at: NaiveDateTime,
+    pub used_at: Option<NaiveDateTime>,
+    pub created_at: NaiveDateTime,
 }

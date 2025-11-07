@@ -7,7 +7,7 @@ use axum::{
 use serde_json::json;
 use sqlx::PgPool;
 
-use crate::models::{RegisterRequest, LoginRequest, ActivateRequest, AuthResponse, UserResponse};
+use crate::models::{RegisterRequest, LoginRequest, ActivateRequest, RequestPasswordResetRequest, ResetPasswordRequest, AuthResponse, UserResponse};
 use crate::services::AuthService;
 use crate::utils::{AppError, JwtManager, AppResult};
 
@@ -68,6 +68,29 @@ pub async fn activate(
     ).await?;
 
     Ok(Json(UserResponse::from(user)))
+}
+
+/// Request password reset
+pub async fn request_password_reset(
+    State(state): State<Arc<AuthHandler>>,
+    Json(req): Json<RequestPasswordResetRequest>,
+) -> AppResult<StatusCode> {
+    let token = AuthService::create_password_reset_token(&state.pool, &req.email).await?;
+    
+    // TODO: Send password reset email
+    tracing::info!("Password reset requested for {}, token: {}", req.email, token);
+
+    Ok(StatusCode::OK)
+}
+
+/// Reset password
+pub async fn reset_password(
+    State(state): State<Arc<AuthHandler>>,
+    Json(req): Json<ResetPasswordRequest>,
+) -> AppResult<StatusCode> {
+    AuthService::reset_password(&state.pool, &req.token, &req.new_password).await?;
+    
+    Ok(StatusCode::OK)
 }
 
 #[cfg(test)]

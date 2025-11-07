@@ -1,4 +1,6 @@
 pub mod auth;
+pub mod product;
+pub mod user;
 
 use axum::{
     response::{IntoResponse, Response},
@@ -61,6 +63,10 @@ impl IntoResponse for AppError {
                     StatusCode::INTERNAL_SERVER_ERROR,
                     "Database error".to_string(),
                 )
+            }
+            AppError::JsonError(e) => {
+                tracing::error!("JSON error: {}", e);
+                (StatusCode::BAD_REQUEST, "Invalid JSON".to_string())
             }
             AppError::InternalServerError => (
                 StatusCode::INTERNAL_SERVER_ERROR,
