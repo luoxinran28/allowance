@@ -1,0 +1,43 @@
+[package]
+name = "allowance-server"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tokio = { version = "1.35", features = ["full"] }
+axum = "0.7"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "postgres", "json", "uuid", "chrono"] }
+sqlx-cli = { version = "0.7" }
+tokio-util = "0.7"
+tower = "0.4"
+tower-http = { version = "0.5", features = ["trace", "cors"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+dotenv = "0.15"
+dotenvy = "0.15"
+
+# Authentication & Security
+jsonwebtoken = "9.2"
+uuid = { version = "1.6", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
+argon2 = "0.5"
+rand = "0.8"
+
+# Email
+lettre = "0.11"
+
+# Utils
+anyhow = "1.0"
+thiserror = "1.0"
+regex = "1.10"
+lazy_static = "1.4"
+validator = { version = "0.16", features = ["derive"] }
+
+# Async
+futures = "0.3"
+async-trait = "0.1"
+
+[dev-dependencies]
+tokio-test = "0.4"

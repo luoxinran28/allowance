@@ -1,0 +1,12 @@
+.env
+.env.local
+target/
+node_modules/
+.DS_Store
+*.swp
+*.swo
+*.log
+.idea/
+.vscode/
+*.iml
+*.md
