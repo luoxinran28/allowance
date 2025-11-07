@@ -23,22 +23,31 @@ use utils::JwtManager;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Set panic hook to print to stderr
+    std::panic::set_hook(Box::new(|panic_info| {
+        eprintln!("PANIC: {:?}", panic_info);
+    }));
+
     // Initialize tracing
     tracing_subscriber::fmt()
         .with_env_filter(
             tracing_subscriber::EnvFilter::from_default_env()
                 .add_directive(tracing_subscriber::filter::LevelFilter::INFO.into()),
         )
+        .with_writer(std::io::stderr)
         .init();
 
     // Load configuration
     let config = Config::from_env();
+    eprintln!("Starting Allowance Server on {}:{}", config.server_host, config.server_port);
     tracing::info!("Starting Allowance Server on {}:{}", config.server_host, config.server_port);
 
     // Initialize database
+    eprintln!("Initializing database at: {}", &config.database_url);
     let pool = db::init_pool(&config.database_url)
         .await
         .expect("Failed to initialize database");
+    eprintln!("Database initialized successfully");
     tracing::info!("Database initialized");
 
     // Initialize JWT manager
@@ -71,9 +80,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .with_state(auth_handler);
 
     // Start server
-    let listener = tokio::net::TcpListener::bind(format!("{}:{}", config.server_host, config.server_port))
+    let bind_addr = format!("{}:{}", config.server_host, config.server_port);
+    eprintln!("Binding to address: {}", &bind_addr);
+    let listener = tokio::net::TcpListener::bind(&bind_addr)
         .await?;
     
+    eprintln!("Server listening at {}", bind_addr);
     tracing::info!("Server listening at {}:{}", config.server_host, config.server_port);
     
     axum::serve(listener, app).await?;

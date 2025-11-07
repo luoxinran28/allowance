@@ -69,21 +69,21 @@ INSERT INTO products (product_id, name, description) VALUES
     ('form-001', 'Form Builder', 'Online form creation and management tool');
 
 INSERT INTO product_versions (product_id, version_name, description, features, tier_required, daily_limit, monthly_limit)
-SELECT p.id, 'basic', 'Basic form building', 
-    '{"max_forms": 10, "ai_enabled": false, "storage_gb": 1}'::jsonb, 
-    'free', 3, 100
-FROM products p WHERE p.product_id = 'form-001'
+        SELECT p.id, 'basic', 'Basic form building',
+            '{"max_forms": 10, "ai_enabled": false, "storage_gb": 1}'::jsonb,
+            'free'::user_tier, 3, 100
+        FROM products p WHERE p.product_id = 'form-001'
 
-UNION ALL
+        UNION ALL
 
-SELECT p.id, 'pro', 'Professional form building with AI',
-    '{"max_forms": 100, "ai_enabled": true, "storage_gb": 50}'::jsonb,
-    'standard', 100, 10000
-FROM products p WHERE p.product_id = 'form-001'
+        SELECT p.id, 'pro', 'Professional form building with AI',
+            '{"max_forms": 100, "ai_enabled": true, "storage_gb": 50}'::jsonb,
+            'standard'::user_tier, 100, 10000
+        FROM products p WHERE p.product_id = 'form-001'
 
-UNION ALL
+        UNION ALL
 
-SELECT p.id, 'enterprise', 'Enterprise form solution',
-    '{"max_forms": 1000, "ai_enabled": true, "storage_gb": 500, "api_access": true}'::jsonb,
-    'premium', NULL, NULL
-FROM products p WHERE p.product_id = 'form-001';
+        SELECT p.id, 'enterprise', 'Enterprise form solution',
+            '{"max_forms": 1000, "ai_enabled": true, "storage_gb": 500, "api_access": true}'::jsonb,
+            'premium'::user_tier, NULL, NULL
+        FROM products p WHERE p.product_id = 'form-001';

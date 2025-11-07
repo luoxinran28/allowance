@@ -4,7 +4,98 @@ Complete implementation of a user registration, authorization, and RBAC manageme
 
 ## 📋 Quick Start
 
-### Database Setup
+### Option 1: Docker Setup (Recommended)
+
+The easiest way to get started is using Docker, which handles all dependencies automatically.
+
+```bash
+# Clone and navigate to the project
+cd allowance
+
+# Run the setup script
+./docker-run.sh
+
+# Or manually with docker-compose
+docker-compose up --build
+
+# Access the application
+# Frontend: http://localhost:3001
+# Backend API: http://localhost:3000
+```
+
+**What Docker sets up:**
+- PostgreSQL database with automatic migrations
+- Rust backend server on port 3000
+- Next.js frontend on port 3001
+- All services communicate properly
+- Health checks ensure services start in the correct order
+
+#### Docker Services
+
+- **postgres**: PostgreSQL 15 database
+  - Database: `allowance`
+  - User: `postgres`
+  - Password: `password`
+  - Port: `5432`
+
+- **server**: Rust/Axum backend
+  - Port: `3000`
+  - Health check: `http://localhost:3000/health`
+  - Auto-migrates database on startup
+
+- **client**: Next.js frontend
+  - Port: `3001`
+  - Built for production with standalone output
+
+#### Docker Commands
+
+```bash
+# Start services
+docker-compose up --build
+
+# Start in background
+docker-compose up --build -d
+
+# View logs
+docker-compose logs -f
+
+# Stop services
+docker-compose down
+
+# Restart specific service
+docker-compose restart server
+
+# View running containers
+docker ps
+
+# Access database directly
+docker exec -it allowance-postgres psql -U postgres -d allowance
+```
+
+#### Development with Docker
+
+For development with hot reload, uncomment the volumes in `docker-compose.override.yml`:
+
+```yaml
+# In docker-compose.override.yml
+services:
+  server:
+    volumes:
+      - ./server:/app
+    command: cargo watch -x run
+
+  client:
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+    command: npm run dev
+```
+
+### Option 2: Local Development Setup
+
+If you prefer to run services individually:
+
+#### Database Setup
 
 ```bash
 # Create database
@@ -15,7 +106,7 @@ psql allowance < database/migrations/001_initial_schema.sql
 psql allowance < database/migrations/002_add_license_table.sql
 ```
 
-### Backend Setup (Rust/Axum)
+#### Backend Setup (Rust/Axum)
 
 ```bash
 cd server
@@ -35,7 +126,7 @@ cargo run
 # Server runs on http://localhost:3000
 ```
 
-### Frontend Setup (NextJS)
+#### Frontend Setup (NextJS)
 
 ```bash
 cd client

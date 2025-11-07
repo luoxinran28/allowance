@@ -10,3 +10,4 @@ node_modules/
 .vscode/
 *.iml
 *.md
+*.txt
