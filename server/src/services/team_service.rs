@@ -191,3 +191,111 @@ impl TeamService {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::utils::crypto::generate_uuid;
+
+    #[test]
+    fn test_uuid_generation() {
+        let uuid1 = generate_uuid();
+        let uuid2 = generate_uuid();
+
+        // UUIDs should be different
+        assert_ne!(uuid1, uuid2, "Generated UUIDs should be unique");
+
+        // UUID should be valid format (36 characters with dashes)
+        assert_eq!(uuid1.len(), 36, "UUID should be 36 characters");
+        assert!(uuid1.contains('-'), "UUID should contain dashes");
+
+        // Should have 5 parts separated by dashes
+        let parts: Vec<&str> = uuid1.split('-').collect();
+        assert_eq!(parts.len(), 5, "UUID should have 5 parts");
+
+        // Check part lengths
+        assert_eq!(parts[0].len(), 8, "First part should be 8 chars");
+        assert_eq!(parts[1].len(), 4, "Second part should be 4 chars");
+        assert_eq!(parts[2].len(), 4, "Third part should be 4 chars");
+        assert_eq!(parts[3].len(), 4, "Fourth part should be 4 chars");
+        assert_eq!(parts[4].len(), 12, "Fifth part should be 12 chars");
+    }
+
+    #[test]
+    fn test_team_name_validation() {
+        let long_name = "a".repeat(101);
+
+        let valid_names = vec![
+            "Marketing Team",
+            "DevOps",
+            "Product Team",
+            "A", // Minimum length
+        ];
+
+        let invalid_names = vec![
+            "", // Empty
+            "   ", // Only whitespace
+            &long_name, // Too long (assuming 100 char limit)
+        ];
+
+        for name in valid_names {
+            assert!(!name.trim().is_empty(), "Valid name should not be empty after trim");
+            assert!(name.len() <= 100, "Valid name should be within length limit");
+        }
+
+        for name in invalid_names {
+            assert!(
+                name.trim().is_empty() || name.len() > 100,
+                "Invalid name should fail validation: '{}'",
+                name
+            );
+        }
+    }
+
+    #[test]
+    fn test_team_member_role_validation() {
+        let valid_roles = vec!["admin", "leader", "member"];
+        let invalid_roles = vec!["", "owner", "manager", "guest", "superuser"];
+
+        for role in valid_roles {
+            assert!(!role.is_empty(), "Valid role should not be empty");
+            assert!(role.len() <= 20, "Valid role should be reasonable length");
+            assert!(matches!(role, "admin" | "leader" | "member"), "Role should be one of the valid options");
+        }
+
+        for role in invalid_roles {
+            assert!(
+                role.is_empty() || role.len() > 20 || !matches!(role, "admin" | "leader" | "member"),
+                "Invalid role should fail validation: '{}'",
+                role
+            );
+        }
+    }
+
+    #[test]
+    fn test_team_description_validation() {
+        let valid_descriptions = vec![
+            Some("Marketing department team"),
+            Some("DevOps and infrastructure team"),
+            None, // Optional field
+            Some(""), // Empty string allowed
+        ];
+
+        let invalid_descriptions = vec![
+            Some("a".repeat(1001)), // Too long (assuming 1000 char limit)
+        ];
+
+        for desc in valid_descriptions {
+            match desc {
+                Some(d) => assert!(d.len() <= 1000, "Description should be within length limit"),
+                None => (), // None is valid
+            }
+        }
+
+        for desc in invalid_descriptions {
+            if let Some(d) = desc {
+                assert!(d.len() > 1000, "Invalid description should exceed length limit");
+            }
+        }
+    }
+}

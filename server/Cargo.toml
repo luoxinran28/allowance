@@ -41,3 +41,6 @@ async-trait = "0.1"
 
 [dev-dependencies]
 tokio-test = "0.4"
+sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "postgres", "json", "uuid", "chrono"] }
+testcontainers = "0.15"
+testcontainers-modules = { version = "0.3", features = ["postgres"] }

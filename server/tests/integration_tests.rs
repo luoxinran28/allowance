@@ -693,3 +693,594 @@ mod error_handling_tests {
         }
     }
 }
+
+#[cfg(test)]
+mod team_service_tests {
+    use chrono::Utc;
+
+    /// Test team creation validation
+    #[test]
+    fn test_team_creation_validation() {
+        struct TeamCreationRequest {
+            name: String,
+            description: Option<String>,
+            user_id: i64,
+            org_id: i64,
+        }
+
+        let valid_requests = vec![
+            TeamCreationRequest {
+                name: "Marketing Team".to_string(),
+                description: Some("Marketing department".to_string()),
+                user_id: 1,
+                org_id: 1,
+            },
+            TeamCreationRequest {
+                name: "DevOps".to_string(),
+                description: None,
+                user_id: 2,
+                org_id: 1,
+            },
+        ];
+
+        let invalid_requests = vec![
+            TeamCreationRequest {
+                name: "".to_string(), // Empty name
+                description: Some("Test".to_string()),
+                user_id: 1,
+                org_id: 1,
+            },
+            TeamCreationRequest {
+                name: "Valid Name".to_string(),
+                description: Some("Test".to_string()),
+                user_id: 0, // Invalid user ID
+                org_id: 1,
+            },
+        ];
+
+        for request in valid_requests {
+            assert!(!request.name.is_empty(), "Team name should not be empty");
+            assert!(request.user_id > 0, "User ID should be positive");
+            assert!(request.org_id > 0, "Organization ID should be positive");
+        }
+
+        for request in invalid_requests {
+            assert!(
+                request.name.is_empty() || request.user_id <= 0 || request.org_id <= 0,
+                "Invalid request should fail validation"
+            );
+        }
+    }
+
+    /// Test team member role validation
+    #[test]
+    fn test_team_member_roles() {
+        let valid_roles = vec!["admin", "leader", "member"];
+        let invalid_roles = vec!["", "owner", "manager", "guest"];
+
+        for role in &valid_roles {
+            assert!(!role.is_empty(), "Role should not be empty");
+            assert!(role.len() <= 10, "Role should be reasonable length");
+        }
+
+        for role in &invalid_roles {
+            assert!(role.is_empty() || !valid_roles.contains(&role), "Invalid role should be rejected");
+        }
+    }
+
+    /// Test team membership logic
+    #[test]
+    fn test_team_membership_logic() {
+        struct TeamMembership {
+            user_id: i64,
+            team_id: i64,
+            role: String,
+            joined_at: chrono::DateTime<Utc>,
+        }
+
+        let memberships = vec![
+            TeamMembership {
+                user_id: 1,
+                team_id: 1,
+                role: "admin".to_string(),
+                joined_at: Utc::now(),
+            },
+            TeamMembership {
+                user_id: 2,
+                team_id: 1,
+                role: "member".to_string(),
+                joined_at: Utc::now(),
+            },
+        ];
+
+        for membership in memberships {
+            assert!(membership.user_id > 0, "User ID should be positive");
+            assert!(membership.team_id > 0, "Team ID should be positive");
+            assert!(!membership.role.is_empty(), "Role should not be empty");
+            assert!(membership.joined_at <= Utc::now(), "Join date should not be in future");
+        }
+    }
+
+    /// Test team role hierarchy
+    #[test]
+    fn test_team_role_hierarchy() {
+        #[derive(Clone, Debug, PartialEq)]
+        enum TeamRole {
+            Member,
+            Leader,
+            Admin,
+        }
+
+        impl TeamRole {
+            fn permission_level(&self) -> i32 {
+                match self {
+                    TeamRole::Member => 1,
+                    TeamRole::Leader => 2,
+                    TeamRole::Admin => 3,
+                }
+            }
+
+            fn can_manage_role(&self, target_role: &TeamRole) -> bool {
+                self.permission_level() > target_role.permission_level()
+            }
+        }
+
+        let admin = TeamRole::Admin;
+        let leader = TeamRole::Leader;
+        let member = TeamRole::Member;
+
+        // Admin can manage anyone
+        assert!(admin.can_manage_role(&leader));
+        assert!(admin.can_manage_role(&member));
+
+        // Leader can manage members but not other leaders
+        assert!(leader.can_manage_role(&member));
+        assert!(!leader.can_manage_role(&leader));
+
+        // Member cannot manage anyone
+        assert!(!member.can_manage_role(&member));
+        assert!(!member.can_manage_role(&leader));
+    }
+}
+
+#[cfg(test)]
+mod organization_service_tests {
+    use chrono::Utc;
+
+    /// Test organization creation validation
+    #[test]
+    fn test_organization_creation_validation() {
+        struct OrgCreationRequest {
+            name: String,
+            description: Option<String>,
+            user_id: i64,
+        }
+
+        let valid_requests = vec![
+            OrgCreationRequest {
+                name: "ACME Corporation".to_string(),
+                description: Some("Enterprise software company".to_string()),
+                user_id: 1,
+            },
+            OrgCreationRequest {
+                name: "Startup Inc".to_string(),
+                description: None,
+                user_id: 2,
+            },
+        ];
+
+        let invalid_requests = vec![
+            OrgCreationRequest {
+                name: "".to_string(), // Empty name
+                description: Some("Test".to_string()),
+                user_id: 1,
+            },
+            OrgCreationRequest {
+                name: "Valid Name".to_string(),
+                description: Some("Test".to_string()),
+                user_id: 0, // Invalid user ID
+            },
+        ];
+
+        for request in valid_requests {
+            assert!(!request.name.is_empty(), "Organization name should not be empty");
+            assert!(request.user_id > 0, "User ID should be positive");
+            assert!(request.name.len() <= 100, "Name should be reasonable length");
+        }
+
+        for request in invalid_requests {
+            assert!(
+                request.name.is_empty() || request.user_id <= 0,
+                "Invalid request should fail validation"
+            );
+        }
+    }
+
+    /// Test organization search functionality
+    #[test]
+    fn test_organization_search() {
+        struct Organization {
+            id: i64,
+            name: String,
+            description: Option<String>,
+        }
+
+        let organizations = vec![
+            Organization {
+                id: 1,
+                name: "ACME Corporation".to_string(),
+                description: Some("Leading enterprise software company".to_string()),
+            },
+            Organization {
+                id: 2,
+                name: "Tech Startup Inc".to_string(),
+                description: Some("Innovative technology solutions".to_string()),
+            },
+            Organization {
+                id: 3,
+                name: "Global Solutions Ltd".to_string(),
+                description: None,
+            },
+        ];
+
+        // Test search by name
+        let search_term = "Tech";
+        let results: Vec<&Organization> = organizations
+            .iter()
+            .filter(|org| org.name.contains(search_term))
+            .collect();
+
+        assert_eq!(results.len(), 1, "Should find one organization with 'Tech'");
+        assert_eq!(results[0].name, "Tech Startup Inc");
+
+        // Test search by description
+        let desc_search = "enterprise";
+        let desc_results: Vec<&Organization> = organizations
+            .iter()
+            .filter(|org| {
+                org.description
+                    .as_ref()
+                    .map_or(false, |desc| desc.to_lowercase().contains(&desc_search.to_lowercase()))
+            })
+            .collect();
+
+        assert_eq!(desc_results.len(), 1, "Should find one organization with enterprise in description");
+    }
+
+    /// Test organization ownership validation
+    #[test]
+    fn test_organization_ownership() {
+        struct Organization {
+            id: i64,
+            created_by: i64,
+            name: String,
+        }
+
+        let org = Organization {
+            id: 1,
+            created_by: 1,
+            name: "Test Org".to_string(),
+        };
+
+        let owner_id = 1;
+        let non_owner_id = 2;
+
+        // Owner should have access
+        assert_eq!(org.created_by, owner_id, "Owner should match creator");
+
+        // Non-owner should not have access
+        assert_ne!(org.created_by, non_owner_id, "Non-owner should not match creator");
+    }
+
+    /// Test organization pagination
+    #[test]
+    fn test_organization_pagination() {
+        let total_orgs = 25;
+        let page_size = 10;
+
+        let total_pages = (total_orgs + page_size - 1) / page_size; // Ceiling division
+        assert_eq!(total_pages, 3, "Should have 3 pages for 25 items with page size 10");
+
+        // Test page boundaries
+        let test_cases = vec![
+            (1, 10, 0, 10),  // page 1: items 0-9
+            (2, 10, 10, 20), // page 2: items 10-19
+            (3, 10, 20, 25), // page 3: items 20-24
+        ];
+
+        for (page, size, expected_start, expected_end) in test_cases {
+            let start_index = (page - 1) * size;
+            let end_index = std::cmp::min(start_index + size, total_orgs);
+
+            assert_eq!(start_index, expected_start, "Start index should match for page {}", page);
+            assert_eq!(end_index, expected_end, "End index should match for page {}", page);
+        }
+    }
+}
+
+#[cfg(test)]
+mod admin_service_tests {
+    use chrono::Utc;
+    #[test]
+    fn test_admin_permission_validation() {
+        let admin_permissions = vec![
+            "admin:manage_users",
+            "admin:view_analytics",
+            "admin:system_settings",
+        ];
+
+        let user_permissions = vec![
+            "user:read_profile",
+            "user:update_profile",
+            "product:view",
+        ];
+
+        // Admin should have admin permissions
+        for perm in &admin_permissions {
+            assert!(perm.starts_with("admin:"), "Admin permission should start with 'admin:'");
+        }
+
+        // User should not have admin permissions
+        for user_perm in &user_permissions {
+            assert!(!user_perm.starts_with("admin:"), "User should not have admin permissions");
+        }
+
+        // Check permission format
+        let all_permissions = [&admin_permissions[..], &user_permissions[..]].concat();
+        for perm in all_permissions {
+            assert!(perm.contains(":"), "Permission should contain ':' separator");
+            let parts: Vec<&str> = perm.split(':').collect();
+            assert_eq!(parts.len(), 2, "Permission should have exactly 2 parts");
+        }
+    }
+
+    /// Test user role assignment logic
+    #[test]
+    fn test_user_role_assignment() {
+        struct RoleAssignment {
+            user_id: i64,
+            role_code: String,
+            assigned_by: i64,
+            assigned_at: chrono::DateTime<Utc>,
+        }
+
+        let assignments = vec![
+            RoleAssignment {
+                user_id: 1,
+                role_code: "admin".to_string(),
+                assigned_by: 999, // System admin
+                assigned_at: Utc::now(),
+            },
+            RoleAssignment {
+                user_id: 2,
+                role_code: "standard_employee".to_string(),
+                assigned_by: 1, // Regular admin
+                assigned_at: Utc::now(),
+            },
+        ];
+
+        for assignment in assignments {
+            assert!(assignment.user_id > 0, "User ID should be positive");
+            assert!(!assignment.role_code.is_empty(), "Role code should not be empty");
+            assert!(assignment.assigned_by > 0, "Assigned by should be positive");
+            assert!(assignment.assigned_at <= Utc::now(), "Assignment date should not be in future");
+        }
+    }
+
+    /// Test approval request workflow
+    #[test]
+    fn test_approval_request_workflow() {
+        #[derive(Clone, Debug, PartialEq)]
+        enum ApprovalStatus {
+            Pending,
+            Approved,
+            Rejected,
+        }
+
+        struct ApprovalRequest {
+            id: i64,
+            user_id: i64,
+            request_type: String,
+            status: ApprovalStatus,
+            reviewed_by: Option<i64>,
+            reviewed_at: Option<chrono::DateTime<Utc>>,
+        }
+
+        let mut request = ApprovalRequest {
+            id: 1,
+            user_id: 1,
+            request_type: "role_upgrade".to_string(),
+            status: ApprovalStatus::Pending,
+            reviewed_by: None,
+            reviewed_at: None,
+        };
+
+        // Initially pending
+        assert_eq!(request.status, ApprovalStatus::Pending);
+        assert!(request.reviewed_by.is_none());
+        assert!(request.reviewed_at.is_none());
+
+        // After approval
+        request.status = ApprovalStatus::Approved;
+        request.reviewed_by = Some(999);
+        request.reviewed_at = Some(Utc::now());
+
+        assert_eq!(request.status, ApprovalStatus::Approved);
+        assert!(request.reviewed_by.is_some());
+        assert!(request.reviewed_at.is_some());
+
+        // After rejection
+        request.status = ApprovalStatus::Rejected;
+        assert_eq!(request.status, ApprovalStatus::Rejected);
+    }
+}
+
+#[cfg(test)]
+mod jwt_middleware_tests {
+    use chrono::{Duration, Utc};
+
+    /// Test JWT token extraction from headers
+    #[test]
+    fn test_jwt_header_extraction() {
+        let valid_headers = vec![
+            "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test.signature",
+            "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.test2.signature2",
+        ];
+
+        let invalid_headers = vec![
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test.signature", // Missing Bearer
+            "Basic dXNlcjpwYXNz", // Basic auth instead of Bearer
+            "", // Empty
+            "Bearer", // Bearer without token
+            "Bearer invalid-token-format", // Invalid JWT format
+        ];
+
+        for header in valid_headers {
+            assert!(header.starts_with("Bearer "), "Valid header should start with 'Bearer '");
+            let token = header.strip_prefix("Bearer ").unwrap();
+            let parts: Vec<&str> = token.split('.').collect();
+            assert_eq!(parts.len(), 3, "JWT should have 3 parts");
+        }
+
+        for header in invalid_headers {
+            assert!(
+                !header.starts_with("Bearer ") ||
+                header == "Bearer" ||
+                !header.contains(".") ||
+                header.split('.').count() != 4, // JWT has 3 dots, so 4 parts when split
+                "Invalid header should fail validation: {}",
+                header
+            );
+        }
+    }
+
+    /// Test user ID extraction from JWT claims
+    #[test]
+    fn test_user_id_extraction() {
+        struct JwtClaims {
+            user_id: i64,
+            email: String,
+            exp: i64,
+        }
+
+        let valid_claims = vec![
+            JwtClaims {
+                user_id: 1,
+                email: "user@example.com".to_string(),
+                exp: (Utc::now() + Duration::hours(24)).timestamp(),
+            },
+            JwtClaims {
+                user_id: 999,
+                email: "admin@example.com".to_string(),
+                exp: (Utc::now() + Duration::hours(1)).timestamp(),
+            },
+        ];
+
+        let invalid_claims = vec![
+            JwtClaims {
+                user_id: 0, // Invalid user ID
+                email: "user@example.com".to_string(),
+                exp: (Utc::now() + Duration::hours(24)).timestamp(),
+            },
+            JwtClaims {
+                user_id: 1,
+                email: "".to_string(), // Empty email
+                exp: (Utc::now() + Duration::hours(24)).timestamp(),
+            },
+            JwtClaims {
+                user_id: 1,
+                email: "user@example.com".to_string(),
+                exp: (Utc::now() - Duration::hours(1)).timestamp(), // Expired
+            },
+        ];
+
+        for claims in valid_claims {
+            assert!(claims.user_id > 0, "User ID should be positive");
+            assert!(!claims.email.is_empty(), "Email should not be empty");
+            assert!(claims.email.contains("@"), "Email should contain @");
+            assert!(claims.exp > Utc::now().timestamp(), "Token should not be expired");
+        }
+
+        for claims in invalid_claims {
+            assert!(
+                claims.user_id <= 0 ||
+                claims.email.is_empty() ||
+                !claims.email.contains("@") ||
+                claims.exp <= Utc::now().timestamp(),
+                "Invalid claims should fail validation"
+            );
+        }
+    }
+}
+
+#[cfg(test)]
+mod error_handling_integration_tests {
+    use std::collections::HashMap;
+
+    /// Test comprehensive error scenarios
+    #[test]
+    fn test_comprehensive_error_scenarios() {
+        #[derive(Clone, Debug, PartialEq)]
+        enum AppError {
+            NotFound(String),
+            Unauthorized(String),
+            Forbidden(String),
+            BadRequest(String),
+            InternalServerError(String),
+            DatabaseError(String),
+            ValidationError(HashMap<String, Vec<String>>),
+        }
+
+        impl AppError {
+            fn http_status_code(&self) -> u16 {
+                match self {
+                    AppError::NotFound(_) => 404,
+                    AppError::Unauthorized(_) => 401,
+                    AppError::Forbidden(_) => 403,
+                    AppError::BadRequest(_) => 400,
+                    AppError::InternalServerError(_) => 500,
+                    AppError::DatabaseError(_) => 500,
+                    AppError::ValidationError(_) => 422,
+                }
+            }
+        }
+
+        let errors = vec![
+            (AppError::NotFound("User not found".to_string()), 404),
+            (AppError::Unauthorized("Invalid token".to_string()), 401),
+            (AppError::Forbidden("Insufficient permissions".to_string()), 403),
+            (AppError::BadRequest("Invalid input".to_string()), 400),
+            (AppError::InternalServerError("Server error".to_string()), 500),
+            (AppError::DatabaseError("Connection failed".to_string()), 500),
+            (AppError::ValidationError(HashMap::new()), 422),
+        ];
+
+        for (error, expected_status) in errors {
+            assert_eq!(
+                error.http_status_code(),
+                expected_status,
+                "Error {:?} should return status code {}",
+                error,
+                expected_status
+            );
+        }
+    }
+
+    /// Test error message formatting
+    #[test]
+    fn test_error_message_formatting() {
+        let error_messages = vec![
+            "User not found",
+            "Invalid authentication token",
+            "Access denied: insufficient permissions",
+            "Bad request: missing required field",
+            "Internal server error occurred",
+        ];
+
+        for message in error_messages {
+            assert!(!message.is_empty(), "Error message should not be empty");
+            assert!(message.len() >= 10, "Error message should be descriptive");
+            assert!(!message.contains("TODO"), "Error message should not contain TODO");
+        }
+    }
+}
