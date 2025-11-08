@@ -1,12 +1,29 @@
 use std::sync::Arc;
 use axum::{
     extract::{State, Json, Path},
+    http::HeaderMap,
 };
 
 use crate::models::{Product, GenerateLicenseRequest, LicenseResponse};
 use crate::services::{ProductService, RbacService};
 use crate::utils::{AppError, AppResult};
 use crate::handlers::auth::AuthHandler;
+
+/// Helper to extract user_id from Authorization header
+fn extract_user_from_header(state: &AuthHandler, headers: &HeaderMap) -> AppResult<i64> {
+    let auth_header = headers
+        .get("authorization")
+        .and_then(|h| h.to_str().ok())
+        .ok_or(AppError::Unauthorized)?;
+
+    if !auth_header.starts_with("Bearer ") {
+        return Err(AppError::Unauthorized);
+    }
+
+    let token = &auth_header[7..];
+    let claims = state.jwt.verify_token(token)?;
+    Ok(claims.user_id)
+}
 
 /// List all available products
 pub async fn list_products(
@@ -28,10 +45,10 @@ pub async fn get_product(
 /// Generate license for user
 pub async fn generate_license(
     State(state): State<Arc<AuthHandler>>,
+    headers: HeaderMap,
     Json(req): Json<GenerateLicenseRequest>,
 ) -> AppResult<Json<LicenseResponse>> {
-    // TODO: Extract user_id from JWT token in request
-    let user_id = 1i64; // Placeholder - will be extracted from auth middleware
+    let user_id = extract_user_from_header(&state, &headers)?;
     
     // Check if user has permission
     let has_permission = RbacService::has_permission(
