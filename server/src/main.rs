@@ -9,7 +9,7 @@ mod db;
 use axum::{
     extract::DefaultBodyLimit,
     http::{header, Method},
-    routing::{get, post},
+    routing::{get, post, delete},
     Router,
 };
 use std::sync::Arc;
@@ -80,6 +80,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .route("/product/license/generate", post(handlers::product::generate_license))
         .route("/user/profile", get(handlers::user::get_profile).put(handlers::user::update_profile))
         .route("/user/licenses", get(handlers::user::get_licenses))
+        .route("/team/create", post(handlers::team::create_team))
+        .route("/team/list", get(handlers::team::list_teams))
+        .route("/team/:team_id", get(handlers::team::get_team))
+        .route("/team/:team_id/members", get(handlers::team::list_members).post(handlers::team::add_member))
+        .route("/team/:team_id/members/:user_id", delete(handlers::team::remove_member).put(handlers::team::update_member_role))
         .route("/health", get(health_check))
         .layer(DefaultBodyLimit::max(5_242_880)) // 5MB
         .layer(TraceLayer::new_for_http())
