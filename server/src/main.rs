@@ -92,6 +92,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .route("/admin/approvals/:approval_id", get(handlers::admin::get_approval))
         .route("/admin/approvals/:approval_id/approve", post(handlers::admin::approve_request))
         .route("/admin/approvals/:approval_id/reject", post(handlers::admin::reject_request))
+        .route("/org/create", post(handlers::organization::create_organization))
+        .route("/org", get(handlers::organization::list_organizations))
+        .route("/org/search", get(handlers::organization::search_organizations))
+        .route("/org/my", get(handlers::organization::get_user_organizations))
+        .route("/org/:org_id", get(handlers::organization::get_organization).put(handlers::organization::update_organization).delete(handlers::organization::delete_organization))
         .route("/health", get(health_check))
         .layer(DefaultBodyLimit::max(5_242_880)) // 5MB
         .layer(TraceLayer::new_for_http())

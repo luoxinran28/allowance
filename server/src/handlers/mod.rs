@@ -3,6 +3,7 @@ pub mod product;
 pub mod user;
 pub mod team;
 pub mod admin;
+pub mod organization;
 
 use axum::{
     response::{IntoResponse, Response},
