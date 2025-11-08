@@ -9,7 +9,7 @@ mod db;
 use axum::{
     extract::DefaultBodyLimit,
     http::{header, Method},
-    routing::{get, post, delete},
+    routing::{get, post, delete, put},
     Router,
 };
 use std::sync::Arc;
@@ -85,6 +85,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .route("/team/:team_id", get(handlers::team::get_team))
         .route("/team/:team_id/members", get(handlers::team::list_members).post(handlers::team::add_member))
         .route("/team/:team_id/members/:user_id", delete(handlers::team::remove_member).put(handlers::team::update_member_role))
+        .route("/admin/users", get(handlers::admin::list_users))
+        .route("/admin/users/:user_id", get(handlers::admin::get_user))
+        .route("/admin/users/:user_id/role", post(handlers::admin::assign_role).delete(handlers::admin::remove_role))
+        .route("/admin/approvals", get(handlers::admin::list_approvals))
+        .route("/admin/approvals/:approval_id", get(handlers::admin::get_approval))
+        .route("/admin/approvals/:approval_id/approve", post(handlers::admin::approve_request))
+        .route("/admin/approvals/:approval_id/reject", post(handlers::admin::reject_request))
         .route("/health", get(health_check))
         .layer(DefaultBodyLimit::max(5_242_880)) // 5MB
         .layer(TraceLayer::new_for_http())

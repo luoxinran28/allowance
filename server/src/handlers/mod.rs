@@ -2,6 +2,7 @@ pub mod auth;
 pub mod product;
 pub mod user;
 pub mod team;
+pub mod admin;
 
 use axum::{
     response::{IntoResponse, Response},
