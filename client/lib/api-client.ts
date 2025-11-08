@@ -81,25 +81,86 @@ class ApiClient {
     return this.client.get('/team/list');
   }
 
+  async getTeam(teamId: number) {
+    return this.client.get(`/team/${teamId}`);
+  }
+
+  async addTeamMember(teamId: number, userId: number) {
+    return this.client.post(`/team/${teamId}/members`, { user_id: userId });
+  }
+
+  async listTeamMembers(teamId: number) {
+    return this.client.get(`/team/${teamId}/members`);
+  }
+
+  async removeTeamMember(teamId: number, userId: number) {
+    return this.client.delete(`/team/${teamId}/members/${userId}`);
+  }
+
+  async updateTeamMemberRole(teamId: number, userId: number, role: string) {
+    return this.client.put(`/team/${teamId}/members/${userId}`, { role });
+  }
+
+  // Organization endpoints
+  async createOrganization(name: string, description?: string) {
+    return this.client.post('/org/create', { name, description });
+  }
+
+  async listOrganizations(page?: number, pageSize?: number) {
+    return this.client.get('/org', { params: { page, page_size: pageSize } });
+  }
+
+  async searchOrganizations(query: string, page?: number, pageSize?: number) {
+    return this.client.get('/org/search', { params: { q: query, page, page_size: pageSize } });
+  }
+
+  async getUserOrganizations(page?: number, pageSize?: number) {
+    return this.client.get('/org/my', { params: { page, page_size: pageSize } });
+  }
+
+  async getOrganization(orgId: string) {
+    return this.client.get(`/org/${orgId}`);
+  }
+
+  async updateOrganization(orgId: string, data: any) {
+    return this.client.put(`/org/${orgId}`, data);
+  }
+
+  async deleteOrganization(orgId: string) {
+    return this.client.delete(`/org/${orgId}`);
+  }
+
   // Admin endpoints
   async listUsers(page?: number, pageSize?: number) {
     return this.client.get('/admin/users', { params: { page, page_size: pageSize } });
+  }
+
+  async getUser(userId: number) {
+    return this.client.get(`/admin/users/${userId}`);
   }
 
   async assignRole(userId: number, roleCode: string) {
     return this.client.post(`/admin/users/${userId}/role`, { role_code: roleCode });
   }
 
-  async listApprovals() {
-    return this.client.get('/admin/approvals');
+  async removeRole(userId: number, roleCode: string) {
+    return this.client.delete(`/admin/users/${userId}/role/${roleCode}`);
   }
 
-  async approveRequest(requestId: number) {
-    return this.client.post(`/admin/approvals/${requestId}/approve`);
+  async listApprovals(page?: number, pageSize?: number) {
+    return this.client.get('/admin/approvals', { params: { page, page_size: pageSize } });
   }
 
-  async rejectRequest(requestId: number, reason: string) {
-    return this.client.post(`/admin/approvals/${requestId}/reject`, { reason });
+  async getApproval(approvalId: number) {
+    return this.client.get(`/admin/approvals/${approvalId}`);
+  }
+
+  async approveRequest(approvalId: number) {
+    return this.client.post(`/admin/approvals/${approvalId}/approve`);
+  }
+
+  async rejectRequest(approvalId: number, reason: string) {
+    return this.client.post(`/admin/approvals/${approvalId}/reject`, { reason });
   }
 }
 
