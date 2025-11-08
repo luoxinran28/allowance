@@ -39,6 +39,11 @@ validator = { version = "0.16", features = ["derive"] }
 futures = "0.3"
 async-trait = "0.1"
 
+# API Documentation
+utoipa = "4.2"
+utoipa-swagger-ui = { version = "6.0", features = ["axum"] }
+utoipa-redoc = { version = "4.0", features = ["axum"] }
+
 [dev-dependencies]
 tokio-test = "0.4"
 sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "postgres", "json", "uuid", "chrono"] }

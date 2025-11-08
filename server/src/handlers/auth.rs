@@ -17,6 +17,8 @@ pub struct AuthHandler {
 }
 
 /// Register new user
+/// 
+/// Creates a new user account with email and password. An activation email will be sent.
 pub async fn register(
     State(state): State<Arc<AuthHandler>>,
     Json(req): Json<RegisterRequest>,
@@ -36,7 +38,9 @@ pub async fn register(
     Ok((StatusCode::CREATED, Json(user)))
 }
 
-/// Login
+/// User login
+/// 
+/// Authenticates user with email and password. Returns JWT token and refresh token.
 pub async fn login(
     State(state): State<Arc<AuthHandler>>,
     Json(req): Json<LoginRequest>,
@@ -54,6 +58,9 @@ pub async fn login(
 }
 
 /// Activate account
+/// 
+/// Activates a user account using the email verification token sent during registration.
+/// Automatically assigns the `free_user` role to the new user.
 pub async fn activate(
     State(state): State<Arc<AuthHandler>>,
     Json(req): Json<ActivateRequest>,
@@ -71,6 +78,9 @@ pub async fn activate(
 }
 
 /// Request password reset
+/// 
+/// Initiates a password reset flow by sending a reset token to the user's email.
+/// Token is valid for 1 hour.
 pub async fn request_password_reset(
     State(state): State<Arc<AuthHandler>>,
     Json(req): Json<RequestPasswordResetRequest>,
@@ -84,6 +94,9 @@ pub async fn request_password_reset(
 }
 
 /// Reset password
+/// 
+/// Completes the password reset flow using the token sent to email.
+/// Password must be at least 8 characters.
 pub async fn reset_password(
     State(state): State<Arc<AuthHandler>>,
     Json(req): Json<ResetPasswordRequest>,

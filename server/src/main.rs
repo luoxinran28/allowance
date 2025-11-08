@@ -5,6 +5,7 @@ mod handlers;
 mod middleware;
 mod utils;
 mod db;
+mod docs;
 
 use axum::{
     extract::DefaultBodyLimit,
@@ -16,6 +17,8 @@ use std::sync::Arc;
 use tower_http::cors::{CorsLayer, Any};
 use tower_http::trace::TraceLayer;
 use tracing_subscriber;
+use utoipa_swagger_ui::SwaggerUi;
+use utoipa_redoc::Redoc;
 
 use config::Config;
 use handlers::auth::AuthHandler;
@@ -69,7 +72,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .allow_methods([Method::GET, Method::POST, Method::PUT, Method::DELETE])
         .allow_headers([header::CONTENT_TYPE, header::AUTHORIZATION]);
 
+    let openapi_doc = docs::get_openapi_doc();
+
     let app = Router::new()
+        // API Documentation
+        .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", openapi_doc.clone()))
+        .merge(Redoc::with_url("/redoc", openapi_doc))
         .route("/auth/register", post(handlers::auth::register))
         .route("/auth/login", post(handlers::auth::login))
         .route("/auth/activate", post(handlers::auth::activate))
