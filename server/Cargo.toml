@@ -28,6 +28,15 @@ rand = "0.8"
 # Email
 lettre = "0.11"
 
+# Payment
+stripe = { version = "0.13", features = ["runtime-tokio"] }
+hmac = "0.12"
+sha2 = "0.10"
+hex = "0.4"
+
+# Caching
+redis = { version = "0.24", features = ["aio", "tokio-comp"] }
+
 # Utils
 anyhow = "1.0"
 thiserror = "1.0"

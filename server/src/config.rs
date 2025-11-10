@@ -17,6 +17,9 @@ pub struct Config {
     pub frontend_url: String,
     pub activation_token_expiration_hours: i64,
     pub password_reset_token_expiration_hours: i64,
+    pub stripe_api_key: String,
+    pub stripe_webhook_secret: String,
+    pub stripe_test_mode: bool,
 }
 
 impl Config {
@@ -50,6 +53,12 @@ impl Config {
             frontend_url: env::var("FRONTEND_URL").unwrap_or_else(|_| "http://localhost:3001".to_string()),
             activation_token_expiration_hours: 24,
             password_reset_token_expiration_hours: 1,
+            stripe_api_key: env::var("STRIPE_API_KEY").unwrap_or_else(|_| "sk_test_placeholder".to_string()),
+            stripe_webhook_secret: env::var("STRIPE_WEBHOOK_SECRET").unwrap_or_else(|_| "whsec_test_placeholder".to_string()),
+            stripe_test_mode: env::var("STRIPE_TEST_MODE")
+                .unwrap_or_else(|_| "true".to_string())
+                .parse::<bool>()
+                .unwrap_or(true),
         }
     }
 }

@@ -23,6 +23,7 @@ use utoipa_redoc::Redoc;
 use config::Config;
 use handlers::auth::AuthHandler;
 use utils::JwtManager;
+use services::StripeService;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -60,11 +61,24 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         config.refresh_token_expiration_days,
     ));
 
+    // Initialize Stripe service
+    let stripe = Arc::new(StripeService::new(
+        config.stripe_api_key.clone(),
+        config.stripe_test_mode,
+    ));
+
     // Initialize auth handler
     let auth_handler = Arc::new(AuthHandler {
-        pool: Arc::new(pool),
+        pool: Arc::new(pool.clone()),
         jwt,
     });
+
+    // Setup webhook state
+    let webhook_state = handlers::webhooks::WebhookState {
+        pool: Arc::new(pool.clone()),
+        stripe: stripe.clone(),
+        webhook_secret: config.stripe_webhook_secret.clone(),
+    };
 
     // Setup routes
     let cors = CorsLayer::permissive()
@@ -105,11 +119,37 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .route("/org/search", get(handlers::organization::search_organizations))
         .route("/org/my", get(handlers::organization::get_user_organizations))
         .route("/org/:org_id", get(handlers::organization::get_organization).put(handlers::organization::update_organization).delete(handlers::organization::delete_organization))
-        .route("/health", get(health_check))
+        .route("/payment/create-intent", post(handlers::payment::create_payment_intent))
+        .route("/payment/confirm", post(handlers::payment::confirm_payment))
+        .route("/subscription/current", get(handlers::payment::get_subscription))
+        .route("/subscription/upgrade", post(handlers::payment::upgrade_tier))
+        .route("/subscription/downgrade", post(handlers::payment::downgrade_tier))
+        .route("/subscription/cancel", post(handlers::payment::cancel_subscription))
+        .route("/subscription/auto-renew", post(handlers::payment::toggle_auto_renew))
+        .route("/pricing", get(handlers::payment::get_pricing))
+        .route("/licenses/batch/generate", post(handlers::batch_licenses::generate_batch_licenses))
+        .route("/licenses/batch/revoke", post(handlers::batch_licenses::revoke_batch_licenses))
+        .route("/licenses/batch/export", post(handlers::batch_licenses::export_batch_licenses))
+        .route("/webhooks/stripe", post(handlers::webhooks::handle_stripe_webhook))
+        .route("/health", get(handlers::health::health_check))
+        .route("/health/ready", get(handlers::health::readiness_check))
+        .route("/health/live", get(handlers::health::liveness_check))
+        .route("/health/detailed", get(handlers::health::detailed_health_check))
         .layer(DefaultBodyLimit::max(5_242_880)) // 5MB
         .layer(TraceLayer::new_for_http())
         .layer(cors)
-        .with_state(auth_handler.clone());
+        .with_state(auth_handler.clone())
+        .route_layer(axum::middleware::from_fn_with_state(
+            webhook_state,
+            |state, req, next| async {
+                if req.uri().path() == "/webhooks/stripe" {
+                    // Webhook routes skip auth
+                    next.run(req).await
+                } else {
+                    next.run(req).await
+                }
+            },
+        ));
 
     // Start server
     let bind_addr = format!("{}:{}", config.server_host, config.server_port);
@@ -123,8 +163,4 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     axum::serve(listener, app).await?;
 
     Ok(())
-}
-
-async fn health_check() -> &'static str {
-    "OK"
 }

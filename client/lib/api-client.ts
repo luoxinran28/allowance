@@ -162,6 +162,42 @@ class ApiClient {
   async rejectRequest(approvalId: number, reason: string) {
     return this.client.post(`/admin/approvals/${approvalId}/reject`, { reason });
   }
+
+  // Payment endpoints
+  async createPaymentIntent(tier: string, billingPeriodMonths: number) {
+    return this.client.post('/payment/create-intent', {
+      tier,
+      billing_period_months: billingPeriodMonths,
+    });
+  }
+
+  async confirmPayment(intentId: string) {
+    return this.client.post('/payment/confirm', { intent_id: intentId });
+  }
+
+  async getCurrentSubscription() {
+    return this.client.get('/subscription/current');
+  }
+
+  async upgradeTier(newTier: string) {
+    return this.client.post('/subscription/upgrade', { new_tier: newTier });
+  }
+
+  async downgradeTier(newTier: string) {
+    return this.client.post('/subscription/downgrade', { new_tier: newTier });
+  }
+
+  async cancelSubscription() {
+    return this.client.post('/subscription/cancel', {});
+  }
+
+  async toggleAutoRenew(autoRenew: boolean) {
+    return this.client.post('/subscription/auto-renew', { auto_renew: autoRenew });
+  }
+
+  async getPricing() {
+    return this.client.get('/pricing');
+  }
 }
 
 export const apiClient = new ApiClient();

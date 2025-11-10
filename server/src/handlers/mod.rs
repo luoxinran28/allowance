@@ -4,6 +4,10 @@ pub mod user;
 pub mod team;
 pub mod admin;
 pub mod organization;
+pub mod payment;
+pub mod health;
+pub mod webhooks;
+pub mod batch_licenses;
 
 use axum::{
     response::{IntoResponse, Response},
