@@ -24,7 +24,7 @@ interface PricingTier {
 }
 
 export default function BillingPage() {
-  const { user, isAuthenticated } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [pricing, setPricing] = useState<PricingTier[]>([]);
   const [loading, setLoading] = useState(true);
