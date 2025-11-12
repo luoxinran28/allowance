@@ -17,21 +17,6 @@ export function AuthForm({ mode }: AuthFormProps) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [isNewUser, setIsNewUser] = useState(false);
-
-  const handleEmailBlur = async () => {
-    if (mode === 'login' && email) {
-      try {
-        // Try to get user - if fails, they're new
-        setLoading(true);
-        // This would be implemented on backend
-      } catch (err) {
-        setIsNewUser(true);
-      } finally {
-        setLoading(false);
-      }
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,9 +24,7 @@ export function AuthForm({ mode }: AuthFormProps) {
     setLoading(true);
 
     try {
-      const actionMode = mode === 'register' || isNewUser ? 'register' : 'login';
-      
-      if (actionMode === 'register') {
+      if (mode === 'register') {
         await apiClient.register(email, password);
         setError('');
         // Redirect to email verification page
@@ -82,35 +65,32 @@ export function AuthForm({ mode }: AuthFormProps) {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              onBlur={handleEmailBlur}
               className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             />
           </div>
 
-          {(mode === 'register' || isNewUser) && (
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium mb-2">
-                Password
-              </label>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-                minLength={8}
-              />
-            </div>
-          )}
+          <div>
+            <label htmlFor="password" className="block text-sm font-medium mb-2">
+              Password
+            </label>
+            <input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+              minLength={8}
+            />
+          </div>
 
           <button
             type="submit"
             disabled={loading}
             className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400"
           >
-            {loading ? 'Loading...' : (mode === 'register' || isNewUser ? 'Register' : 'Sign In')}
+            {loading ? 'Loading...' : (mode === 'register' ? 'Register' : 'Sign In')}
           </button>
         </form>
 

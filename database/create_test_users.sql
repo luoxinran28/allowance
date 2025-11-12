@@ -17,7 +17,7 @@ INSERT INTO users (
 ) VALUES (
     'UTESTADMIN12345',
     'admin@test.com',
-    '$argon2id$v=19$m=19456,t=2,p=1$dGVzdHNhbHQ$U2FtcGxlSGFzaA', -- Placeholder hash for "TestPass123"
+    '$argon2id$v=19$m=19456,t=2,p=1$eVEBPWjt24iWOXM+W/2JNA$po+YfCHkCkZAaUx9jrCx8Nj8WOwym3KB0xY+YB3q9Q0', -- Hash for "TestPass123"
     'premium',
     'active',
     '{"first_name": "Test", "last_name": "Admin", "department": "IT", "role": "Administrator"}',
@@ -38,7 +38,7 @@ INSERT INTO users (
 ) VALUES (
     'UTESTUSER123456',
     'user@test.com',
-    '$argon2id$v=19$m=19456,t=2,p=1$dGVzdHNhbHQ$U2FtcGxlSGFzaA', -- Same placeholder hash
+    '$argon2id$v=19$m=19456,t=2,p=1$eVEBPWjt24iWOXM+W/2JNA$po+YfCHkCkZAaUx9jrCx8Nj8WOwym3KB0xY+YB3q9Q0', -- Hash for "TestPass123"
     'standard',
     'active',
     '{"first_name": "Test", "last_name": "User", "department": "Engineering", "role": "Developer"}',
@@ -59,7 +59,7 @@ INSERT INTO users (
 ) VALUES (
     'UTESTFREE123456',
     'free@test.com',
-    '$argon2id$v=19$m=19456,t=2,p=1$dGVzdHNhbHQ$U2FtcGxlSGFzaA', -- Same placeholder hash
+    '$argon2id$v=19$m=19456,t=2,p=1$eVEBPWjt24iWOXM+W/2JNA$po+YfCHkCkZAaUx9jrCx8Nj8WOwym3KB0xY+YB3q9Q0', -- Hash for "TestPass123"
     'free',
     'active',
     '{"first_name": "Free", "last_name": "User", "department": "Marketing"}',
