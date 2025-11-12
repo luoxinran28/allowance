@@ -1,5 +1,5 @@
 use utoipa::{OpenApi, Modify};
-use utoipa::openapi::{SecurityScheme, Http, HttpAuthScheme};
+use utoipa::openapi::security::{SecurityScheme, Http, HttpAuthScheme};
 use serde::{Serialize, Deserialize};
 
 /// API Documentation for Allowance Authorization Management System
@@ -49,6 +49,6 @@ impl Modify for SecurityAddon {
 
 pub fn get_openapi_doc() -> utoipa::openapi::OpenApi {
     let mut doc = ApiDoc::openapi();
-    doc.modify(&SecurityAddon);
+    SecurityAddon.modify(&mut doc);
     doc
 }

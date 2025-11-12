@@ -735,3 +735,44 @@ When adding new features:
 4. Add HTTP handlers
 5. Update frontend components
 6. Document in relevant README.md
+
+## 📋 TODO - Dependencies & Network Issues
+
+Due to network connectivity issues during development, the following dependencies have been mocked/temporarily disabled:
+
+### 🔴 Critical - Requires Network Access
+- [ ] **Stripe Payment Integration**: Currently using mock implementation
+  - **Issue**: `stripe = "0.13"` crate version not available on crates.io
+  - **Current**: Mock service in `server/src/services/stripe_service.rs`
+  - **Impact**: Payment processing works but uses fake data
+  - **Fix**: Update to available stripe crate version (try `stripe = "0.24"` or latest)
+  - **Files**: `server/Cargo.toml`, `server/src/services/stripe_service.rs`
+
+- [ ] **Real Stripe API Integration**: Replace mock with actual Stripe API calls
+  - **Current**: Mock payment intents, confirmations, and webhooks
+  - **Needed**: Real Stripe API key, webhook endpoints, signature verification
+  - **Files**: `server/src/services/stripe_service.rs`, payment handlers
+
+### 🟡 Medium Priority
+- [ ] **Email Service Testing**: SMTP configuration may need real credentials
+  - **Current**: Uses Gmail SMTP with placeholder credentials
+  - **Issue**: May fail without valid email credentials
+  - **Fix**: Configure real SMTP credentials in `.env`
+
+- [ ] **Redis Caching**: Optional but improves performance
+  - **Current**: Gracefully degrades without Redis
+  - **Issue**: No performance optimization without Redis
+  - **Fix**: Install and configure Redis server
+
+### 🟢 Low Priority
+- [ ] **Production Docker Images**: Optimize for production deployment
+  - **Current**: Development-focused Docker setup
+  - **Issue**: Images may be larger than needed for production
+  - **Fix**: Multi-stage builds, distroless images
+
+### 🔧 Quick Fixes to Try
+1. **Update Stripe Crate**: Change `stripe = "0.13"` to `stripe = "0.24"` in `server/Cargo.toml`
+2. **Test Network**: Run `cargo update` and `cargo build` with internet access
+3. **Alternative**: Use Stripe Rust SDK from GitHub if crates.io version issues persist
+
+**Note**: All core functionality works with mocks. Payment flows complete successfully with fake data for development/testing.

@@ -19,6 +19,32 @@ fi
 
 echo "✅ Docker and Docker Compose are installed"
 
+# Build backend (Rust)
+echo ""
+echo "🔨 Building backend (Rust/Cargo)..."
+cd server
+if ! cargo build --release; then
+    echo "❌ Backend build failed. Please check the errors above."
+    exit 1
+fi
+echo "✅ Backend build completed successfully"
+cd ..
+
+# Build frontend (Next.js)
+echo ""
+echo "🔨 Building frontend (Next.js)..."
+cd client
+if ! npm install; then
+    echo "❌ Frontend npm install failed. Please check the errors above."
+    exit 1
+fi
+if ! npm run build; then
+    echo "❌ Frontend build failed. Please check the errors above."
+    exit 1
+fi
+echo "✅ Frontend build completed successfully"
+cd ..
+
 # Build and start the services
 echo ""
 echo "🏗️  Building and starting services..."
@@ -38,7 +64,7 @@ echo "⏳ Waiting for services to start up..."
 # Function to check if a service is healthy
 check_service() {
     local service=$1
-    local max_attempts=30
+    local max_attempts=5
     local attempt=1
 
     while [ $attempt -le $max_attempts ]; do
@@ -48,7 +74,7 @@ check_service() {
         fi
 
         echo "⏳ Waiting for $service... (attempt $attempt/$max_attempts)"
-        sleep 10
+        sleep 2
         ((attempt++))
     done
 

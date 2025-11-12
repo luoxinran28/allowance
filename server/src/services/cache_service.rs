@@ -35,9 +35,9 @@ impl CacheService {
     ) -> RedisResult<()> {
         let mut conn = self.client.get_async_connection().await?;
         let json = serde_json::to_string(value)
-            .map_err(|_| redis::RedisError::from((redis::ErrorKind::Io, "Serialization failed")))?;
+            .map_err(|_| redis::RedisError::from((redis::ErrorKind::TypeError, "Serialization failed")))?;
         
-        conn.set_ex(key, json, ttl_secs).await?;
+        conn.set_ex(key, json, ttl_secs as u64).await?;
         Ok(())
     }
 
@@ -83,7 +83,7 @@ impl CacheService {
 
         let value = fallback
             .await
-            .map_err(|_| redis::RedisError::from((redis::ErrorKind::Io, "Fallback failed")))?;
+            .map_err(|_| redis::RedisError::from((redis::ErrorKind::TypeError, "Fallback failed")))?;
 
         let _ = self.set(&key, &value, ttl_secs).await;
         Ok(value)
@@ -95,7 +95,7 @@ impl CacheService {
         let count: i64 = conn.incr(key, 1).await?;
         
         if count == 1 {
-            conn.expire(key, ttl_secs).await?;
+            conn.expire(key, ttl_secs as i64).await?;
         }
         
         Ok(count)
@@ -111,7 +111,7 @@ impl CacheService {
     /// Flush all cache (use with caution!)
     pub async fn flush_all(&self) -> RedisResult<()> {
         let mut conn = self.client.get_async_connection().await?;
-        redis::cmd("FLUSHALL").execute_async(&mut conn).await?;
+        redis::cmd("FLUSHALL").query_async(&mut conn).await?;
         Ok(())
     }
 

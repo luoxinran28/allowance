@@ -11,6 +11,7 @@ pub struct PaymentIntent {
     pub status: String,  // pending, succeeded, failed
     pub product_tier: String,
     pub billing_period_months: i32,
+    pub stripe_intent_id: Option<String>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
@@ -43,6 +44,7 @@ pub struct Subscription {
     pub current_period_start: DateTime<Utc>,
     pub current_period_end: DateTime<Utc>,
     pub auto_renew: bool,
+    pub stripe_subscription_id: Option<String>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
@@ -77,6 +79,7 @@ pub struct Invoice {
     pub status: String,
     pub due_date: DateTime<Utc>,
     pub paid_date: Option<DateTime<Utc>>,
+    pub stripe_invoice_id: Option<String>,
     pub created_at: DateTime<Utc>,
 }
 

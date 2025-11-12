@@ -23,4 +23,4 @@ done'
 echo "Database is ready!"
 
 echo "Running Allowance Server..."
-exec /app/allowance-server
+exec /app/allowance-server 2>&1

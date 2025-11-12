@@ -37,7 +37,7 @@ pub async fn create_payment_intent(
     let (amount, _) = match req.product_tier.as_str() {
         "pro" => (999, "Pro tier"),
         "enterprise" => (2999, "Enterprise tier"),
-        _ => return Err(AppError::BadRequest("Invalid tier".to_string())),
+        _ => return Err(AppError::InvalidRequest("Invalid tier".to_string())),
     };
 
     let intent = PaymentService::create_payment_intent(
@@ -76,7 +76,7 @@ pub async fn confirm_payment(
     sqlx::query("UPDATE users SET tier = $1 WHERE id = $2")
         .bind(&payment.product_tier)
         .bind(user_id)
-        .execute(&state.pool)
+        .execute(&*state.pool)
         .await?;
 
     Ok(Json(json!({
@@ -154,7 +154,7 @@ pub async fn toggle_auto_renew(
     .bind(req.auto_renew)
     .bind(user_id)
     .bind("active")
-    .execute(&state.pool)
+    .execute(&*state.pool)
     .await?;
 
     Ok(Json(json!({"success": true})))

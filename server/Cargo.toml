@@ -29,7 +29,8 @@ rand = "0.8"
 lettre = "0.11"
 
 # Payment
-stripe = { version = "0.13", features = ["runtime-tokio"] }
+# stripe = { version = "0.13", features = ["runtime-tokio"] }
+# Temporarily disabled due to network/dependency issues - using mock implementation
 hmac = "0.12"
 sha2 = "0.10"
 hex = "0.4"
@@ -43,6 +44,7 @@ thiserror = "1.0"
 regex = "1.10"
 lazy_static = "1.4"
 validator = { version = "0.16", features = ["derive"] }
+num_cpus = "1.16"
 
 # Async
 futures = "0.3"

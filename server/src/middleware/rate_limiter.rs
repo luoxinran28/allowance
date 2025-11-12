@@ -142,7 +142,7 @@ impl Clone for RateLimiter {
     }
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone)]
 pub struct ClientQuotaInfo {
     pub minute_remaining: u32,
     pub hour_remaining: u32,

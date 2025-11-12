@@ -38,6 +38,7 @@ services:
       - ACTIVATION_TOKEN_EXPIRATION_HOURS=24
       - PASSWORD_RESET_TOKEN_EXPIRATION_HOURS=1
       - RUST_LOG=debug
+      - RUST_BACKTRACE=1
     ports:
       - "3000:3000"
     depends_on:
