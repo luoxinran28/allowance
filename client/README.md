@@ -94,11 +94,11 @@ npm run format
 
 ```env
 # API
-NEXT_PUBLIC_API_URL=http://localhost:3000
-NEXT_PUBLIC_FRONTEND_URL=http://localhost:3001
+NEXT_PUBLIC_API_URL=http://localhost:4040
+NEXT_PUBLIC_FRONTEND_URL=http://localhost:3030
 
 # Auth
-NEXT_PUBLIC_AUTH_REDIRECT_URL=http://localhost:3001/dashboard
+NEXT_PUBLIC_AUTH_REDIRECT_URL=http://localhost:3030/dashboard
 ```
 
 ## Key Features

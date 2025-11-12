@@ -20,7 +20,7 @@ scrape_configs:
   - job_name: 'allowance-server'
     metrics_path: '/metrics'
     static_configs:
-      - targets: ['localhost:3000']
+      - targets: ['localhost:4040']
     scrape_interval: 5s
 
   - job_name: 'postgres'

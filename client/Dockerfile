@@ -41,10 +41,10 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 USER nextjs
 
 # Expose the port the app runs on
-EXPOSE 3001
+EXPOSE 3030
 
 # Set environment variables
-ENV PORT=3001
+ENV PORT=3030
 ENV NODE_ENV=production
 
 # Command to run the application

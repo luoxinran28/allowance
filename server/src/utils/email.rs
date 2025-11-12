@@ -131,7 +131,7 @@ mod tests {
         let service = EmailService::test();
         let result = service.send_activation_email(
             "user@example.com",
-            "http://localhost:3001/activate/token123",
+            "http://localhost:3030/activate/token123",
         );
         assert!(result.is_ok());
     }

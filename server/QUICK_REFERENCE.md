@@ -52,16 +52,16 @@ cargo build --release
 
 ```bash
 # Access interactive API documentation
-http://localhost:3000/swagger-ui/
+http://localhost:4040/swagger-ui/
 
 # Alternative documentation viewer
-http://localhost:3000/redoc/
+http://localhost:4040/redoc/
 
 # Health check
-curl http://localhost:3000/health
+curl http://localhost:4040/health
 
 # Example: Register a user
-curl -X POST http://localhost:3000/auth/register \
+curl -X POST http://localhost:4040/auth/register \
   -H "Content-Type: application/json" \
   -d '{
     "email":"test@example.com",
@@ -181,9 +181,9 @@ Before submitting PR:
 
 | Resource | Purpose | Access |
 |----------|---------|--------|
-| Swagger UI | Interactive API testing | http://localhost:3000/swagger-ui/ |
-| ReDoc | Searchable API documentation | http://localhost:3000/redoc/ |
-| OpenAPI JSON | Raw specification | http://localhost:3000/api-docs/openapi.json |
+| Swagger UI | Interactive API testing | http://localhost:4040/swagger-ui/ |
+| ReDoc | Searchable API documentation | http://localhost:4040/redoc/ |
+| OpenAPI JSON | Raw specification | http://localhost:4040/api-docs/openapi.json |
 | README.md | Project overview | `server/README.md` |
 | API_DOCUMENTATION.md | API usage examples | `server/API_DOCUMENTATION.md` |
 | CONTRIBUTING.md | Development guidelines | `server/CONTRIBUTING.md` |
@@ -236,14 +236,14 @@ curl -H "Authorization: Bearer {token}" http://localhost:3000/user/profile
 
 ```bash
 SERVER_HOST=127.0.0.1           # Server bind address
-SERVER_PORT=3000                # Server port
+SERVER_PORT=4040                # Server port
 DATABASE_URL=postgres://user:pass@localhost/db
 JWT_SECRET=min-32-character-secret
 JWT_EXPIRATION_HOURS=24
 REFRESH_TOKEN_EXPIRATION_DAYS=7
 SMTP_HOST=smtp.gmail.com
 EMAIL_FROM=noreply@allowance.com
-FRONTEND_URL=http://localhost:3001
+FRONTEND_URL=http://localhost:3030
 ```
 
 ## Performance Monitoring

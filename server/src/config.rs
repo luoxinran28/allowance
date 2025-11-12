@@ -29,9 +29,9 @@ impl Config {
         Config {
             server_host: env::var("SERVER_HOST").unwrap_or_else(|_| "127.0.0.1".to_string()),
             server_port: env::var("SERVER_PORT")
-                .unwrap_or_else(|_| "3000".to_string())
+                .unwrap_or_else(|_| "4040".to_string())
                 .parse()
-                .unwrap_or(3000),
+                .unwrap_or(4040),
             database_url: env::var("DATABASE_URL").expect("DATABASE_URL not set"),
             jwt_secret: env::var("JWT_SECRET").expect("JWT_SECRET not set"),
             jwt_expiration_hours: env::var("JWT_EXPIRATION_HOURS")
@@ -50,7 +50,7 @@ impl Config {
             smtp_user: env::var("SMTP_USER").unwrap_or_else(|_| "user".to_string()),
             smtp_password: env::var("SMTP_PASSWORD").unwrap_or_else(|_| "password".to_string()),
             email_from: env::var("EMAIL_FROM").unwrap_or_else(|_| "noreply@allowance.com".to_string()),
-            frontend_url: env::var("FRONTEND_URL").unwrap_or_else(|_| "http://localhost:3001".to_string()),
+            frontend_url: env::var("FRONTEND_URL").unwrap_or_else(|_| "http://localhost:3030".to_string()),
             activation_token_expiration_hours: 24,
             password_reset_token_expiration_hours: 1,
             stripe_api_key: env::var("STRIPE_API_KEY").unwrap_or_else(|_| "sk_test_placeholder".to_string()),

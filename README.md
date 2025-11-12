@@ -22,14 +22,14 @@ cd allowance
 docker-compose up --build
 
 # Access the application
-# Frontend: http://localhost:3001
-# Backend API: http://localhost:3000
+# Frontend: http://localhost:3030
+# Backend API: http://localhost:4040
 ```
 
 **What Docker sets up:**
 - PostgreSQL database with automatic migrations
-- Rust backend server on port 3000
-- Next.js frontend on port 3001
+- Rust backend server on port 4040
+- Next.js frontend on port 3030
 - All services communicate properly
 - Health checks ensure services start in the correct order
 
@@ -42,12 +42,12 @@ docker-compose up --build
   - Port: `5432`
 
 - **server**: Rust/Axum backend
-  - Port: `3000`
-  - Health check: `http://localhost:3000/health`
+  - Port: `4040`
+  - Health check: `http://localhost:4040/health`
   - Auto-migrates database on startup
 
 - **client**: Next.js frontend
-  - Port: `3001`
+  - Port: `3030`
   - Built for production with standalone output
 
 #### Docker Commands
@@ -126,7 +126,7 @@ cp .env.example .env
 cargo build
 cargo run
 
-# Server runs on http://localhost:3000
+# Server runs on http://localhost:4040
 ```
 
 #### Frontend Setup (NextJS)
@@ -143,7 +143,7 @@ cp .env.example .env.local
 # Run development server
 npm run dev
 
-# Frontend runs on http://localhost:3001
+# Frontend runs on http://localhost:3030
 ```
 
 ## 🏗️ Architecture Overview
@@ -420,20 +420,20 @@ SELECT * FROM products;
 
 ```bash
 # Health check
-curl http://localhost:3000/health
+curl http://localhost:4040/health
 
 # Register user
-curl -X POST http://localhost:3000/auth/register \
+curl -X POST http://localhost:4040/auth/register \
   -H "Content-Type: application/json" \
   -d '{"email":"test@example.com","password":"SecurePass123"}'
 
 # Login
-curl -X POST http://localhost:3000/auth/login \
+curl -X POST http://localhost:4040/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"test@example.com","password":"SecurePass123"}'
 
 # Generate license
-curl -X POST http://localhost:3000/product/license/generate \
+curl -X POST http://localhost:4040/product/license/generate \
   -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json" \
   -d '{"product_id":"form-001","version_name":"pro","days_valid":30}'
@@ -443,7 +443,7 @@ curl -X POST http://localhost:3000/product/license/generate \
 
 ```bash
 # Login flow
-1. Visit http://localhost:3001/auth/login
+1. Visit http://localhost:3030/auth/login
 2. Enter test email and password
 3. Follow activation email link
 4. Dashboard shows user info
@@ -693,7 +693,7 @@ allowance/
 ### Quick Verification
 ```bash
 # Health check
-curl http://localhost:3000/health
+curl http://localhost:4040/health
 
 # Backend startup
 cd server && cargo run

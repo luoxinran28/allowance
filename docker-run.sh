@@ -64,11 +64,17 @@ echo "⏳ Waiting for services to start up..."
 # Function to check if a service is healthy
 check_service() {
     local service=$1
-    local max_attempts=5
+    local max_attempts=10
     local attempt=1
 
     while [ $attempt -le $max_attempts ]; do
-        if [ "$(docker ps --filter "name=$service" --filter "health=healthy" --format "{{.Names}}")" == "$service" ]; then
+        if [ "$service" == "allowance-client" ]; then
+            # Client doesn't have health check, just check if it's running
+            if [ "$(docker ps --filter "name=$service" --filter "status=running" --format "{{.Names}}")" == "$service" ]; then
+                echo "✅ $service is running"
+                return 0
+            fi
+        elif [ "$(docker ps --filter "name=$service" --filter "health=healthy" --format "{{.Names}}")" == "$service" ]; then
             echo "✅ $service is healthy"
             return 0
         fi
@@ -78,7 +84,7 @@ check_service() {
         ((attempt++))
     done
 
-    echo "❌ $service failed to become healthy"
+    echo "❌ $service failed to start"
     return 1
 }
 
@@ -104,8 +110,8 @@ echo ""
 echo "🎉 All services are running!"
 echo ""
 echo "📱 Access your application:"
-echo "   Frontend: http://localhost:3001"
-echo "   Backend API: http://localhost:3000"
+echo "   Frontend: http://localhost:3030"
+echo "   Backend API: http://localhost:4040"
 echo "   Database: localhost:5432 (postgres/password)"
 echo ""
 echo "📊 Useful commands:"
@@ -117,6 +123,6 @@ echo ""
 echo "🔧 For development with hot reload, uncomment the volumes in docker-compose.override.yml"
 echo ""
 echo "📝 Next steps:"
-echo "   1. Visit http://localhost:3001 to access the application"
+echo "   1. Visit http://localhost:3030 to access the application"
 echo "   2. Register a new user account"
-echo "   3. Check the API health at http://localhost:3000/health"
+echo "   3. Check the API health at http://localhost:4040/health"

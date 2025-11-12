@@ -25,15 +25,15 @@ sqlx migrate run
 cargo watch -x run
 ```
 
-The server will start on `http://localhost:3000`
+The server will start on `http://localhost:4040`
 
 ### API Documentation
 
 Once the server is running, access the interactive API documentation:
 
-- **Swagger UI**: http://localhost:3000/swagger-ui/
-- **ReDoc**: http://localhost:3000/redoc/
-- **OpenAPI JSON**: http://localhost:3000/api-docs/openapi.json
+- **Swagger UI**: http://localhost:4040/swagger-ui/
+- **ReDoc**: http://localhost:4040/redoc/
+- **OpenAPI JSON**: http://localhost:4040/api-docs/openapi.json
 
 ## Core Features
 
@@ -183,7 +183,7 @@ Create a `.env` file with the following variables:
 ```env
 # Server
 SERVER_HOST=127.0.0.1
-SERVER_PORT=3000
+SERVER_PORT=4040
 
 # Database
 DATABASE_URL=postgres://user:password@localhost:5432/allowance
@@ -201,7 +201,7 @@ SMTP_PASSWORD=your-app-password
 EMAIL_FROM=noreply@allowance.com
 
 # Frontend
-FRONTEND_URL=http://localhost:3001
+FRONTEND_URL=http://localhost:3030
 
 # Token Expiration
 ACTIVATION_TOKEN_EXPIRATION_HOURS=24
