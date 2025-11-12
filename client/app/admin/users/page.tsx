@@ -4,6 +4,9 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { apiClient } from '@/lib/api-client';
 import { RoleTag } from '@/components/common/RoleTag';
+import { StatusBadge } from '@/components/common/StatusBadge';
+import { PaginationNav } from '@/components/common/PaginationNav';
+import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 
 interface User {
   id: number;
@@ -12,6 +15,7 @@ interface User {
   tier: string;
   status: string;
   created_at: string;
+  roles?: string[];
 }
 
 interface PaginatedResponse {
@@ -21,6 +25,13 @@ interface PaginatedResponse {
   total: number;
 }
 
+const AVAILABLE_ROLES = [
+  { code: 'admin', label: 'Administrator' },
+  { code: 'team_leader', label: 'Team Leader' },
+  { code: 'standard_employee', label: 'Standard Employee' },
+  { code: 'free_user', label: 'Free User' },
+];
+
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [page, setPage] = useState(1);
@@ -28,7 +39,21 @@ export default function AdminUsersPage() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Modal state
+  const [showRoleModal, setShowRoleModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedRole, setSelectedRole] = useState('');
+
+  // Confirm dialog state
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<{
+    type: 'assign' | 'remove';
+    userId?: number;
+    role?: string;
+  }>({ type: 'assign' });
 
   useEffect(() => {
     loadUsers();
@@ -37,6 +62,7 @@ export default function AdminUsersPage() {
   const loadUsers = async () => {
     try {
       setLoading(true);
+      setError('');
       const response = await apiClient.listUsers(page, pageSize);
       const data: PaginatedResponse = response.data;
       setUsers(data.data || []);
@@ -48,110 +74,275 @@ export default function AdminUsersPage() {
     }
   };
 
+  const handleOpenRoleModal = (user: User) => {
+    setSelectedUser(user);
+    setSelectedRole(user.roles?.[0] || 'free_user');
+    setShowRoleModal(true);
+  };
+
+  const handleCloseRoleModal = () => {
+    setShowRoleModal(false);
+    setSelectedUser(null);
+    setSelectedRole('');
+  };
+
+  const handleAssignRole = () => {
+    if (!selectedUser || !selectedRole) return;
+    setConfirmAction({ type: 'assign', userId: selectedUser.id, role: selectedRole });
+    setShowConfirm(true);
+  };
+
+  const handleRemoveRole = (userId: number, role: string) => {
+    setConfirmAction({ type: 'remove', userId, role });
+    setShowConfirm(true);
+  };
+
+  const confirmRoleChange = async () => {
+    try {
+      setError('');
+      setSuccess('');
+
+      if (confirmAction.type === 'assign' && confirmAction.userId && confirmAction.role) {
+        await apiClient.assignRole(confirmAction.userId, confirmAction.role);
+        setSuccess('Role assigned successfully');
+      } else if (confirmAction.type === 'remove' && confirmAction.userId && confirmAction.role) {
+        await apiClient.removeRole(confirmAction.userId, confirmAction.role);
+        setSuccess('Role removed successfully');
+      }
+
+      handleCloseRoleModal();
+      await loadUsers();
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to update role');
+    } finally {
+      setShowConfirm(false);
+    }
+  };
+
   const totalPages = Math.ceil(total / pageSize);
 
+  const filteredUsers = users.filter(
+    (u) => !searchQuery || u.email.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
-    <div>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">User Management</h1>
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-bold mb-2 text-gray-900">User Management</h1>
         <p className="text-gray-600">Manage system users and assign roles</p>
       </div>
 
+      {/* Error/Success Messages */}
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
-          {error}
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+          <p className="text-sm text-red-800">{error}</p>
+        </div>
+      )}
+
+      {success && (
+        <div className="rounded-lg border border-green-200 bg-green-50 p-4">
+          <p className="text-sm text-green-800">{success}</p>
         </div>
       )}
 
       {/* Search */}
-      <div className="mb-6">
+      <div>
         <input
           type="text"
           placeholder="Search users by email..."
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          onChange={(e) => {
+            setSearchQuery(e.target.value);
+            setPage(1);
+          }}
+          className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
         />
       </div>
 
-      {loading ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-        </div>
-      ) : (
-        <>
-          <div className="bg-white rounded-lg shadow overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50 border-b">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Email</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">UID</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Tier</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Status</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Actions</th>
+      {/* Table */}
+      <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+        {loading ? (
+          <div className="flex justify-center items-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          </div>
+        ) : filteredUsers.length === 0 ? (
+          <div className="py-12 text-center">
+            <p className="text-gray-500">No users found</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="border-b border-gray-200 bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    Email
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    UID
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    Tier
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    Role
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {filteredUsers.map((user) => (
+                  <tr
+                    key={user.id}
+                    className="hover:bg-gray-50 transition"
+                  >
+                    <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                      {user.email}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-600 font-mono">
+                      {user.uid}
+                    </td>
+                    <td className="px-6 py-4 text-sm">
+                      <StatusBadge status={user.tier} />
+                    </td>
+                    <td className="px-6 py-4 text-sm">
+                      <RoleTag role={user.roles?.[0] || 'free_user'} />
+                    </td>
+                    <td className="px-6 py-4 text-sm">
+                      <StatusBadge status={user.status} />
+                    </td>
+                    <td className="px-6 py-4 text-sm space-x-3 flex">
+                      <button
+                        onClick={() => handleOpenRoleModal(user)}
+                        className="text-blue-600 hover:text-blue-800 font-medium transition"
+                        title="Assign role"
+                      >
+                        👤
+                      </button>
+                      <Link
+                        href={`/admin/users/${user.id}`}
+                        className="text-indigo-600 hover:text-indigo-800 font-medium transition"
+                        title="View details"
+                      >
+                        👁️
+                      </Link>
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {users
-                    .filter(
-                      (u) =>
-                        !searchQuery ||
-                        u.email.toLowerCase().includes(searchQuery.toLowerCase())
-                    )
-                    .map((user) => (
-                      <tr key={user.id} className="border-b hover:bg-gray-50">
-                        <td className="px-6 py-4 text-sm text-gray-900">{user.email}</td>
-                        <td className="px-6 py-4 text-sm font-mono text-gray-600">
-                          {user.uid}
-                        </td>
-                        <td className="px-6 py-4 text-sm">
-                          <span className="capitalize">{user.tier}</span>
-                        </td>
-                        <td className="px-6 py-4 text-sm">
-                          <RoleTag role={user.status} />
-                        </td>
-                        <td className="px-6 py-4 text-sm">
-                          <Link
-                            href={`/admin/users/${user.id}`}
-                            className="text-blue-600 hover:underline"
-                          >
-                            View
-                          </Link>
-                        </td>
-                      </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <PaginationNav
+          page={page}
+          pageSize={pageSize}
+          total={total}
+          onPageChange={setPage}
+        />
+      )}
+
+      {/* Role Assignment Modal */}
+      {showRoleModal && selectedUser && (
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-lg max-w-md w-full">
+            <div className="px-6 py-4 border-b border-gray-200">
+              <h2 className="text-lg font-bold text-gray-900">Assign Role</h2>
+              <p className="text-sm text-gray-600 mt-1">User: {selectedUser.email}</p>
+            </div>
+
+            <div className="space-y-4 p-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  Select Role
+                </label>
+                <div className="space-y-2">
+                  {AVAILABLE_ROLES.map((role) => (
+                    <label
+                      key={role.code}
+                      className="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 transition"
+                    >
+                      <input
+                        type="radio"
+                        name="role"
+                        value={role.code}
+                        checked={selectedRole === role.code}
+                        onChange={(e) => setSelectedRole(e.target.value)}
+                        className="w-4 h-4 text-blue-600"
+                      />
+                      <div className="ml-3">
+                        <p className="font-medium text-gray-900">{role.label}</p>
+                        <p className="text-xs text-gray-500">{role.code}</p>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {selectedUser.roles && selectedUser.roles.length > 0 && (
+                <div className="pt-4 border-t">
+                  <p className="text-sm font-medium text-gray-700 mb-2">Current Roles</p>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedUser.roles.map((role) => (
+                      <div
+                        key={role}
+                        className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100 text-sm text-gray-800"
+                      >
+                        <span>{role}</span>
+                        <button
+                          onClick={() => handleRemoveRole(selectedUser.id, role)}
+                          className="text-red-600 hover:text-red-800 font-bold"
+                          title="Remove role"
+                        >
+                          ×
+                        </button>
+                      </div>
                     ))}
-                </tbody>
-              </table>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  onClick={handleCloseRoleModal}
+                  className="flex-1 rounded-lg border border-gray-300 px-4 py-2 font-medium text-gray-700 hover:bg-gray-50 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAssignRole}
+                  className="flex-1 rounded-lg bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700 transition"
+                >
+                  Assign
+                </button>
+              </div>
             </div>
           </div>
-
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between px-6 py-4 border-t bg-gray-50 mt-6 rounded-lg">
-              <div className="text-sm text-gray-600">
-                Page {page} of {totalPages} · Showing {(page - 1) * pageSize + 1}-
-                {Math.min(page * pageSize, total)} of {total}
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setPage(page - 1)}
-                  disabled={page === 1}
-                  className="px-3 py-1 rounded border border-gray-300 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-                >
-                  Previous
-                </button>
-                <button
-                  onClick={() => setPage(page + 1)}
-                  disabled={page === totalPages}
-                  className="px-3 py-1 rounded border border-gray-300 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-                >
-                  Next
-                </button>
-              </div>
-            </div>
-          )}
-        </>
+        </div>
       )}
+
+      {/* Confirm Dialog */}
+      <ConfirmDialog
+        isOpen={showConfirm}
+        title={confirmAction.type === 'assign' ? 'Assign Role' : 'Remove Role'}
+        message={
+          confirmAction.type === 'assign'
+            ? `Are you sure you want to assign the ${confirmAction.role} role to this user?`
+            : `Are you sure you want to remove the ${confirmAction.role} role from this user?`
+        }
+        confirmText={confirmAction.type === 'assign' ? 'Assign' : 'Remove'}
+        isDangerous={confirmAction.type === 'remove'}
+        onConfirm={confirmRoleChange}
+        onCancel={() => setShowConfirm(false)}
+      />
     </div>
   );
 }

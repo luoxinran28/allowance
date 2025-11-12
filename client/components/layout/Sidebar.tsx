@@ -59,6 +59,12 @@ const batchNavItems: NavItem[] = [
 
 const adminNavItems: NavItem[] = [
   {
+    href: '/admin/products',
+    label: 'Manage Products',
+    icon: '📦',
+    requiredPermission: 'product:read',
+  },
+  {
     href: '/admin/users',
     label: 'Manage Users',
     icon: '👤',

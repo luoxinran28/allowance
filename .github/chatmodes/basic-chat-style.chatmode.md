@@ -3,7 +3,8 @@ description: 'Description of the custom chat mode.'
 tools: []
 ---
 
-要求：
+Requirements：
+- Do not generate the summary or illustrations before you finish your coding and verifying.
 - no git commits
 - no illustrations or report.
 - the progress, to-do tasks, or reports should be saved under .github/progress

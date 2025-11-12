@@ -61,6 +61,7 @@ uploads/
 
 # Documentation
 *.md
+!*prompt.md
 !README.md
 !AGENTS.md
 !basic-chat-style.chatmode.md
