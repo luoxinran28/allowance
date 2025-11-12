@@ -16,6 +16,9 @@ RUN cargo build --release && rm -rf src
 # Copy the source code
 COPY src ./src
 
+# Copy the migrations directory
+COPY migrations ./migrations
+
 # Build the application
 RUN cargo build --release
 
@@ -47,7 +50,7 @@ COPY --from=builder /app/target/release/allowance-server /app/allowance-server
 RUN chown appuser:appuser /app/allowance-server /app/entrypoint.sh
 
 # Expose the port the app runs on
-EXPOSE 3000
+EXPOSE 4040
 
 # Command to run the application
 ENTRYPOINT ["/app/entrypoint.sh"]

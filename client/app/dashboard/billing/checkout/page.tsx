@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useState, Suspense } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/lib/auth-store';
 import { apiClient } from '@/lib/api-client';
 
-function CheckoutContent() {
+export default function CheckoutPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { isAuthenticated } = useAuthStore();
@@ -173,13 +173,5 @@ function CheckoutContent() {
         </p>
       </div>
     </div>
-  );
-}
-
-export default function CheckoutPage() {
-  return (
-    <Suspense fallback={<div className="flex justify-center items-center h-screen">Loading...</div>}>
-      <CheckoutContent />
-    </Suspense>
   );
 }

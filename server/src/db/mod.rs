@@ -9,14 +9,14 @@ pub async fn init_pool(database_url: &str) -> AppResult<PgPool> {
         .connect(database_url)
         .await?;
 
-    // Run migrations (commented out for development without database)
-    // sqlx::migrate!()
-    //     .run(&pool)
-    //     .await
-    //     .map_err(|e| {
-    //         tracing::error!("Migration failed: {}", e);
-    //         crate::utils::AppError::DatabaseError(e.into())
-    //     })?;
+    // Run migrations
+    sqlx::migrate!()
+        .run(&pool)
+        .await
+        .map_err(|e| {
+            tracing::error!("Migration failed: {}", e);
+            crate::utils::AppError::DatabaseError(e.into())
+        })?;
 
     Ok(pool)
 }

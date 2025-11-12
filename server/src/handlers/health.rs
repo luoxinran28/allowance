@@ -5,7 +5,7 @@ use axum::{
     Json,
 };
 use serde::{Deserialize, Serialize};
-use std::sync::Arc;
+use sqlx::PgPool;
 use crate::utils::Logger;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -50,12 +50,12 @@ impl CheckStatus {
     }
 }
 
-pub async fn health_check(State(state): State<Arc<crate::handlers::auth::AuthHandler>>) -> Response {
+pub async fn health_check(State(pool): State<PgPool>) -> Response {
     let start = std::time::Instant::now();
 
     // Check database connectivity
     let db_check = match sqlx::query("SELECT 1")
-        .fetch_one(&*state.pool)
+        .fetch_one(&pool)
         .await
     {
         Ok(_) => CheckStatus::healthy(start.elapsed().as_secs_f64() * 1000.0),
@@ -95,10 +95,10 @@ pub async fn health_check(State(state): State<Arc<crate::handlers::auth::AuthHan
     (status_code, Json(response)).into_response()
 }
 
-pub async fn readiness_check(State(state): State<Arc<crate::handlers::auth::AuthHandler>>) -> StatusCode {
+pub async fn readiness_check(State(pool): State<PgPool>) -> StatusCode {
     // Check if service is ready to accept traffic
     match sqlx::query("SELECT 1")
-        .fetch_one(&*state.pool)
+        .fetch_one(&pool)
         .await
     {
         Ok(_) => StatusCode::OK,
@@ -143,11 +143,11 @@ pub struct RuntimeHealth {
     pub cpu_usage_percent: f64,
 }
 
-pub async fn detailed_health_check(State(state): State<Arc<crate::handlers::auth::AuthHandler>>) -> Response {
+pub async fn detailed_health_check(State(pool): State<PgPool>) -> Response {
     let start = std::time::Instant::now();
 
     let db_status = if sqlx::query("SELECT 1")
-        .fetch_one(&*state.pool)
+        .fetch_one(&pool)
         .await
         .is_ok()
     {
@@ -167,8 +167,8 @@ pub async fn detailed_health_check(State(state): State<Arc<crate::handlers::auth
         database: DatabaseHealth {
             status: db_status.to_string(),
             connection_pool_size: 20, // Would read from config
-            active_connections: 1, // Placeholder - pool.num_acquired() not available in sqlx 0.7
-            idle_connections: 19, // Placeholder
+            active_connections: pool.num_acquired(),
+            idle_connections: pool.size() - pool.num_acquired(),
             response_time_ms: start.elapsed().as_secs_f64() * 1000.0,
         },
         memory: MemoryHealth {

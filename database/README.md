@@ -13,9 +13,16 @@ The database consists of several core domains:
 - **Approvals**: Request approval workflows
 - **Audit**: Simple operation logging
 
-## Setup
+## Quick Setup
+
+For a complete database setup with schema and test data:
 
 ```bash
+# Using the setup script (recommended)
+cd database
+./setup_db.sh
+
+# Or manually:
 # Install PostgreSQL (if not already installed)
 # macOS: brew install postgresql
 # Ubuntu: apt-get install postgresql
@@ -24,51 +31,56 @@ The database consists of several core domains:
 # Create database
 createdb allowance
 
-# Connect and run migrations
-psql allowance < migrations/001_initial_schema.sql
-psql allowance < migrations/002_add_license_table.sql
+# Run schema and test data
+psql allowance < schema.sql
+psql allowance < test_data.sql
 ```
 
-## Schema Files
+## Files
 
-- `migrations/001_initial_schema.sql` - Core tables setup
-- `migrations/002_add_license_table.sql` - License/token tables
+- `schema.sql` - Complete database schema (merged from all migrations)
+- `test_data.sql` - Comprehensive test data for development
+- `setup_db.sh` - Automated setup script
+- `migrations/` - Individual migration files (legacy)
+- `create_test_users.sql` - Legacy test user creation (superseded by test_data.sql)
 
-## Key Tables
+## Test Data
 
-### users
-- Stores user account information
-- Columns: uid, email, password_hash, tier, status, created_at, updated_at, last_login
+The test data includes:
+- **10+ test users** across all tiers (free, standard, premium)
+- **3 organizations** with departments/groups
+- **5 products** with multiple versions each
+- **User licenses** and subscriptions
+- **Approval requests** and audit logs
+- **Payment intents** and invoices
 
-### roles & permissions
-- Implements RBAC system
-- Supports multiple roles per user
-- Permissions: user:read, user:write, team:create, team:approve, admin:*
+### Test User Credentials
 
-### organizations
-- Top-level organizational unit
-- Can have multiple groups/departments
+| Email | Password | Tier | Role |
+|-------|----------|------|------|
+| admin@test.com | TestPass123 | premium | admin |
+| superadmin@test.com | TestPass123 | premium | admin |
+| user@test.com | TestPass123 | standard | standard_employee |
+| jane.smith@test.com | TestPass123 | standard | standard_employee |
+| sarah.johnson@test.com | TestPass123 | premium | team_leader |
+| free@test.com | TestPass123 | free | free_user |
 
-### groups
-- Department/team container
-- Belongs to organization
-- Can have multiple members
+## Manual Setup (Legacy)
 
-### user_licenses
-- Product authorization for users
-- Includes license token (JWT format)
-- Has expiration date
+If you prefer to run migrations individually:
 
-### email_tokens
-- One-time tokens for email activation/password reset
-- Auto-expires after configured time
+```bash
+# Create database
+createdb allowance
 
-### approval_requests
-- Workflow for user/team approvals
-- Status: pending, approved, rejected
+# Run migrations in order
+psql allowance < migrations/001_initial_schema.sql
+psql allowance < migrations/002_add_license_table.sql
+psql allowance < migrations/003_add_payment_tables.sql
+psql allowance < migrations/004_add_stripe_integration.sql
+psql allowance < migrations/005_add_batch_license_tracking.sql
+psql allowance < migrations/006_optimize_queries.sql
 
-## Performance Considerations
-
-- Indexed: users.email, users.uid, user_roles.user_id, user_licenses.user_id
-- Foreign keys for referential integrity
-- JSON support for flexible license data
+# Add test users
+psql allowance < create_test_users.sql
+```

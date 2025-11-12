@@ -10,8 +10,8 @@ CREATE INDEX IF NOT EXISTS idx_subscriptions_tier ON subscriptions(tier);
 CREATE INDEX IF NOT EXISTS idx_subscriptions_auto_renew ON subscriptions(auto_renew) WHERE status = 'active';
 
 -- License queries optimization
-CREATE INDEX IF NOT EXISTS idx_licenses_status_expires_at ON licenses(status, expires_at) WHERE status != 'revoked';
-CREATE INDEX IF NOT EXISTS idx_licenses_user_id_status ON licenses(user_id, status);
+CREATE INDEX IF NOT EXISTS idx_user_licenses_expires_at ON user_licenses(expires_at);
+CREATE INDEX IF NOT EXISTS idx_user_licenses_user_id ON user_licenses(user_id);
 
 -- Payment intent optimization
 CREATE INDEX IF NOT EXISTS idx_payment_intents_user_status ON payment_intents(user_id, status);
@@ -26,9 +26,9 @@ CREATE INDEX IF NOT EXISTS idx_user_roles_user_role ON user_roles(user_id, role_
 CREATE INDEX IF NOT EXISTS idx_role_permissions_role_permission ON role_permissions(role_id, permission_id);
 
 -- Team optimization
-CREATE INDEX IF NOT EXISTS idx_team_members_user_id ON team_members(user_id);
-CREATE INDEX IF NOT EXISTS idx_team_members_team_id_status ON team_members(team_id, status);
+-- CREATE INDEX IF NOT EXISTS idx_team_members_user_id ON team_members(user_id);
+-- CREATE INDEX IF NOT EXISTS idx_team_members_team_id_status ON team_members(team_id, status);
 
 -- Organization optimization
-CREATE INDEX IF NOT EXISTS idx_organization_members_org_id ON organization_members(org_id);
-CREATE INDEX IF NOT EXISTS idx_organization_members_user_id ON organization_members(user_id);
+-- CREATE INDEX IF NOT EXISTS idx_organization_members_org_id ON organization_members(org_id);
+-- CREATE INDEX IF NOT EXISTS idx_organization_members_user_id ON organization_members(user_id);

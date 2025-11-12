@@ -26,39 +26,46 @@ impl Config {
     pub fn from_env() -> Self {
         dotenv().ok();
 
+        let database_url = match env::var("DATABASE_URL") {
+            Ok(val) => {
+                eprintln!("DATABASE_URL found: {}", val);
+                val
+            }
+            Err(e) => {
+                eprintln!("DATABASE_URL not found: {}", e);
+                panic!("DATABASE_URL not set");
+            }
+        };
+
+        let jwt_secret = match env::var("JWT_SECRET") {
+            Ok(val) => {
+                eprintln!("JWT_SECRET found: {}", val);
+                val
+            }
+            Err(e) => {
+                eprintln!("JWT_SECRET not found: {}", e);
+                panic!("JWT_SECRET not set");
+            }
+        };
+
         Config {
-            server_host: env::var("SERVER_HOST").unwrap_or_else(|_| "127.0.0.1".to_string()),
-            server_port: env::var("SERVER_PORT")
-                .unwrap_or_else(|_| "4040".to_string())
-                .parse()
-                .unwrap_or(4040),
-            database_url: env::var("DATABASE_URL").expect("DATABASE_URL not set"),
-            jwt_secret: env::var("JWT_SECRET").expect("JWT_SECRET not set"),
-            jwt_expiration_hours: env::var("JWT_EXPIRATION_HOURS")
-                .unwrap_or_else(|_| "24".to_string())
-                .parse()
-                .unwrap_or(24),
-            refresh_token_expiration_days: env::var("REFRESH_TOKEN_EXPIRATION_DAYS")
-                .unwrap_or_else(|_| "7".to_string())
-                .parse()
-                .unwrap_or(7),
-            smtp_host: env::var("SMTP_HOST").unwrap_or_else(|_| "localhost".to_string()),
-            smtp_port: env::var("SMTP_PORT")
-                .unwrap_or_else(|_| "587".to_string())
-                .parse()
-                .unwrap_or(587),
-            smtp_user: env::var("SMTP_USER").unwrap_or_else(|_| "user".to_string()),
-            smtp_password: env::var("SMTP_PASSWORD").unwrap_or_else(|_| "password".to_string()),
-            email_from: env::var("EMAIL_FROM").unwrap_or_else(|_| "noreply@allowance.com".to_string()),
-            frontend_url: env::var("FRONTEND_URL").unwrap_or_else(|_| "http://localhost:3030".to_string()),
+            server_host: "0.0.0.0".to_string(),
+            server_port: 4040,
+            database_url,
+            jwt_secret,
+            jwt_expiration_hours: 24,
+            refresh_token_expiration_days: 7,
+            smtp_host: "localhost".to_string(),
+            smtp_port: 587,
+            smtp_user: "user".to_string(),
+            smtp_password: "password".to_string(),
+            email_from: "noreply@allowance.com".to_string(),
+            frontend_url: "http://localhost:3030".to_string(),
             activation_token_expiration_hours: 24,
             password_reset_token_expiration_hours: 1,
-            stripe_api_key: env::var("STRIPE_API_KEY").unwrap_or_else(|_| "sk_test_placeholder".to_string()),
-            stripe_webhook_secret: env::var("STRIPE_WEBHOOK_SECRET").unwrap_or_else(|_| "whsec_test_placeholder".to_string()),
-            stripe_test_mode: env::var("STRIPE_TEST_MODE")
-                .unwrap_or_else(|_| "true".to_string())
-                .parse::<bool>()
-                .unwrap_or(true),
+            stripe_api_key: "sk_test_placeholder".to_string(),
+            stripe_webhook_secret: "whsec_test_placeholder".to_string(),
+            stripe_test_mode: true,
         }
     }
 }

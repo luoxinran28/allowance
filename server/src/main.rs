@@ -18,7 +18,6 @@ use tower_http::cors::{CorsLayer, Any};
 use tower_http::trace::TraceLayer;
 use tracing_subscriber;
 use utoipa_swagger_ui::SwaggerUi;
-use utoipa_redoc::Redoc;
 
 use config::Config;
 use handlers::auth::AuthHandler;
@@ -43,12 +42,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Load configuration
     let config = Config::from_env();
+    eprintln!("Starting Allowance Server on {}:{}", config.server_host, config.server_port);
     tracing::info!("Starting Allowance Server on {}:{}", config.server_host, config.server_port);
+    eprintln!("Config loaded successfully");
 
     // Initialize database
+    eprintln!("Initializing database at: {}", &config.database_url);
     let pool = db::init_pool(&config.database_url)
         .await
         .expect("Failed to initialize database");
+    eprintln!("Database initialized successfully");
     tracing::info!("Database initialized");
 
     // Initialize JWT manager
@@ -57,12 +60,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         config.jwt_expiration_hours,
         config.refresh_token_expiration_days,
     ));
+    eprintln!("JWT manager initialized");
 
     // Initialize Stripe service
     let stripe = Arc::new(StripeService::new(
         config.stripe_api_key.clone(),
         config.stripe_test_mode,
     ));
+    eprintln!("Stripe service initialized");
 
     // Initialize auth handler
     let auth_handler = Arc::new(AuthHandler {
@@ -77,7 +82,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         webhook_secret: config.stripe_webhook_secret.clone(),
     };
 
-    eprintln!("Setting up routes...");
     // Setup routes
     let cors = CorsLayer::permissive()
         .allow_origin(Any)
@@ -86,8 +90,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let openapi_doc = docs::get_openapi_doc();
 
-    // Authenticated routes
-    let auth_routes = Router::new()
+    let app = Router::new()
+        // API Documentation
+        .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", openapi_doc.clone()))
         .route("/auth/register", post(handlers::auth::register))
         .route("/auth/login", post(handlers::auth::login))
         .route("/auth/activate", post(handlers::auth::activate))
@@ -126,27 +131,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .route("/licenses/batch/generate", post(handlers::batch_licenses::generate_batch_licenses))
         .route("/licenses/batch/revoke", post(handlers::batch_licenses::revoke_batch_licenses))
         .route("/licenses/batch/export", post(handlers::batch_licenses::export_batch_licenses))
+        // .route("/webhooks/stripe", post(handlers::webhooks::handle_stripe_webhook))
         .route("/health", get(handlers::health::health_check))
         .route("/health/ready", get(handlers::health::readiness_check))
         .route("/health/live", get(handlers::health::liveness_check))
         .route("/health/detailed", get(handlers::health::detailed_health_check))
-        .with_state(auth_handler.clone());
-
-    // Webhook routes (no auth required)
-    let webhook_routes = Router::new()
-        .route("/webhooks/stripe", post(handlers::webhooks::handle_stripe_webhook))
-        .with_state(webhook_state);
-
-    let app = Router::new()
-        // API Documentation
-        .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", openapi_doc.clone()))
-        // .merge(Redoc::new(openapi_doc))
-        .merge(auth_routes)
-        .merge(webhook_routes)
         .layer(DefaultBodyLimit::max(5_242_880)) // 5MB
         .layer(TraceLayer::new_for_http())
-        .layer(cors);
-    eprintln!("Routes set up successfully");
+        .layer(cors)
+        .with_state(auth_handler.clone());
 
     // Start server
     let bind_addr = format!("{}:{}", config.server_host, config.server_port);
@@ -157,7 +150,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     eprintln!("Server listening at {}", bind_addr);
     tracing::info!("Server listening at {}:{}", config.server_host, config.server_port);
     
-    eprintln!("Starting axum serve...");
     axum::serve(listener, app).await?;
 
     Ok(())

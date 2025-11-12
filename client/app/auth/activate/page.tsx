@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { apiClient } from '@/lib/api-client';
 
-function ActivateContent() {
+export default function ActivatePage() {
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -95,23 +95,5 @@ function ActivateContent() {
         </div>
       </div>
     </div>
-  );
-}
-
-export default function ActivatePage() {
-  return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
-        <div className="w-full max-w-md mx-auto">
-          <div className="bg-white rounded-lg shadow p-8 text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <h1 className="text-xl font-semibold mb-2">Loading...</h1>
-            <p className="text-gray-600">Please wait...</p>
-          </div>
-        </div>
-      </div>
-    }>
-      <ActivateContent />
-    </Suspense>
   );
 }
