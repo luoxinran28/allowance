@@ -4,6 +4,7 @@ export interface User {
   email: string;
   tier: 'free' | 'standard' | 'premium';
   status: 'active' | 'inactive' | 'suspended';
+  roles?: string[];
   created_at: string;
 }
 

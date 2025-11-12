@@ -198,6 +198,39 @@ class ApiClient {
   async getPricing() {
     return this.client.get('/pricing');
   }
+
+  // Batch License endpoints
+  async generateBatchLicenses(productId: string, version: string, quantity: number, expirationDays: number) {
+    return this.client.post('/batch/generate', {
+      product_id: productId,
+      version_name: version,
+      quantity,
+      expiration_days: expirationDays,
+    });
+  }
+
+  async revokeBatchLicenses(licenseKeys: string[], reason?: string) {
+    return this.client.post('/batch/revoke', {
+      license_keys: licenseKeys,
+      reason,
+    });
+  }
+
+  async revokeBatchById(batchId: string, reason?: string) {
+    return this.client.post(`/batch/${batchId}/revoke`, {
+      reason,
+    });
+  }
+
+  async getLicenses(page: number = 1, pageSize: number = 50, filters?: any) {
+    return this.client.get('/licenses', {
+      params: { page, page_size: pageSize, ...filters },
+    });
+  }
+
+  async getProducts() {
+    return this.client.get('/products');
+  }
 }
 
 export const apiClient = new ApiClient();
