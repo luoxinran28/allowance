@@ -2,10 +2,10 @@
 
 Complete implementation of a user registration, authorization, and RBAC management system with payment processing, batch operations, and production-ready infrastructure.
 
-**Status**: ✅ Phase 2 Complete (Product/License Admin System) - Core UPID Authorization Ready  
-**Last Updated**: November 13, 2025
+**Status**: ✅ Phase 3 Complete (License Approval Workflow) - Ready for Testing  
+**Last Updated**: January 15, 2025
 
-## 🎯 Recent Updates: Phase 1-2 UPID/Nonce/License System
+## 🎯 Recent Updates: Phase 1-3 UPID/Nonce/License System
 
 **Phase 1** (Completed) - Core Infrastructure:
 - ✅ UPID-based product identification (format: `UPID-{slug}-{tier}`)
@@ -21,6 +21,14 @@ Complete implementation of a user registration, authorization, and RBAC manageme
 - ✅ Complete RBAC validation for admin-only operations
 - ✅ Unit test framework for ProductService methods
 - ✅ API testing documentation with curl examples (`PHASE2_API_TESTS.md`)
+
+**Phase 3** (Completed) - License Approval Workflow:
+- ✅ `LicenseApprovalRequest` component - Users request license approval
+- ✅ `PendingApprovalsList` component - Team leaders view pending requests
+- ✅ `ApprovalReviewDialog` component - Approve/reject with remarks
+- ✅ Backend endpoints for approval submission and review (already implemented)
+- ✅ E2E testing documentation with automated script (`PHASE3_API_TESTS.md`)
+- ✅ Full RBAC permissions for team_leader role
 
 See `prompts/20251112-upid-nonce-license.prompt.md` for detailed requirements and architecture.
 
@@ -771,6 +779,34 @@ See: `tests/product_service_tests.rs`
 cd server
 cargo test product_service  # Run product service tests
 ```
+
+### Phase 3 License Approval Workflow Testing
+
+Complete automated E2E testing for the license approval workflow:
+
+```bash
+# Run automated Phase 3 tests
+bash server/test_phase3.sh
+
+# Or with custom API URL
+API_URL=http://custom:4040 bash server/test_phase3.sh
+```
+
+**What the test script does:**
+1. Registers admin, team leader, and regular user
+2. Activates all users and assigns roles
+3. Creates test product and licenses
+4. Tests user requesting approval
+5. Tests team leader viewing pending approvals
+6. Tests approval and rejection workflows
+7. Verifies all records in database
+
+**Manual testing with curl** - See: `PHASE3_API_TESTS.md`
+
+**Frontend component testing:**
+- `LicenseApprovalRequest.tsx` - Request button and success state
+- `PendingApprovalsList.tsx` - View pending requests with filtering
+- `ApprovalReviewDialog.tsx` - Approve/reject modal with remarks
 
 ## 📋 Configuration & Verification
 
