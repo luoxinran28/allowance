@@ -57,13 +57,18 @@ export default function ProductsPage() {
       setError('');
       setSuccess('');
 
-      const response = await apiClient.generateLicense(
+      const response = await apiClient.generateBatchLicenses(
         productId,
         licenseForm.versionName,
+        1, // Generate single license
         licenseForm.daysValid
       );
 
-      setSuccess(`License generated successfully: ${response.data.license_key}`);
+      if (response.data.licenses && response.data.licenses.length > 0) {
+        setSuccess(`License generated successfully: ${response.data.licenses[0].license_key}`);
+      } else {
+        setSuccess('License generated successfully');
+      }
       setLicenseForm({ productId: '', versionName: 'pro', daysValid: 30 });
 
       // Refresh licenses

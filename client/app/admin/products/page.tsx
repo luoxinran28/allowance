@@ -180,13 +180,18 @@ export default function AdminProductsPage() {
       setError('');
       setSuccess('');
 
-      const response = await apiClient.generateLicense(
+      const response = await apiClient.generateBatchLicenses(
         product.uid,
         product.version || 'pro',
+        1, // Generate single license
         30
       );
 
-      setSuccess(`License generated: ${response.data.license_key}`);
+      if (response.data.licenses && response.data.licenses.length > 0) {
+        setSuccess(`License generated: ${response.data.licenses[0].license_key}`);
+      } else {
+        setSuccess('License generated successfully');
+      }
       await loadProducts();
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to generate license');

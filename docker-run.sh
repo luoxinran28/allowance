@@ -64,7 +64,7 @@ echo "⏳ Waiting for services to start up..."
 # Function to check if a service is healthy
 check_service() {
     local service=$1
-    local max_attempts=10
+    local max_attempts=5
     local attempt=1
 
     while [ $attempt -le $max_attempts ]; do

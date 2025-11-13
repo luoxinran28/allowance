@@ -4,13 +4,20 @@ use axum::{
     http::HeaderMap,
 };
 use serde_json::json;
+use sqlx::PgPool;
 
 use crate::models::payment::*;
-use crate::services::PaymentService;
+use crate::services::{PaymentService, StripeService};
 use crate::utils::{AppResult, AppError};
 use crate::handlers::auth::AuthHandler;
 
-fn extract_user_from_header(state: &AuthHandler, headers: &HeaderMap) -> AppResult<i64> {
+pub struct PaymentHandler {
+    pub pool: Arc<PgPool>,
+    pub jwt: Arc<crate::utils::JwtManager>,
+    pub stripe: Arc<StripeService>,
+}
+
+fn extract_user_from_header(state: &PaymentHandler, headers: &HeaderMap) -> AppResult<i64> {
     let auth_header = headers
         .get("authorization")
         .and_then(|h| h.to_str().ok())
@@ -27,7 +34,7 @@ fn extract_user_from_header(state: &AuthHandler, headers: &HeaderMap) -> AppResu
 
 /// Create a payment intent for subscription upgrade
 pub async fn create_payment_intent(
-    State(state): State<Arc<AuthHandler>>,
+    State(state): State<Arc<PaymentHandler>>,
     headers: HeaderMap,
     Json(req): Json<CreatePaymentIntentRequest>,
 ) -> AppResult<Json<PaymentIntentResponse>> {
@@ -42,6 +49,7 @@ pub async fn create_payment_intent(
 
     let intent = PaymentService::create_payment_intent(
         &state.pool,
+        &state.stripe,
         user_id,
         amount,
         &req.product_tier,
@@ -54,14 +62,20 @@ pub async fn create_payment_intent(
 
 /// Confirm payment and create subscription
 pub async fn confirm_payment(
-    State(state): State<Arc<AuthHandler>>,
+    State(state): State<Arc<PaymentHandler>>,
     headers: HeaderMap,
     Json(req): Json<ConfirmPaymentRequest>,
 ) -> AppResult<Json<serde_json::Value>> {
     let user_id = extract_user_from_header(&state, &headers)?;
 
     // Confirm payment intent
-    let payment = PaymentService::confirm_payment(&state.pool, &req.intent_id).await?;
+    let payment = PaymentService::confirm_payment(
+        &state.pool,
+        &state.stripe,
+        &req.intent_id,
+        None, // payment_method
+    )
+    .await?;
 
     // Create subscription
     let subscription = PaymentService::create_subscription(
@@ -87,7 +101,7 @@ pub async fn confirm_payment(
 
 /// Get current subscription
 pub async fn get_subscription(
-    State(state): State<Arc<AuthHandler>>,
+    State(state): State<Arc<PaymentHandler>>,
     headers: HeaderMap,
 ) -> AppResult<Json<serde_json::Value>> {
     let user_id = extract_user_from_header(&state, &headers)?;
@@ -104,7 +118,7 @@ pub async fn get_subscription(
 
 /// Upgrade subscription tier
 pub async fn upgrade_tier(
-    State(state): State<Arc<AuthHandler>>,
+    State(state): State<Arc<PaymentHandler>>,
     headers: HeaderMap,
     Json(req): Json<UpgradeTierRequest>,
 ) -> AppResult<Json<SubscriptionResponse>> {
@@ -117,7 +131,7 @@ pub async fn upgrade_tier(
 
 /// Downgrade subscription tier
 pub async fn downgrade_tier(
-    State(state): State<Arc<AuthHandler>>,
+    State(state): State<Arc<PaymentHandler>>,
     headers: HeaderMap,
     Json(req): Json<UpgradeTierRequest>,
 ) -> AppResult<Json<SubscriptionResponse>> {
@@ -130,7 +144,7 @@ pub async fn downgrade_tier(
 
 /// Cancel subscription
 pub async fn cancel_subscription(
-    State(state): State<Arc<AuthHandler>>,
+    State(state): State<Arc<PaymentHandler>>,
     headers: HeaderMap,
 ) -> AppResult<Json<serde_json::Value>> {
     let user_id = extract_user_from_header(&state, &headers)?;
@@ -142,7 +156,7 @@ pub async fn cancel_subscription(
 
 /// Toggle auto-renewal
 pub async fn toggle_auto_renew(
-    State(state): State<Arc<AuthHandler>>,
+    State(state): State<Arc<PaymentHandler>>,
     headers: HeaderMap,
     Json(req): Json<ToggleAutoRenewRequest>,
 ) -> AppResult<Json<serde_json::Value>> {

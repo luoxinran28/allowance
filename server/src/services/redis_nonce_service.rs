@@ -28,7 +28,7 @@ impl RedisNonceService {
     /// Create a new Redis nonce service
     pub async fn new(redis_url: &str) -> Result<Self> {
         let client = redis::Client::open(redis_url)?;
-        let conn = client.get_aio_connection().await?;
+        let conn = client.get_async_connection().await?;
         Ok(RedisNonceService { conn })
     }
 

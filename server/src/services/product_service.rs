@@ -98,10 +98,13 @@ impl ProductService {
     }
 
     /// Get license by ID
-    pub async fn get_license_by_id(pool: &PgPool, id: i64) -> AppResult<License> {
+    pub async fn get_license_by_id<'a, T>(conn: T, id: i64) -> AppResult<License>
+    where
+        T: sqlx::Executor<'a, Database = sqlx::Postgres>,
+    {
         sqlx::query_as::<_, License>("SELECT * FROM licenses WHERE id = $1")
             .bind(id)
-            .fetch_optional(pool)
+            .fetch_optional(conn)
             .await?
             .ok_or(AppError::NotFound("License not found".to_string()))
     }
@@ -136,7 +139,7 @@ impl ProductService {
             .bind(upid)
             .fetch_optional(pool)
             .await?
-            .ok_or(AppError::Unauthorized("No active license for product".to_string()))
+            .ok_or(AppError::Forbidden)
     }
 
     /// Check if license has available seats

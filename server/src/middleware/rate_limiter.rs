@@ -124,11 +124,24 @@ impl RateLimiter {
 
     pub async fn get_stats(&self, client_id: &str) -> Option<ClientQuotaInfo> {
         let clients = self.clients.read().await;
-        clients.get(client_id).map(|quota| ClientQuotaInfo {
-            minute_remaining: self.config.requests_per_minute.saturating_sub(quota.minute_count),
-            hour_remaining: self.config.requests_per_hour.saturating_sub(quota.hour_count),
-            minute_reset: quota.minute_window + Duration::from_secs(60),
-            hour_reset: quota.hour_window + Duration::from_secs(3600),
+        let now = Instant::now();
+        clients.get(client_id).map(|quota| {
+            let minute_reset_secs = if now >= quota.minute_window {
+                60 - now.duration_since(quota.minute_window).as_secs().min(60)
+            } else {
+                60
+            };
+            let hour_reset_secs = if now >= quota.hour_window {
+                3600 - now.duration_since(quota.hour_window).as_secs().min(3600)
+            } else {
+                3600
+            };
+            ClientQuotaInfo {
+                minute_remaining: self.config.requests_per_minute.saturating_sub(quota.minute_count),
+                hour_remaining: self.config.requests_per_hour.saturating_sub(quota.hour_count),
+                minute_reset: minute_reset_secs,
+                hour_reset: hour_reset_secs,
+            }
         })
     }
 }
@@ -146,8 +159,8 @@ impl Clone for RateLimiter {
 pub struct ClientQuotaInfo {
     pub minute_remaining: u32,
     pub hour_remaining: u32,
-    pub minute_reset: Instant,
-    pub hour_reset: Instant,
+    pub minute_reset: u64, // timestamp in seconds
+    pub hour_reset: u64,   // timestamp in seconds
 }
 
 #[derive(Debug)]

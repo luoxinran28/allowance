@@ -167,8 +167,8 @@ pub async fn detailed_health_check(State(pool): State<PgPool>) -> Response {
         database: DatabaseHealth {
             status: db_status.to_string(),
             connection_pool_size: 20, // Would read from config
-            active_connections: pool.num_acquired(),
-            idle_connections: pool.size() - pool.num_acquired(),
+            active_connections: 0, // pool.num_acquired() not available in this version
+            idle_connections: 0, // pool.size() - pool.num_acquired() not available
             response_time_ms: start.elapsed().as_secs_f64() * 1000.0,
         },
         memory: MemoryHealth {

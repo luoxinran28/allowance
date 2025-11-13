@@ -2,49 +2,8 @@ use chrono::{DateTime, Utc, Duration};
 use sqlx::PgPool;
 use crate::utils::{AppResult, AppError};
 use crate::services::stripe_service::StripeService;
-use serde::{Deserialize, Serialize};
+use crate::models::payment::{PaymentIntent, Subscription, Invoice};
 use uuid::Uuid;
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PaymentIntent {
-    pub id: String,
-    pub user_id: i64,
-    pub amount: i64,
-    pub currency: String,
-    pub status: String,  // pending, succeeded, failed
-    pub product_tier: String,
-    pub billing_period_months: i32,
-    pub stripe_intent_id: Option<String>,
-    pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Subscription {
-    pub id: i64,
-    pub user_id: i64,
-    pub tier: String,
-    pub status: String,  // active, canceled, suspended
-    pub current_period_start: DateTime<Utc>,
-    pub current_period_end: DateTime<Utc>,
-    pub auto_renew: bool,
-    pub stripe_subscription_id: Option<String>,
-    pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Invoice {
-    pub id: i64,
-    pub user_id: i64,
-    pub subscription_id: i64,
-    pub amount: i64,
-    pub status: String,  // draft, sent, paid, failed
-    pub due_date: DateTime<Utc>,
-    pub paid_date: Option<DateTime<Utc>>,
-    pub stripe_invoice_id: Option<String>,
-    pub created_at: DateTime<Utc>,
-}
 
 pub struct PaymentService;
 
@@ -95,7 +54,7 @@ impl PaymentService {
         .bind(intent_id)
         .fetch_optional(pool)
         .await?
-        .ok_or(AppError::NotFound)?;
+        .ok_or(AppError::NotFound("Payment intent not found".to_string()))?;
 
         // Confirm with Stripe
         if let Some(stripe_intent_id) = &payment.stripe_intent_id {
@@ -176,7 +135,7 @@ impl PaymentService {
         .bind("active")
         .fetch_optional(&mut *tx)
         .await?
-        .ok_or(AppError::NotFound)?;
+        .ok_or(AppError::NotFound("Subscription not found".to_string()))?;
 
         // Cancel current subscription
         sqlx::query("UPDATE subscriptions SET status = $1, updated_at = $2 WHERE id = $3")
@@ -235,7 +194,7 @@ impl PaymentService {
         .bind("active")
         .fetch_optional(&mut *tx)
         .await?
-        .ok_or(AppError::NotFound)?;
+        .ok_or(AppError::NotFound("Subscription not found".to_string()))?;
 
         // Schedule downgrade for next billing period
         sqlx::query("UPDATE subscriptions SET tier = $1, updated_at = $2 WHERE id = $3")
@@ -272,7 +231,7 @@ impl PaymentService {
         .bind("active")
         .fetch_optional(pool)
         .await?
-        .ok_or(AppError::NotFound)?;
+        .ok_or(AppError::NotFound("Subscription not found".to_string()))?;
 
         Ok(subscription)
     }
@@ -340,7 +299,7 @@ impl PaymentService {
         .bind(invoice_id)
         .fetch_optional(pool)
         .await?
-        .ok_or(AppError::NotFound)?;
+        .ok_or(AppError::NotFound("Invoice not found".to_string()))?;
 
         Ok(invoice)
     }

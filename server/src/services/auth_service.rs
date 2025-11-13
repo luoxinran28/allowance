@@ -1,4 +1,4 @@
-use sqlx::PgPool;
+use sqlx::{PgPool, Row};
 use chrono::Utc;
 use uuid::Uuid;
 
@@ -49,82 +49,6 @@ impl AuthService {
             .await?;
 
         Ok(UserResponse::from(user))
-    }
-
-    /// Login with email, password, and UPID (product authorization)
-    /// Validates:
-    /// 1. User credentials
-    /// 2. User is active
-    /// 3. Organization has active license for the product (UPID)
-    /// 4. License is not revoked and not expired
-    /// 5. License has available seats
-    pub async fn login_with_upid(
-        pool: &PgPool,
-        email: &str,
-        password: &str,
-        upid: &str,
-    ) -> AppResult<User> {
-        // 1. Verify user credentials
-        let user = sqlx::query_as::<_, User>(
-            "SELECT * FROM users WHERE email = $1"
-        )
-            .bind(email)
-            .fetch_optional(pool)
-            .await?
-            .ok_or(AppError::InvalidCredentials)?;
-
-        if !verify_password(password, &user.password_hash)? {
-            return Err(AppError::InvalidCredentials);
-        }
-
-        if user.status != "active" {
-            return Err(AppError::InvalidCredentials);
-        }
-
-        // 2. Verify product exists
-        let _product = sqlx::query("SELECT id FROM products WHERE upid = $1")
-            .bind(upid)
-            .fetch_optional(pool)
-            .await?
-            .ok_or(AppError::Unauthorized("Product not authorized".to_string()))?;
-
-        // 3. Verify organization has active license for this product
-        let license = sqlx::query(
-            r#"
-            SELECT id FROM licenses 
-            WHERE upid = $1 AND org_id = $2 AND revoked = FALSE AND expires_at > NOW()
-            LIMIT 1
-            "#
-        )
-            .bind(upid)
-            .bind(user.org_id)
-            .fetch_optional(pool)
-            .await?
-            .ok_or(AppError::Unauthorized("No active license for product".to_string()))?;
-
-        // 4. Get full license info and check seat availability
-        let license_id: i64 = license.get(0);
-        let full_license = sqlx::query("SELECT current_users, max_users FROM licenses WHERE id = $1")
-            .fetch_one(pool)
-            .await?;
-
-        let current_users: i32 = full_license.get(0);
-        let max_users: i32 = full_license.get(1);
-
-        if current_users >= max_users {
-            return Err(AppError::Unauthorized("License user limit reached".to_string()));
-        }
-
-        // Update last login
-        let _ = sqlx::query(
-            "UPDATE users SET last_login = $1 WHERE id = $2"
-        )
-            .bind(Utc::now().naive_utc())
-            .bind(user.id)
-            .execute(pool)
-            .await;
-
-        Ok(user)
     }
 
     /// Login with email and password

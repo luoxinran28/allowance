@@ -20,7 +20,7 @@ use tracing_subscriber;
 use utoipa_swagger_ui::SwaggerUi;
 
 use config::Config;
-use handlers::auth::AuthHandler;
+use handlers::{auth::AuthHandler, payment::PaymentHandler};
 use utils::JwtManager;
 use services::StripeService;
 
@@ -72,7 +72,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Initialize auth handler
     let auth_handler = Arc::new(AuthHandler {
         pool: Arc::new(pool.clone()),
-        jwt,
+        jwt: jwt.clone(),
+    });
+
+    // Initialize payment handler
+    let payment_handler = Arc::new(PaymentHandler {
+        pool: Arc::new(pool.clone()),
+        jwt: jwt.clone(),
+        stripe: stripe.clone(),
     });
 
     // Initialize license query handler
@@ -126,6 +133,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .route("/org/search", get(handlers::organization::search_organizations))
         .route("/org/my", get(handlers::organization::get_user_organizations))
         .route("/org/:org_id", get(handlers::organization::get_organization).put(handlers::organization::update_organization).delete(handlers::organization::delete_organization))
+        .route("/licenses/batch/generate", post(handlers::batch_licenses::generate_batch_licenses))
+        .route("/licenses/batch/revoke", post(handlers::batch_licenses::revoke_batch_licenses))
+        .route("/licenses/batch/export", post(handlers::batch_licenses::export_batch_licenses))
+        // .route("/webhooks/stripe", post(handlers::webhooks::handle_stripe_webhook))
+        .with_state(auth_handler.clone());
+
+    // Payment routes with payment handler state
+    let payment_routes = Router::new()
         .route("/payment/create-intent", post(handlers::payment::create_payment_intent))
         .route("/payment/confirm", post(handlers::payment::confirm_payment))
         .route("/subscription/current", get(handlers::payment::get_subscription))
@@ -134,11 +149,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .route("/subscription/cancel", post(handlers::payment::cancel_subscription))
         .route("/subscription/auto-renew", post(handlers::payment::toggle_auto_renew))
         .route("/pricing", get(handlers::payment::get_pricing))
-        .route("/licenses/batch/generate", post(handlers::batch_licenses::generate_batch_licenses))
-        .route("/licenses/batch/revoke", post(handlers::batch_licenses::revoke_batch_licenses))
-        .route("/licenses/batch/export", post(handlers::batch_licenses::export_batch_licenses))
-        // .route("/webhooks/stripe", post(handlers::webhooks::handle_stripe_webhook))
-        .with_state(auth_handler.clone());
+        .with_state(payment_handler.clone());
 
     // License query routes with separate state
     let license_routes = Router::new()
@@ -149,6 +160,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .with_state(license_query_handler.clone());
 
     let app = auth_routes
+        .merge(payment_routes)
         .merge(license_routes)
         .layer(DefaultBodyLimit::max(5_242_880)) // 5MB
         .layer(TraceLayer::new_for_http())
