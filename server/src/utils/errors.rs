@@ -35,8 +35,14 @@ pub enum AppError {
     #[error("Invalid request: {0}")]
     InvalidRequest(String),
 
+    #[error("Bad request: {0}")]
+    BadRequest(String),
+
     #[error("Not found: {0}")]
     NotFound(String),
+
+    #[error("Conflict: {0}")]
+    Conflict(String),
 
     #[error("Product not found")]
     ProductNotFound,

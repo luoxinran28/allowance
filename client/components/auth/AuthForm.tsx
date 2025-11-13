@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { apiClient } from '@/lib/api-client';
@@ -15,8 +15,19 @@ export function AuthForm({ mode }: AuthFormProps) {
   const { setAuth } = useAuthStore();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [upid, setUpid] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Read UPID from meta tag on component mount
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      const upidMeta = document.querySelector('meta[name="allowance-upid"]') as HTMLMetaElement;
+      if (upidMeta?.content) {
+        setUpid(upidMeta.content);
+      }
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,10 +38,14 @@ export function AuthForm({ mode }: AuthFormProps) {
       if (mode === 'register') {
         await apiClient.register(email, password);
         setError('');
-        // Redirect to email verification page
         router.push(`/auth/activate?email=${email}`);
       } else {
-        const response = await apiClient.login(email, password);
+        // Login with UPID if available, otherwise fallback to old login
+        const loginPromise = upid
+          ? apiClient.loginWithUpid(email, password, upid)
+          : apiClient.login(email, password);
+        
+        const response = await loginPromise;
         const { user, token } = response.data;
         setAuth(user, token);
         router.push('/dashboard');
@@ -52,6 +67,12 @@ export function AuthForm({ mode }: AuthFormProps) {
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
             {error}
+          </div>
+        )}
+
+        {upid && (
+          <div className="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded mb-4 text-sm">
+            Product: {upid}
           </div>
         )}
 

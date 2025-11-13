@@ -98,9 +98,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .route("/auth/activate", post(handlers::auth::activate))
         .route("/auth/request-password-reset", post(handlers::auth::request_password_reset))
         .route("/auth/reset-password", post(handlers::auth::reset_password))
-        .route("/product/list", get(handlers::product::list_products))
-        .route("/product/:product_id", get(handlers::product::get_product))
-        .route("/product/license/generate", post(handlers::product::generate_license))
+        
         .route("/user/profile", get(handlers::user::get_profile).put(handlers::user::update_profile))
         .route("/user/licenses", get(handlers::user::get_licenses))
         .route("/team/create", post(handlers::team::create_team))
@@ -115,6 +113,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .route("/admin/approvals/:approval_id", get(handlers::admin::get_approval))
         .route("/admin/approvals/:approval_id/approve", post(handlers::admin::approve_request))
         .route("/admin/approvals/:approval_id/reject", post(handlers::admin::reject_request))
+        .route("/admin/products", post(handlers::admin::create_product))
+        .route("/admin/licenses", post(handlers::admin::create_license))
         .route("/org/create", post(handlers::organization::create_organization))
         .route("/org", get(handlers::organization::list_organizations))
         .route("/org/search", get(handlers::organization::search_organizations))
@@ -132,14 +132,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .route("/licenses/batch/revoke", post(handlers::batch_licenses::revoke_batch_licenses))
         .route("/licenses/batch/export", post(handlers::batch_licenses::export_batch_licenses))
         // .route("/webhooks/stripe", post(handlers::webhooks::handle_stripe_webhook))
-        .route("/health", get(handlers::health::health_check))
-        .route("/health/ready", get(handlers::health::readiness_check))
-        .route("/health/live", get(handlers::health::liveness_check))
-        .route("/health/detailed", get(handlers::health::detailed_health_check))
+        
         .layer(DefaultBodyLimit::max(5_242_880)) // 5MB
         .layer(TraceLayer::new_for_http())
-        .layer(cors)
-        .with_state(auth_handler.clone());
+        .layer(cors.clone())
+        .with_state(auth_handler.clone())
+        .nest("/health", 
+            Router::new()
+                .route("/", get(handlers::health::health_check))
+                .route("/ready", get(handlers::health::readiness_check))
+                .route("/live", get(handlers::health::liveness_check))
+                .route("/detailed", get(handlers::health::detailed_health_check))
+                .with_state(pool.clone())
+        );
 
     // Start server
     let bind_addr = format!("{}:{}", config.server_host, config.server_port);

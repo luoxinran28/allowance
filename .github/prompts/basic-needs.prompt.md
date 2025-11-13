@@ -3,7 +3,8 @@ mode: agent
 ---
 我需要建立一个独立的用户注册授权管理系统，希望能够提供用户的免费注册登陆系统，并且能够让用户付费成为不同等级的用户，赋予不同的业务权限，同样付费的用户，也可能会有不同的RBAC角色管理，拥有不同的权限设置等。请分析以下我的需求，先不要生成代码，首先看看有没有需要补充的地方，然后告诉我方案。
 
-1. 业务
+1. 业务需求
+2025年11月8日需求：
 用户User管理，由RBAC系统管理产品使用权限:
 	用户登陆及授权，独立uid;
 	支持发送邮件链接激活或者验证码，暂时使用我的个人邮箱发送: luoxinran28@gmail.com
@@ -20,8 +21,8 @@ mode: agent
 	部门领导有Team的一些管理权限，例如某个部门下的领导允许试用某一款产品;
 
 2. 技术选型
-前端：nextjs + better-auth
-后端： Rust + Axum + Keycloak|openidconnect|reqwest等(https://crates.io/crates/keycloak)
+前端：nextjs
+后端： Rust + Axum + SQLx + JWT + Redis
 数据库：postgres
 部署：docker 容器化部署在阿里云ecs
 

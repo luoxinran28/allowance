@@ -1,11 +1,14 @@
 import axios, { AxiosInstance } from 'axios';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4040';
+const API_SECRET = process.env.NEXT_PUBLIC_API_SECRET || '';
 
 class ApiClient {
   private client: AxiosInstance;
+  private apiSecret: string;
 
   constructor() {
+    this.apiSecret = API_SECRET;
     this.client = axios.create({
       baseURL: API_URL,
       headers: {
@@ -25,9 +28,64 @@ class ApiClient {
     });
   }
 
-  // Auth endpoints
+  // ============= Nonce & Sign Generation =============
+
+  private async hashBody(body: any): Promise<string> {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(JSON.stringify(body));
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    return Array.from(new Uint8Array(hashBuffer))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
+  }
+
+  private async generateNonce(body: any): Promise<{
+    timestamp: string;
+    nonce: string;
+    sign: string;
+  }> {
+    const timestamp = Math.floor(Date.now() / 1000).toString();
+    const nonce = crypto.randomUUID().replace(/-/g, '').substring(0, 32);
+    const bodyHash = await this.hashBody(body);
+
+    const message = `${timestamp}${nonce}${bodyHash}`;
+    const encoder = new TextEncoder();
+    const messageBuffer = encoder.encode(message);
+    const secretBuffer = encoder.encode(this.apiSecret);
+
+    const key = await crypto.subtle.importKey(
+      'raw',
+      secretBuffer,
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['sign']
+    );
+    const signature = await crypto.subtle.sign('HMAC', key, messageBuffer);
+    const sign = Array.from(new Uint8Array(signature))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
+
+    return { timestamp, nonce, sign };
+  }
+
+  // ============= Auth Endpoints =============
+
   async register(email: string, password: string) {
     return this.client.post('/auth/register', { email, password });
+  }
+
+  /// Login with email, password, and UPID (product)
+  async loginWithUpid(email: string, password: string, upid: string) {
+    const body = { email, password, upid };
+    const { timestamp, nonce, sign } = await this.generateNonce(body);
+    
+    return this.client.post('/auth/login', body, {
+      headers: {
+        'X-Timestamp': timestamp,
+        'X-Nonce': nonce,
+        'X-Sign': sign,
+      }
+    });
   }
 
   async login(email: string, password: string) {
@@ -46,7 +104,8 @@ class ApiClient {
     return this.client.post('/auth/reset-password', { token, new_password: newPassword });
   }
 
-  // User endpoints
+  // ============= User Endpoints =============
+
   async getUserProfile() {
     return this.client.get('/user/profile');
   }
@@ -55,24 +114,85 @@ class ApiClient {
     return this.client.put('/user/profile', data);
   }
 
-  async getUserLicenses() {
-    return this.client.get('/user/licenses');
-  }
+  // ============= Product & License Endpoints =============
 
-  // Product endpoints
+  /// List all products (including UPID info)
   async listProducts() {
-    return this.client.get('/product/list');
+    return this.client.get('/products');
   }
 
-  async generateLicense(productId: string, versionName: string, daysValid: number) {
-    return this.client.post('/product/license/generate', {
-      product_id: productId,
-      version_name: versionName,
-      days_valid: daysValid,
+  /// Get product by UPID
+  async getProductByUpid(upid: string) {
+    return this.client.get(`/products/${upid}`);
+  }
+
+  /// Get user's assigned licenses
+  async getUserLicenses() {
+    return this.client.get('/licenses/mine');
+  }
+
+  /// Employee requests license access (requires Nonce)
+  async requestLicense(licenseId: number) {
+    const body = { license_id: licenseId };
+    const { timestamp, nonce, sign } = await this.generateNonce(body);
+    
+    return this.client.post('/licenses/request', body, {
+      headers: {
+        'X-Timestamp': timestamp,
+        'X-Nonce': nonce,
+        'X-Sign': sign,
+      }
     });
   }
 
-  // Team endpoints
+  /// Team leader assigns license to employee (requires Nonce)
+  async assignLicense(userId: number, licenseId: number) {
+    const body = { user_id: userId, license_id: licenseId };
+    const { timestamp, nonce, sign } = await this.generateNonce(body);
+    
+    return this.client.post('/licenses/assign', body, {
+      headers: {
+        'X-Timestamp': timestamp,
+        'X-Nonce': nonce,
+        'X-Sign': sign,
+      }
+    });
+  }
+
+  /// Team leader revokes employee license (requires Nonce)
+  async revokeLicense(userLicenseId: number) {
+    const { timestamp, nonce, sign } = await this.generateNonce({});
+    
+    return this.client.delete(`/licenses/revoke/${userLicenseId}`, {
+      headers: {
+        'X-Timestamp': timestamp,
+        'X-Nonce': nonce,
+        'X-Sign': sign,
+      }
+    });
+  }
+
+  /// Team leader gets pending license approval requests
+  async getPendingApprovals(teamId: number) {
+    return this.client.get(`/approvals?team_id=${teamId}`);
+  }
+
+  /// Team leader approves or rejects license request (requires Nonce)
+  async reviewLicenseRequest(approvalId: number, status: 'approved' | 'rejected', remarks?: string) {
+    const body = { status, remarks };
+    const { timestamp, nonce, sign } = await this.generateNonce(body);
+    
+    return this.client.post(`/approvals/${approvalId}/review`, body, {
+      headers: {
+        'X-Timestamp': timestamp,
+        'X-Nonce': nonce,
+        'X-Sign': sign,
+      }
+    });
+  }
+
+  // ============= Team Endpoints =============
+
   async createTeam(name: string, description?: string) {
     return this.client.post('/team/create', { name, description });
   }
@@ -101,7 +221,8 @@ class ApiClient {
     return this.client.put(`/team/${teamId}/members/${userId}`, { role });
   }
 
-  // Organization endpoints
+  // ============= Organization Endpoints =============
+
   async createOrganization(name: string, description?: string) {
     return this.client.post('/org/create', { name, description });
   }

@@ -5,7 +5,7 @@ use axum::{
 };
 use serde::{Deserialize, Serialize};
 
-use crate::models::{UserResponse, User, ApprovalRequest};
+use crate::models::{UserResponse, User, ApprovalRequest, CreateProductRequest, CreateLicenseRequest};
 use crate::services::{AuthService, RbacService};
 use crate::utils::{AppResult, AppError};
 use crate::handlers::auth::AuthHandler;
@@ -258,4 +258,86 @@ pub async fn reject_request(
         success: true,
         message: format!("Approval request {} rejected", approval_id),
     }))
+}
+
+// ============= PRODUCT & LICENSE ADMIN ENDPOINTS =============
+
+#[derive(Serialize)]
+pub struct ProductResponse {
+    pub id: i64,
+    pub upid: String,
+    pub product_slug: String,
+    pub tier: String,
+    pub name: String,
+    pub description: Option<String>,
+}
+
+/// Create new product (admin only)
+pub async fn create_product(
+    State(state): State<Arc<AuthHandler>>,
+    headers: HeaderMap,
+    Json(mut req): Json<CreateProductRequest>,
+) -> AppResult<(axum::http::StatusCode, Json<ProductResponse>)> {
+    let user_id = extract_user_from_header(&state, &headers)?;
+    check_admin_permission(&state, user_id).await?;
+
+    let product = crate::services::ProductService::create_product(
+        &state.pool,
+        req,
+        user_id,
+    ).await?;
+
+    Ok((
+        axum::http::StatusCode::CREATED,
+        Json(ProductResponse {
+            id: product.id,
+            upid: product.upid,
+            product_slug: product.product_slug,
+            tier: product.tier,
+            name: product.name,
+            description: product.description,
+        }),
+    ))
+}
+
+#[derive(Serialize)]
+pub struct LicenseResponse {
+    pub id: i64,
+    pub upid: String,
+    pub org_id: i64,
+    pub issued_at: chrono::DateTime<chrono::Utc>,
+    pub expires_at: chrono::DateTime<chrono::Utc>,
+    pub max_users: i32,
+    pub current_users: i32,
+    pub revoked: bool,
+}
+
+/// Create new license (admin only)
+pub async fn create_license(
+    State(state): State<Arc<AuthHandler>>,
+    headers: HeaderMap,
+    Json(req): Json<CreateLicenseRequest>,
+) -> AppResult<(axum::http::StatusCode, Json<LicenseResponse>)> {
+    let user_id = extract_user_from_header(&state, &headers)?;
+    check_admin_permission(&state, user_id).await?;
+
+    let license = crate::services::ProductService::create_license(
+        &state.pool,
+        req,
+        user_id,
+    ).await?;
+
+    Ok((
+        axum::http::StatusCode::CREATED,
+        Json(LicenseResponse {
+            id: license.id,
+            upid: license.upid,
+            org_id: license.org_id,
+            issued_at: license.issued_at,
+            expires_at: license.expires_at,
+            max_users: license.max_users,
+            current_users: license.current_users,
+            revoked: license.revoked,
+        }),
+    ))
 }

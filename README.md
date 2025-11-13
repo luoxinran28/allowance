@@ -2,8 +2,27 @@
 
 Complete implementation of a user registration, authorization, and RBAC management system with payment processing, batch operations, and production-ready infrastructure.
 
-**Status**: ✅ Phase 3-4 (100% Complete - Production Ready)  
-**Last Updated**: November 10, 2025
+**Status**: ✅ Phase 2 Complete (Product/License Admin System) - Core UPID Authorization Ready  
+**Last Updated**: November 13, 2025
+
+## 🎯 Recent Updates: Phase 1-2 UPID/Nonce/License System
+
+**Phase 1** (Completed) - Core Infrastructure:
+- ✅ UPID-based product identification (format: `UPID-{slug}-{tier}`)
+- ✅ Nonce validation middleware with HMAC-SHA256 signing
+- ✅ Three-tier login validation: credentials → UPID product → active org license → available seats
+- ✅ Database schema for products, licenses, user_licenses, and license_approvals
+- ✅ Frontend integration with Web Crypto API for client-side HMAC generation
+- ✅ Login component updated to read UPID from meta tag
+
+**Phase 2** (Completed) - Admin Endpoints:
+- ✅ `POST /admin/products` - Create new products with admin role requirement
+- ✅ `POST /admin/licenses` - Issue licenses to organizations
+- ✅ Complete RBAC validation for admin-only operations
+- ✅ Unit test framework for ProductService methods
+- ✅ API testing documentation with curl examples (`PHASE2_API_TESTS.md`)
+
+See `prompts/20251112-upid-nonce-license.prompt.md` for detailed requirements and architecture.
 
 ## 📋 Quick Start
 
@@ -180,6 +199,15 @@ npm run dev
 - ✅ License generation with JWT format
 - ✅ Product listing and details retrieval
 - ✅ Offline license verification capability
+
+#### 3a. UPID & Nonce Authorization (Phase 1-2) **NEW**
+- ✅ UPID-based product identification (format: `UPID-{slug}-{tier}`)
+- ✅ Nonce validation with HMAC-SHA256 signing
+- ✅ Three-tier login validation (credentials → product → license → seats)
+- ✅ Admin endpoints for product & license creation
+- ✅ License assignment and revocation with seat management
+- ✅ License approval workflow system
+- ✅ Web Crypto API integration for client-side HMAC generation
 
 #### 4. Organization & Teams
 - ✅ Organization (company/institution) structure
@@ -683,7 +711,68 @@ allowance/
   - Kubernetes deployment guide (StatefulSet, HPA, Ingress)
   - Docker Swarm deployment guide (Traefik, stack compose)
 
-## � Configuration & Verification
+## 🧪 Testing Phase 1-2 Features
+
+### Phase 2: Admin Product & License Endpoints
+
+Complete API testing documentation for the new admin product and license creation endpoints:
+
+**See**: `server/PHASE2_API_TESTS.md`
+
+Includes:
+- ✅ Admin user setup and authentication
+- ✅ curl examples for all new endpoints
+- ✅ Success and error test cases
+- ✅ RBAC validation examples  
+- ✅ Database verification queries
+
+Quick test:
+
+```bash
+# 1. Get admin JWT token (see PHASE2_API_TESTS.md setup)
+ADMIN_TOKEN="<your_jwt_token>"
+
+# 2. Create a product
+curl -X POST http://localhost:4040/admin/products \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -d '{
+    "product_slug": "minerbond",
+    "tier": "basic",
+    "name": "MinnerBond Basic",
+    "description": "Basic tier for MinnerBond"
+  }'
+
+# 3. Create a license
+curl -X POST http://localhost:4040/admin/licenses \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -d '{
+    "upid": "UPID-minerbond-basic",
+    "org_id": 1,
+    "issued_at": "2025-11-13T00:00:00Z",
+    "expires_at": "2026-11-13T00:00:00Z",
+    "max_users": 100
+  }'
+```
+
+### Unit Tests
+
+Product service unit tests with test cases for:
+- Product creation with UPID generation (format: `UPID-{slug}-{tier}`)
+- License creation, assignment, and revocation
+- Three-tier login validation
+- License seat management
+- Approval workflow processing
+
+See: `tests/product_service_tests.rs`
+
+```bash
+cd server
+cargo test product_service  # Run product service tests
+```
+
+## 📋 Configuration & Verification
 
 **Full configuration checklist and verification procedures are documented in:**
 - **[`.github/prompts/20251110-project-status.prompt.md`](./.github/prompts/20251110-project-status.prompt.md)** - Comprehensive AI-friendly project status with all configuration details and verification steps

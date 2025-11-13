@@ -63,6 +63,6 @@ pub async fn get_licenses(
 ) -> AppResult<Json<serde_json::Value>> {
     let user_id = extract_user_from_header(&state, &headers)?;
     
-    let licenses = crate::services::LicenseService::get_user_licenses(&state.pool, user_id).await?;
+    let licenses = crate::services::ProductService::get_user_licenses(&state.pool, user_id).await?;
     Ok(Json(serde_json::to_value(licenses)?))
 }

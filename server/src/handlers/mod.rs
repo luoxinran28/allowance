@@ -46,7 +46,9 @@ impl IntoResponse for AppError {
             ),
             AppError::Forbidden => (StatusCode::FORBIDDEN, "Forbidden".to_string()),
             AppError::InvalidRequest(msg) => (StatusCode::BAD_REQUEST, msg),
+            AppError::BadRequest(msg) => (StatusCode::BAD_REQUEST, msg),
             AppError::NotFound(msg) => (StatusCode::NOT_FOUND, msg),
+            AppError::Conflict(msg) => (StatusCode::CONFLICT, msg),
             AppError::ProductNotFound => (
                 StatusCode::NOT_FOUND,
                 "Product not found".to_string(),
