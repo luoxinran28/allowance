@@ -2,10 +2,10 @@
 
 Complete implementation of a user registration, authorization, and RBAC management system with payment processing, batch operations, and production-ready infrastructure.
 
-**Status**: ✅ Phase 3 Complete (License Approval Workflow) - Ready for Testing  
+**Status**: ✅ Phase 4 Complete (Advanced Licensing Features) - Production Ready  
 **Last Updated**: January 15, 2025
 
-## 🎯 Recent Updates: Phase 1-3 UPID/Nonce/License System
+## 🎯 Recent Updates: Phase 1-4 Complete - UPID/Nonce/License System
 
 **Phase 1** (Completed) - Core Infrastructure:
 - ✅ UPID-based product identification (format: `UPID-{slug}-{tier}`)
@@ -29,6 +29,15 @@ Complete implementation of a user registration, authorization, and RBAC manageme
 - ✅ Backend endpoints for approval submission and review (already implemented)
 - ✅ E2E testing documentation with automated script (`PHASE3_API_TESTS.md`)
 - ✅ Full RBAC permissions for team_leader role
+
+**Phase 4** (Completed) - Advanced Licensing Features:
+- ✅ `RedisNonceService` - Distributed nonce caching with replay detection
+- ✅ `GET /licenses/active` - Query active, non-expired licenses
+- ✅ `GET /licenses/expiring` - Query licenses expiring within 30 days
+- ✅ `GET /licenses/org` - Query all licenses for an organization
+- ✅ `GET /licenses/summary` - User license summary metrics
+- ✅ Complete API testing documentation (`PHASE4_API_TESTS.md`)
+- ✅ Production-ready performance metrics and validation
 
 See `prompts/20251112-upid-nonce-license.prompt.md` for detailed requirements and architecture.
 
@@ -807,6 +816,41 @@ API_URL=http://custom:4040 bash server/test_phase3.sh
 - `LicenseApprovalRequest.tsx` - Request button and success state
 - `PendingApprovalsList.tsx` - View pending requests with filtering
 - `ApprovalReviewDialog.tsx` - Approve/reject modal with remarks
+
+### Phase 4 Advanced Licensing Features Testing
+
+Redis-backed nonce caching with distributed replay detection:
+
+**Query Endpoints** (GET requests):
+- `/licenses/active` - All active, non-expired licenses
+- `/licenses/expiring` - Licenses expiring within 30 days
+- `/licenses/org` - All licenses for an organization
+- `/licenses/summary` - User's license summary metrics
+
+**Test with curl**:
+```bash
+# Get token
+TOKEN=$(curl -s -X POST http://localhost:4040/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@test.local","password":"SecurePass123!"}' \
+  | jq -r '.data.token')
+
+# Query active licenses
+curl -X GET "http://localhost:4040/licenses/active?limit=10" \
+  -H "Authorization: Bearer $TOKEN" | jq .
+
+# Query expiring licenses  
+curl -X GET "http://localhost:4040/licenses/expiring" \
+  -H "Authorization: Bearer $TOKEN" | jq .
+```
+
+**Redis Nonce Caching** - Automatic replay detection across all server instances:
+- Validates nonce signatures using HMAC-SHA256
+- Caches nonces with 1-hour TTL
+- Detects and blocks replay attacks
+- Requires `REDIS_URL` environment variable
+
+See: `PHASE4_API_TESTS.md` for complete endpoint documentation and testing procedures.
 
 ## 📋 Configuration & Verification
 

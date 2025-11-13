@@ -8,6 +8,7 @@ pub mod admin_service;
 pub mod payment_service;
 pub mod stripe_service;
 pub mod cache_service;
+pub mod redis_nonce_service;
 
 pub use auth_service::AuthService;
 pub use rbac_service::RbacService;
@@ -19,4 +20,6 @@ pub use admin_service::AdminService;
 pub use payment_service::PaymentService;
 pub use stripe_service::StripeService;
 pub use cache_service::CacheService;
+pub use redis_nonce_service::{RedisNonceService, NonceRecord, CacheStats};
+
 

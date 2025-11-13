@@ -8,6 +8,7 @@ pub mod payment;
 pub mod health;
 pub mod webhooks;
 pub mod batch_licenses;
+pub mod licenses;
 
 use axum::{
     response::{IntoResponse, Response},

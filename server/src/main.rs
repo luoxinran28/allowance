@@ -75,6 +75,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         jwt,
     });
 
+    // Initialize license query handler
+    let license_query_handler = Arc::new(handlers::licenses::LicenseQueryHandler {
+        pool: Arc::new(pool.clone()),
+    });
+
     // Setup webhook state
     let webhook_state = handlers::webhooks::WebhookState {
         pool: Arc::new(pool.clone()),
@@ -90,7 +95,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let openapi_doc = docs::get_openapi_doc();
 
-    let app = Router::new()
+    // Main router with auth handler state
+    let auth_routes = Router::new()
         // API Documentation
         .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", openapi_doc.clone()))
         .route("/auth/register", post(handlers::auth::register))
@@ -132,11 +138,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .route("/licenses/batch/revoke", post(handlers::batch_licenses::revoke_batch_licenses))
         .route("/licenses/batch/export", post(handlers::batch_licenses::export_batch_licenses))
         // .route("/webhooks/stripe", post(handlers::webhooks::handle_stripe_webhook))
-        
+        .with_state(auth_handler.clone());
+
+    // License query routes with separate state
+    let license_routes = Router::new()
+        .route("/licenses/active", get(handlers::licenses::get_active_licenses))
+        .route("/licenses/expiring", get(handlers::licenses::get_expiring_licenses))
+        .route("/licenses/org", get(handlers::licenses::get_org_licenses))
+        .route("/licenses/summary", get(handlers::licenses::get_user_license_summary))
+        .with_state(license_query_handler.clone());
+
+    let app = auth_routes
+        .merge(license_routes)
         .layer(DefaultBodyLimit::max(5_242_880)) // 5MB
         .layer(TraceLayer::new_for_http())
         .layer(cors.clone())
-        .with_state(auth_handler.clone())
         .nest("/health", 
             Router::new()
                 .route("/", get(handlers::health::health_check))
