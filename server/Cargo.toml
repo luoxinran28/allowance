@@ -59,3 +59,4 @@ tokio-test = "0.4"
 sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "postgres", "json", "uuid", "chrono", "migrate"] }
 testcontainers = "0.15"
 testcontainers-modules = { version = "0.3", features = ["postgres"] }
+axum-test = "15.3"

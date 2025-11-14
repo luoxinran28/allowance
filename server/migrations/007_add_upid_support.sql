@@ -45,8 +45,8 @@ END $$;
 -- Create index for UPID lookups (if it doesn't exist)
 DO $$ BEGIN
     IF NOT EXISTS (
-        SELECT 1 FROM information_schema.statistics
-        WHERE table_name = 'products' AND index_name = 'idx_products_upid'
+        SELECT 1 FROM pg_indexes
+        WHERE tablename = 'products' AND indexname = 'idx_products_upid'
     ) THEN
         CREATE INDEX idx_products_upid ON products(upid);
     END IF;
@@ -65,8 +65,8 @@ END $$;
 -- Create index for UPID lookups in licenses (if it doesn't exist)
 DO $$ BEGIN
     IF NOT EXISTS (
-        SELECT 1 FROM information_schema.statistics
-        WHERE table_name = 'user_licenses' AND index_name = 'idx_user_licenses_upid'
+        SELECT 1 FROM pg_indexes
+        WHERE tablename = 'user_licenses' AND indexname = 'idx_user_licenses_upid'
     ) THEN
         CREATE INDEX idx_user_licenses_upid ON user_licenses(upid);
     END IF;
@@ -75,8 +75,8 @@ END $$;
 -- Create additional indexes (if they don't exist)
 DO $$ BEGIN
     IF NOT EXISTS (
-        SELECT 1 FROM information_schema.statistics
-        WHERE table_name = 'products' AND index_name = 'idx_products_tier_required'
+        SELECT 1 FROM pg_indexes
+        WHERE tablename = 'products' AND indexname = 'idx_products_tier_required'
     ) THEN
         CREATE INDEX idx_products_tier_required ON products(tier_required) WHERE tier_required IS NOT NULL;
     END IF;
@@ -84,8 +84,8 @@ END $$;
 
 DO $$ BEGIN
     IF NOT EXISTS (
-        SELECT 1 FROM information_schema.statistics
-        WHERE table_name = 'products' AND index_name = 'idx_products_daily_limit'
+        SELECT 1 FROM pg_indexes
+        WHERE tablename = 'products' AND indexname = 'idx_products_daily_limit'
     ) THEN
         CREATE INDEX idx_products_daily_limit ON products(daily_limit) WHERE daily_limit IS NOT NULL;
     END IF;
@@ -93,8 +93,8 @@ END $$;
 
 DO $$ BEGIN
     IF NOT EXISTS (
-        SELECT 1 FROM information_schema.statistics
-        WHERE table_name = 'products' AND index_name = 'idx_products_monthly_limit'
+        SELECT 1 FROM pg_indexes
+        WHERE tablename = 'products' AND indexname = 'idx_products_monthly_limit'
     ) THEN
         CREATE INDEX idx_products_monthly_limit ON products(monthly_limit) WHERE monthly_limit IS NOT NULL;
     END IF;

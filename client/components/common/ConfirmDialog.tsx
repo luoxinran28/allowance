@@ -10,6 +10,7 @@ interface ConfirmDialogProps {
   onCancel: () => void;
   isLoading?: boolean;
   isDangerous?: boolean;
+  customContent?: React.ReactNode;
 }
 
 export function ConfirmDialog({
@@ -22,6 +23,7 @@ export function ConfirmDialog({
   onCancel,
   isLoading = false,
   isDangerous = false,
+  customContent,
 }: ConfirmDialogProps) {
   if (!isOpen) return null;
 
@@ -33,6 +35,8 @@ export function ConfirmDialog({
             {title}
           </h2>
           <p className="text-gray-600 mb-6">{message}</p>
+
+          {customContent}
 
           <div className="flex gap-3 justify-end">
             <button
