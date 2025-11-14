@@ -3,17 +3,15 @@
 import { useEffect, useState } from 'react';
 import { apiClient } from '@/lib/api-client';
 import { usePermission } from '@/lib/hooks/usePermission';
-import { StatusBadge } from '@/components/common/StatusBadge';
 import { PaginationNav } from '@/components/common/PaginationNav';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 
 interface Product {
   id: number;
-  uid: string;
+  product_id: string;
+  upid?: string;
   name: string;
   description?: string;
-  version?: string;
-  tier?: string;
   created_at?: string;
   [key: string]: any;
 }
@@ -33,10 +31,9 @@ export default function AdminProductsPage() {
   const [showModal, setShowModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [formData, setFormData] = useState({
+    product_slug: '',
     name: '',
     description: '',
-    version: '1.0.0',
-    tier: 'standard',
   });
 
   // Confirm dialog state
@@ -92,18 +89,16 @@ export default function AdminProductsPage() {
     if (product) {
       setEditingProduct(product);
       setFormData({
+        product_slug: product.product_id || '',
         name: product.name || '',
         description: product.description || '',
-        version: product.version || '1.0.0',
-        tier: product.tier || 'standard',
       });
     } else {
       setEditingProduct(null);
       setFormData({
+        product_slug: '',
         name: '',
         description: '',
-        version: '1.0.0',
-        tier: 'standard',
       });
     }
     setShowModal(true);
@@ -113,10 +108,9 @@ export default function AdminProductsPage() {
     setShowModal(false);
     setEditingProduct(null);
     setFormData({
+      product_slug: '',
       name: '',
       description: '',
-      version: '1.0.0',
-      tier: 'standard',
     });
   };
 
@@ -274,13 +268,10 @@ export default function AdminProductsPage() {
                     Product Name
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                    ID
+                    Product Slug
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                    Version
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                    Tier
+                    UPID
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                     Created
@@ -300,13 +291,10 @@ export default function AdminProductsPage() {
                       {product.name}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600 font-mono">
-                      {product.uid}
+                      {product.product_id}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
-                      {product.version || 'N/A'}
-                    </td>
-                    <td className="px-6 py-4 text-sm">
-                      <StatusBadge status={product.tier || 'standard'} />
+                    <td className="px-6 py-4 text-sm text-gray-600 font-mono">
+                      {product.upid || 'N/A'}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600">
                       {product.created_at
@@ -366,6 +354,23 @@ export default function AdminProductsPage() {
             <form onSubmit={handleSubmit} className="space-y-4 p-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Product Slug
+                </label>
+                <input
+                  type="text"
+                  value={formData.product_slug}
+                  onChange={(e) =>
+                    setFormData({ ...formData, product_slug: e.target.value })
+                  }
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                  placeholder="e.g., allowance-001"
+                  disabled={!!editingProduct}
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   Product Name
                 </label>
                 <input
@@ -391,39 +396,6 @@ export default function AdminProductsPage() {
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
                   rows={3}
                 />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Version
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.version}
-                    onChange={(e) =>
-                      setFormData({ ...formData, version: e.target.value })
-                    }
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Tier
-                  </label>
-                  <select
-                    value={formData.tier}
-                    onChange={(e) =>
-                      setFormData({ ...formData, tier: e.target.value })
-                    }
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                  >
-                    <option value="free">Free</option>
-                    <option value="standard">Standard</option>
-                    <option value="premium">Premium</option>
-                  </select>
-                </div>
               </div>
 
               <div className="flex gap-3 pt-4">

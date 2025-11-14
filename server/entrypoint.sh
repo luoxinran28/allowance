@@ -23,6 +23,5 @@ done'
 echo "Database is ready!"
 
 echo "Running Allowance Server..."
-echo "Starting server and capturing output..."
-/app/allowance-server 2>&1
-echo "Server exited with code: $?"
+echo "Starting server..."
+exec /app/allowance-server 2>&1

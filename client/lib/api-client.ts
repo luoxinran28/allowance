@@ -17,11 +17,29 @@ class ApiClient {
     });
 
     // Add token to requests
-    this.client.interceptors.request.use((config) => {
+    this.client.interceptors.request.use(async (config) => {
       if (typeof window !== 'undefined') {
         const token = localStorage.getItem('token');
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
+        }
+
+        // Auto-add Nonce to POST/PUT/DELETE requests if not already present
+        if (
+          ['post', 'put', 'delete'].includes(config.method?.toLowerCase() || '') &&
+          !config.headers['X-Nonce'] &&
+          this.apiSecret
+        ) {
+          const body = config.data || {};
+          try {
+            const { timestamp, nonce, sign } = await this.generateNonce(body);
+            config.headers['X-Timestamp'] = timestamp;
+            config.headers['X-Nonce'] = nonce;
+            config.headers['X-Sign'] = sign;
+          } catch (err) {
+            // Log error but don't fail the request
+            console.error('Failed to generate Nonce headers:', err);
+          }
         }
       }
       return config;

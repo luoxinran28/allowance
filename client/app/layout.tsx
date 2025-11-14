@@ -7,6 +7,10 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "Allowance - Authorization Management",
   description: "User registration and authorization management system",
+  other: {
+    "allowance-upid": process.env.NEXT_PUBLIC_PRODUCT_UPID || "UALLOWANCE0001",
+    "allowance-tier": process.env.NEXT_PUBLIC_PRODUCT_TIER || "free",
+  },
 };
 
 export default function RootLayout({
