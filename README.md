@@ -1,45 +1,79 @@
 # Allowance Authorization Management System
 
-Complete implementation of a user registration, authorization, and RBAC management system with payment processing, batch operations, and production-ready infrastructure.
+Complete implementation of a user registration, authorization, and RBAC management system with UPID products, Nonce-based replay attack prevention, License management, payment processing, batch operations, and production-ready infrastructure.
 
-**Status**: ✅ Phase 4 Complete (Advanced Licensing Features) - Production Ready  
-**Last Updated**: January 15, 2025
+**Status**: ✅ Phase 1-4 Complete with Frontend Implementation  
+**Last Updated**: November 14, 2025
 
-## 🎯 Recent Updates: Phase 1-4 Complete - UPID/Nonce/License System
+## 🎯 Project Overview
 
-**Phase 1** (Completed) - Core Infrastructure:
-- ✅ UPID-based product identification (format: `UPID-{slug}-{tier}`)
-- ✅ Nonce validation middleware with HMAC-SHA256 signing
-- ✅ Three-tier login validation: credentials → UPID product → active org license → available seats
-- ✅ Database schema for products, licenses, user_licenses, and license_approvals
-- ✅ Frontend integration with Web Crypto API for client-side HMAC generation
-- ✅ Login component updated to read UPID from meta tag
+A comprehensive **product authorization and license management system** supporting:
+- **UPID Products**: Unique Product IDs for product identification (format: `U` + 15 uppercase chars)
+- **Nonce Security**: HMAC-SHA256 based replay attack prevention with 3-minute window
+- **License Management**: Create, assign, approve, and revoke product licenses
+- **Role-Based Access Control**: Free, Standard Employee, Team Leader, Admin roles
+- **Payment Processing**: Stripe integration for subscription management
+- **Batch Operations**: Generate and revoke licenses in bulk with audit trail
 
-**Phase 2** (Completed) - Admin Endpoints:
-- ✅ `POST /admin/products` - Create new products with admin role requirement
-- ✅ `POST /admin/licenses` - Issue licenses to organizations
-- ✅ Complete RBAC validation for admin-only operations
-- ✅ Unit test framework for ProductService methods
-- ✅ API testing documentation with curl examples (`PHASE2_API_TESTS.md`)
+### Recent Frontend Updates (Phase 1 - November 14, 2025)
 
-**Phase 3** (Completed) - License Approval Workflow:
-- ✅ `LicenseApprovalRequest` component - Users request license approval
-- ✅ `PendingApprovalsList` component - Team leaders view pending requests
-- ✅ `ApprovalReviewDialog` component - Approve/reject with remarks
-- ✅ Backend endpoints for approval submission and review (already implemented)
-- ✅ E2E testing documentation with automated script (`PHASE3_API_TESTS.md`)
-- ✅ Full RBAC permissions for team_leader role
+**Phase 1** (✅ Completed) - UPID Foundation & Frontend Infrastructure:
+- ✅ Database seeding with "allowance" product UPID: `UALLOWANCE0001`
+- ✅ Home page enhanced to read and display UPID from meta tag
+- ✅ UPID meta tag injection in Next.js layout metadata
+- ✅ API client optimization: auto-inject Nonce headers for all POST/PUT/DELETE requests
+- ✅ Admin products page (CRUD) with UPID fields and product management
+- ✅ Frontend builds successfully (23 pages, 88+ KB)
 
-**Phase 4** (Completed) - Advanced Licensing Features:
-- ✅ `RedisNonceService` - Distributed nonce caching with replay detection
-- ✅ `GET /licenses/active` - Query active, non-expired licenses
-- ✅ `GET /licenses/expiring` - Query licenses expiring within 30 days
-- ✅ `GET /licenses/org` - Query all licenses for an organization
-- ✅ `GET /licenses/summary` - User license summary metrics
-- ✅ Complete API testing documentation (`PHASE4_API_TESTS.md`)
-- ✅ Production-ready performance metrics and validation
+**Phase 2-4** (✅ Completed) - Backend Implementation:
+- ✅ Admin product creation and management endpoints
+- ✅ License approval workflow (employee request → team leader review → admin approval)
+- ✅ Advanced license querying (active, expiring, org-wide, user summaries)
+- ✅ Redis-based Nonce caching for distributed replay attack prevention
+- ✅ Complete RBAC validation for all endpoints
+- ✅ Full API testing documentation
 
-See `prompts/20251112-upid-nonce-license.prompt.md` for detailed requirements and architecture.
+## ✨ Key Features
+
+### 1. **UPID-Based Product System**
+```
+Format: UALLOWANCE0001
+├── U: Product prefix
+├── ALLOWANCE: Product slug
+└── 0001: Sequential identifier
+```
+Test UPID available: `UALLOWANCE0001` - Allowance System Product
+
+### 2. **Enhanced Security with Nonce**
+- HMAC-SHA256 signing for request integrity
+- 3-minute timestamp validity window
+- Redis distributed cache for nonce tracking
+- Prevents replay attacks across multiple servers
+
+### 3. **Frontend Infrastructure** (21 Pages)
+- **Authentication Pages** (4): Login, Register, Activate, Password Reset
+- **Dashboard Pages** (8): Profile, Products, Billing, Teams, Organizations, Batch Operations, etc.
+- **Admin Pages** (3): Users, Products, Approvals
+- **License Management Pages** (6) - *Being implemented in Phase 1-3*
+
+### 4. **Database Schema** (22 Tables)
+- Users, Roles, Permissions, RBAC (4 tables)
+- Products, Product Versions, Licenses, License Approvals (4 tables)
+- Organizations, Groups, User Groups (3 tables)
+- Subscriptions, Invoices, Payment Intents (3 tables)
+- Batch Operations, License Batches (2 tables)
+- Audit Logs, Email Tokens, Stripe Webhook Events (3 tables)
+
+## 🛠 Technology Stack
+
+- **Backend**: Rust 1.70+ with Axum 0.7 web framework
+- **Database**: PostgreSQL 15 with SQLx ORM
+- **Frontend**: Next.js 14 with React 18, TypeScript, Tailwind CSS
+- **Authentication**: JWT + Refresh Tokens
+- **Payments**: Stripe API integration
+- **Cache**: Redis for Nonce distribution
+- **Deployment**: Docker Compose with multi-stage builds
+- **Security**: HMAC-SHA256, Argon2 password hashing, CORS configuration
 
 ## 📋 Quick Start
 
@@ -181,6 +215,75 @@ npm run dev
 
 # Frontend runs on http://localhost:3030
 ```
+
+## 📱 Frontend Implementation Status (November 2025)
+
+### Phase 1: UPID Foundation & Frontend Infrastructure ✅ COMPLETE
+
+**Completed Components**:
+1. **Home Page Enhancement** (`client/app/page.tsx`)
+   - Reads UPID from meta tag
+   - Displays product information (UPID, Tier)
+   - Responsive layout with login/register buttons
+
+2. **Layout Update** (`client/app/layout.tsx`)
+   - Injects UPID meta tag from environment variable
+   - Default: `UALLOWANCE0001` (Allowance System)
+   - Configurable via `NEXT_PUBLIC_PRODUCT_UPID`
+
+3. **API Client Enhancement** (`client/lib/api-client.ts`)
+   - **Automatic Nonce Injection**: POST/PUT/DELETE requests auto-inject X-Timestamp, X-Nonce, X-Sign headers
+   - **HMAC-SHA256 Signing**: Client-side cryptographic signing for request integrity
+   - **Nonce Generation**: UUID-based 32-character nonce with timestamp
+   - **Replay Attack Prevention**: 3-minute window validation on backend
+
+4. **Admin Products Page** (`client/app/admin/products/page.tsx`)
+   - CRUD operations for products (Create, Read, Update, Delete)
+   - Display fields: Product Name, Product Slug, UPID, Created Date
+   - Form includes Product Slug (disabled on edit), Name, Description
+   - Automatic UPID display
+
+5. **Enhanced Login** (Already Implemented)
+   - Reads UPID from meta tag
+   - Supports `loginWithUpid()` API method
+   - Automatic Nonce generation for login requests
+   - Fallback to standard login if UPID unavailable
+
+**Database Seeding**:
+- Created `database/seed_allowance_product.sql`
+- Seeds "Allowance System" product with `UALLOWANCE0001` UPID
+- Creates 3 tiers: free, standard, premium
+- Assigns licenses to test users (admin, user, free)
+
+**Environment Configuration**:
+- `.env`: `NEXT_PUBLIC_PRODUCT_UPID=UALLOWANCE0001`
+- `.env`: `NEXT_PUBLIC_PRODUCT_TIER=free`
+- `.env`: `NEXT_PUBLIC_API_SECRET` (for Nonce generation)
+
+**Build Status**: ✅ **Successful**
+- Frontend builds to 23 production pages
+- Total build size: ~88 KB (optimized)
+- No TypeScript compilation errors
+- All components properly typed
+
+### Upcoming Phases
+
+**Phase 2**: License Management (Weeks 2-3)
+- Admin License CRUD page
+- User License viewing page
+- License approval workflow page
+
+**Phase 3**: License Request & Assignment (Weeks 3-4)
+- Employee license request form
+- Team Leader license assignment interface
+- Available products browsing
+
+**Phase 4**: Testing & Optimization (Week 4)
+- Integration testing
+- Performance optimization
+- Error handling refinement
+
+---
 
 ## 🏗️ Architecture Overview
 
