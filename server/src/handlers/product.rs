@@ -11,8 +11,8 @@ use crate::models::{
     LicenseApprovalResponse,
 };
 use crate::services::ProductService;
-use crate::utils::{AppError, AppResult};
-use crate::middleware::AuthClaims;
+use crate::utils::AppResult;
+use crate::middleware::auth::AuthClaims;
 
 pub struct ProductHandler {
     pub pool: Arc<PgPool>,

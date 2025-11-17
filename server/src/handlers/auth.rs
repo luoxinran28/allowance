@@ -2,14 +2,12 @@ use std::sync::Arc;
 use axum::{
     extract::{State, Json},
     http::StatusCode,
-    response::IntoResponse,
 };
-use serde_json::json;
 use sqlx::PgPool;
 
 use crate::models::{RegisterRequest, LoginRequest, ActivateRequest, RequestPasswordResetRequest, ResetPasswordRequest, AuthResponse, UserResponse};
 use crate::services::AuthService;
-use crate::utils::{AppError, JwtManager, AppResult};
+use crate::utils::{JwtManager, AppResult};
 
 pub struct AuthHandler {
     pub pool: Arc<PgPool>,

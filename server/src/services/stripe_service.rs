@@ -1,7 +1,5 @@
-use chrono::Utc;
 use uuid::Uuid;
 use crate::utils::AppResult;
-use sqlx::PgPool;
 
 // Mock Stripe types
 #[derive(Clone, Debug)]
@@ -103,14 +101,11 @@ impl StripeService {
     /// Verify webhook signature
     pub fn verify_webhook_signature(
         &self,
-        payload: &[u8],
-        signature: &str,
-        secret: &str,
+        _payload: &[u8],
+        _signature: &str,
+        _secret: &str,
     ) -> AppResult<bool> {
         // Mock implementation - always return true for testing
         Ok(true)
     }
 }
-
-// Add necessary imports
-use hmac::Mac;

@@ -2,10 +2,9 @@ use axum::{
     extract::Request,
     middleware::Next,
     response::Response,
-    http::StatusCode,
 };
-use crate::utils::errors::{AppError, AppResult};
-use crate::utils::nonce::{verify_sign, is_nonce_expired};
+use crate::utils::errors::AppError;
+use crate::utils::nonce::is_nonce_expired;
 
 /// Nonce verification middleware for POST/PUT/DELETE requests
 /// 

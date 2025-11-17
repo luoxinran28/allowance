@@ -1,8 +1,8 @@
-use sqlx::{PgPool, Row};
+use sqlx::PgPool;
 use chrono::Utc;
 use uuid::Uuid;
 
-use crate::models::{User, UserResponse, EmailToken};
+use crate::models::{User, UserResponse, EmailToken, UserStatus};
 use crate::utils::{
     crypto::{hash_password, verify_password, generate_token},
     errors::{AppError, AppResult},
@@ -71,7 +71,7 @@ impl AuthService {
         }
 
         // Check if user is active
-        if user.status != "active" {
+        if user.status != UserStatus::Active {
             return Err(AppError::InvalidCredentials);
         }
 

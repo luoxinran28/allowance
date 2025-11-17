@@ -276,7 +276,7 @@ pub struct ProductResponse {
 pub async fn create_product(
     State(state): State<Arc<AuthHandler>>,
     headers: HeaderMap,
-    Json(mut req): Json<CreateProductRequest>,
+    Json(req): Json<CreateProductRequest>,
 ) -> AppResult<(axum::http::StatusCode, Json<ProductResponse>)> {
     let user_id = extract_user_from_header(&state, &headers)?;
     check_admin_permission(&state, user_id).await?;

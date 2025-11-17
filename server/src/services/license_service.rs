@@ -1,8 +1,6 @@
 use sqlx::PgPool;
-use chrono::Utc;
 
 use crate::utils::{
-    license::generate_license_token,
     errors::{AppError, AppResult},
 };
 

@@ -1,4 +1,3 @@
-use std::sync::Arc;
 use sqlx::PgPool;
 use crate::models::{User, UserResponse, ApprovalRequest};
 use crate::utils::{AppResult, AppError};

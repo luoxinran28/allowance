@@ -32,7 +32,7 @@ where
             return Err(AppError::Unauthorized);
         }
 
-        let token = &auth_header[7..];
+        let _token = &auth_header[7..];
 
         // Parse token - we need access to JWT manager
         // This will be passed through state in handler layer

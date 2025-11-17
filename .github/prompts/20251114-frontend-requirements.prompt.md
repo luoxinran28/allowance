@@ -1,6 +1,4 @@
----
-mode: planning
----
+
 
 # 前端页面需求分析报告（Frontend Requirements Analysis）
 

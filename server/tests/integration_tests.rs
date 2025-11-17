@@ -3,7 +3,6 @@
 
 #[cfg(test)]
 mod auth_service_tests {
-    use chrono::Utc;
     
     /// Test user registration validation
     #[test]
@@ -364,7 +363,7 @@ mod user_tests {
         enum UserTier {
             Free,
             Standard,
-            Premium,
+            _Premium,
         }
         
         // New users should start with free tier
@@ -619,7 +618,7 @@ mod database_query_tests {
             id: i64,
             user_id: i64,
             product_id: String,
-            license_key: String,
+            _license_key: String,
             daily_usage: i32,
             daily_limit: Option<i32>,
         }
@@ -629,7 +628,7 @@ mod database_query_tests {
                 id: 1,
                 user_id: 1,
                 product_id: "form-001".to_string(),
-                license_key: "jwt.token.here".to_string(),
+                _license_key: "jwt.token.here".to_string(),
                 daily_usage: 5,
                 daily_limit: Some(100),
             },
@@ -637,7 +636,7 @@ mod database_query_tests {
                 id: 2,
                 user_id: 2,
                 product_id: "form-001".to_string(),
-                license_key: "jwt.token.here2".to_string(),
+                _license_key: "jwt.token.here2".to_string(),
                 daily_usage: 0,
                 daily_limit: None, // Unlimited
             },
@@ -703,7 +702,7 @@ mod team_service_tests {
     fn test_team_creation_validation() {
         struct TeamCreationRequest {
             name: String,
-            description: Option<String>,
+            _description: Option<String>,
             user_id: i64,
             org_id: i64,
         }
@@ -711,13 +710,13 @@ mod team_service_tests {
         let valid_requests = vec![
             TeamCreationRequest {
                 name: "Marketing Team".to_string(),
-                description: Some("Marketing department".to_string()),
+                _description: Some("Marketing department".to_string()),
                 user_id: 1,
                 org_id: 1,
             },
             TeamCreationRequest {
                 name: "DevOps".to_string(),
-                description: None,
+                _description: None,
                 user_id: 2,
                 org_id: 1,
             },
@@ -726,13 +725,13 @@ mod team_service_tests {
         let invalid_requests = vec![
             TeamCreationRequest {
                 name: "".to_string(), // Empty name
-                description: Some("Test".to_string()),
+                _description: Some("Test".to_string()),
                 user_id: 1,
                 org_id: 1,
             },
             TeamCreationRequest {
                 name: "Valid Name".to_string(),
-                description: Some("Test".to_string()),
+                _description: Some("Test".to_string()),
                 user_id: 0, // Invalid user ID
                 org_id: 1,
             },
@@ -845,26 +844,25 @@ mod team_service_tests {
 
 #[cfg(test)]
 mod organization_service_tests {
-    use chrono::Utc;
 
     /// Test organization creation validation
     #[test]
     fn test_organization_creation_validation() {
         struct OrgCreationRequest {
             name: String,
-            description: Option<String>,
+            _description: Option<String>,
             user_id: i64,
         }
 
         let valid_requests = vec![
             OrgCreationRequest {
                 name: "ACME Corporation".to_string(),
-                description: Some("Enterprise software company".to_string()),
+                _description: Some("Enterprise software company".to_string()),
                 user_id: 1,
             },
             OrgCreationRequest {
                 name: "Startup Inc".to_string(),
-                description: None,
+                _description: None,
                 user_id: 2,
             },
         ];
@@ -872,12 +870,12 @@ mod organization_service_tests {
         let invalid_requests = vec![
             OrgCreationRequest {
                 name: "".to_string(), // Empty name
-                description: Some("Test".to_string()),
+                _description: Some("Test".to_string()),
                 user_id: 1,
             },
             OrgCreationRequest {
                 name: "Valid Name".to_string(),
-                description: Some("Test".to_string()),
+                _description: Some("Test".to_string()),
                 user_id: 0, // Invalid user ID
             },
         ];
@@ -900,24 +898,24 @@ mod organization_service_tests {
     #[test]
     fn test_organization_search() {
         struct Organization {
-            id: i64,
+            _id: i64,
             name: String,
             description: Option<String>,
         }
 
         let organizations = vec![
             Organization {
-                id: 1,
+                _id: 1,
                 name: "ACME Corporation".to_string(),
                 description: Some("Leading enterprise software company".to_string()),
             },
             Organization {
-                id: 2,
+                _id: 2,
                 name: "Tech Startup Inc".to_string(),
                 description: Some("Innovative technology solutions".to_string()),
             },
             Organization {
-                id: 3,
+                _id: 3,
                 name: "Global Solutions Ltd".to_string(),
                 description: None,
             },
@@ -951,15 +949,15 @@ mod organization_service_tests {
     #[test]
     fn test_organization_ownership() {
         struct Organization {
-            id: i64,
+            _id: i64,
             created_by: i64,
-            name: String,
+            _name: String,
         }
 
         let org = Organization {
-            id: 1,
+            _id: 1,
             created_by: 1,
-            name: "Test Org".to_string(),
+            _name: "Test Org".to_string(),
         };
 
         let owner_id = 1;
@@ -1078,18 +1076,18 @@ mod admin_service_tests {
         }
 
         struct ApprovalRequest {
-            id: i64,
-            user_id: i64,
-            request_type: String,
+            _id: i64,
+            _user_id: i64,
+            _request_type: String,
             status: ApprovalStatus,
             reviewed_by: Option<i64>,
             reviewed_at: Option<chrono::DateTime<Utc>>,
         }
 
         let mut request = ApprovalRequest {
-            id: 1,
-            user_id: 1,
-            request_type: "role_upgrade".to_string(),
+            _id: 1,
+            _user_id: 1,
+            _request_type: "role_upgrade".to_string(),
             status: ApprovalStatus::Pending,
             reviewed_by: None,
             reviewed_at: None,

@@ -1,7 +1,7 @@
 use axum::{
     body::Body,
     extract::ConnectInfo,
-    http::{Request, StatusCode},
+    http::Request,
     middleware::Next,
     response::Response,
 };
@@ -172,7 +172,7 @@ fn percentile(sorted_data: &[f64], p: f64) -> f64 {
 }
 
 pub async fn metrics_middleware(
-    ConnectInfo(addr): ConnectInfo<SocketAddr>,
+    ConnectInfo(_addr): ConnectInfo<SocketAddr>,
     req: Request<Body>,
     next: Next,
 ) -> Response {

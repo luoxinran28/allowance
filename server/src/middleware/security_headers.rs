@@ -1,13 +1,12 @@
 use axum::{
     extract::Request,
-    http::HeaderMap,
     middleware::Next,
     response::Response,
 };
 
 /// Apply security headers to all responses
 pub async fn add_security_headers(
-    mut request: Request,
+    request: Request,
     next: Next,
 ) -> Response {
     let mut response = next.run(request).await;

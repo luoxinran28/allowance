@@ -10,7 +10,7 @@ mod docs;
 use axum::{
     extract::DefaultBodyLimit,
     http::{header, Method},
-    routing::{get, post, delete, put},
+    routing::{get, post, delete},
     Router,
 };
 use std::sync::Arc;

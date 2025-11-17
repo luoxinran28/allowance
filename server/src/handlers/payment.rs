@@ -1,6 +1,6 @@
 use std::sync::Arc;
 use axum::{
-    extract::{State, Json, Path},
+    extract::{State, Json},
     http::HeaderMap,
 };
 use serde_json::json;
@@ -9,7 +9,6 @@ use sqlx::PgPool;
 use crate::models::payment::*;
 use crate::services::{PaymentService, StripeService};
 use crate::utils::{AppResult, AppError};
-use crate::handlers::auth::AuthHandler;
 
 pub struct PaymentHandler {
     pub pool: Arc<PgPool>,

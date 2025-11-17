@@ -1,6 +1,6 @@
 use sqlx::PgPool;
 
-use crate::models::{Role, Permission, UserRole};
+use crate::models::{Role, Permission};
 use crate::utils::{errors::{AppError, AppResult}};
 
 /// RBAC service for permission checking

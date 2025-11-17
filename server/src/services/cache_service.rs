@@ -1,7 +1,5 @@
-use redis::{Client, Connection, AsyncCommands, RedisResult};
-use chrono::Duration;
+use redis::{Client, AsyncCommands, RedisResult};
 use serde::{Serialize, Deserialize};
-use std::time::Duration as StdDuration;
 
 #[derive(Clone, Debug)]
 pub struct CacheService {

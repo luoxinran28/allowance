@@ -4,10 +4,7 @@ use axum::{
     http::StatusCode,
 };
 use serde::{Deserialize, Serialize};
-use sqlx::PgPool;
 use chrono::Utc;
-use crate::utils::{AppResult, AppError};
-use crate::services::LicenseService;
 use std::sync::Arc;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -35,7 +32,7 @@ pub struct BatchLicenseItem {
 
 /// Generate batch licenses for bulk operations
 pub async fn generate_batch_licenses(
-    State(state): State<Arc<crate::handlers::auth::AuthHandler>>,
+    State(_state): State<Arc<crate::handlers::auth::AuthHandler>>,
     Json(req): Json<BatchLicenseRequest>,
 ) -> impl IntoResponse {
     // Validation
@@ -94,7 +91,7 @@ pub async fn generate_batch_licenses(
 
 /// Revoke batch licenses
 pub async fn revoke_batch_licenses(
-    State(state): State<Arc<crate::handlers::auth::AuthHandler>>,
+    State(_state): State<Arc<crate::handlers::auth::AuthHandler>>,
     Json(req): Json<Vec<String>>,
 ) -> impl IntoResponse {
     if req.is_empty() || req.len() > 10000 {
@@ -114,7 +111,7 @@ pub async fn revoke_batch_licenses(
         .bind("revoked")
         .bind(Utc::now())
         .bind(&license_key)
-        .execute(&*state.pool)
+        .execute(&*_state.pool)
         .await;
 
         if result.is_ok() {
@@ -141,13 +138,13 @@ pub struct LicenseExportRequest {
 }
 
 pub async fn export_batch_licenses(
-    State(state): State<Arc<crate::handlers::auth::AuthHandler>>,
+    State(_state): State<Arc<crate::handlers::auth::AuthHandler>>,
     Json(req): Json<LicenseExportRequest>,
 ) -> impl IntoResponse {
     let query = build_export_query(&req);
 
     match sqlx::query_as::<_, (String, String, String)>(&query)
-        .fetch_all(&*state.pool)
+        .fetch_all(&*_state.pool)
         .await
     {
         Ok(licenses) => {

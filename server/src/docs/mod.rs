@@ -1,6 +1,5 @@
 use utoipa::{OpenApi, Modify};
 use utoipa::openapi::security::{SecurityScheme, Http, HttpAuthScheme};
-use serde::{Serialize, Deserialize};
 
 /// API Documentation for Allowance Authorization Management System
 #[derive(OpenApi)]

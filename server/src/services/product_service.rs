@@ -16,7 +16,7 @@ impl ProductService {
     pub async fn create_product(
         pool: &PgPool,
         req: CreateProductRequest,
-        admin_id: i64,
+        _admin_id: i64,
     ) -> AppResult<Product> {
         let upid = format!("UPID-{}-{}", req.product_slug, req.tier);
 
@@ -305,7 +305,7 @@ impl ProductService {
     /// Get pending approvals for team leader
     pub async fn get_pending_approvals_for_team(
         pool: &PgPool,
-        team_id: i64,
+        _team_id: i64,
     ) -> AppResult<Vec<LicenseApproval>> {
         // TODO: Implement team-based filtering once team structure is finalized
         let approvals = sqlx::query_as::<_, LicenseApproval>(

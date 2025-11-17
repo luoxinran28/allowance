@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
-use chrono::{DateTime, NaiveDateTime};
+use chrono::NaiveDateTime;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, sqlx::Type)]
 #[sqlx(type_name = "user_status")]
@@ -77,8 +77,8 @@ pub struct User {
     pub email: String,
     #[serde(skip)]
     pub password_hash: String,
-    pub tier: String,
-    pub status: String,
+    pub tier: UserTier,
+    pub status: UserStatus,
     pub profile_data: Option<serde_json::Value>,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
@@ -90,8 +90,8 @@ pub struct UserResponse {
     pub id: i64,
     pub uid: String,
     pub email: String,
-    pub tier: String,
-    pub status: String,
+    pub tier: UserTier,
+    pub status: UserStatus,
     pub created_at: NaiveDateTime,
 }
 

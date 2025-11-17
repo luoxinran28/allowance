@@ -1,13 +1,12 @@
 use std::sync::Arc;
 use axum::{
     extract::{State, Query},
-    http::StatusCode,
     Json,
 };
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 
-use crate::middleware::AuthClaims;
+use crate::middleware::auth::AuthClaims;
 use crate::utils::{AppError, AppResult};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
