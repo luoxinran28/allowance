@@ -1,11 +1,11 @@
--- Comprehensive Test Data for Allowance Database
--- This file creates extensive test data for development and testing purposes
--- Run this script after running schema.sql
+-- Seed Data: Test Users and Initial Data
+-- Comprehensive test data for development and testing purposes
+-- Run after all migrations have been applied
 
--- Note: Password hashes below are for "TestPass123"
--- In a real scenario, you'd generate these with the actual Argon2 hashing
+-- Note: Password hashes are for "TestPass123"
+-- In production, use actual Argon2 hashing
 
--- Create additional test users with different tiers and roles
+-- Create test users with different tiers and roles
 INSERT INTO users (
     uid,
     email,
@@ -128,9 +128,22 @@ INSERT INTO products (product_id, name, description, owner_id) VALUES
      (SELECT id FROM users WHERE email = 'mike.davis@test.com'))
 ON CONFLICT (product_id) DO NOTHING;
 
--- Create product versions for the new products
+-- Create product versions for all products
 INSERT INTO product_versions (product_id, version_name, description, features, tier_required, daily_limit, monthly_limit)
-SELECT p.id, 'starter', 'Entry-level features',
+SELECT p.id, 'basic', 'Basic form building',
+    '{"max_forms": 10, "ai_enabled": false, "storage_gb": 1}'::jsonb, 'free'::user_tier, 3, 100
+FROM products p WHERE p.product_id = 'form-001'
+UNION ALL
+SELECT p.id, 'pro', 'Professional form building with AI',
+    '{"max_forms": 100, "ai_enabled": true, "storage_gb": 50}'::jsonb, 'standard'::user_tier, 100, 10000
+FROM products p WHERE p.product_id = 'form-001'
+UNION ALL
+SELECT p.id, 'enterprise', 'Enterprise form solution',
+    '{"max_forms": 1000, "ai_enabled": true, "storage_gb": 500, "api_access": true}'::jsonb, 'premium'::user_tier, NULL, NULL
+FROM products p WHERE p.product_id = 'form-001'
+
+UNION ALL
+SELECT p.id, 'starter', 'Entry-level survey features',
     '{"responses": 100, "questions": 10, "themes": 3}'::jsonb, 'free'::user_tier, 10, 500
 FROM products p WHERE p.product_id = 'survey-001'
 UNION ALL
@@ -180,16 +193,16 @@ SELECT
     CURRENT_TIMESTAMP + INTERVAL '1 year',
     CASE WHEN pv.daily_limit IS NOT NULL THEN FLOOR(RANDOM() * pv.daily_limit / 2) ELSE 0 END,
     CASE WHEN pv.monthly_limit IS NOT NULL THEN FLOOR(RANDOM() * pv.monthly_limit / 2) ELSE 0 END,
-    '{"auto_renew": true, "source": "test_data"}'::jsonb
+    '{"auto_renew": true, "source": "seed_data"}'::jsonb
 FROM users u
 CROSS JOIN product_versions pv
 WHERE u.tier::text = pv.tier_required::text
   AND u.status = 'active'
-  AND RANDOM() < 0.7  -- 70% chance of having a license
+  AND RANDOM() < 0.7
 ON CONFLICT (license_key) DO NOTHING;
 
--- Create test subscriptions
-INSERT INTO subscriptions (user_id, tier, status, current_period_start, current_period_end, auto_renew, stripe_subscription_id)
+-- Create test subscriptions for paid users
+INSERT INTO subscriptions (user_id, tier, status, current_period_start, current_period_end, auto_renew, created_at, updated_at)
 SELECT
     u.id,
     u.tier,
@@ -199,181 +212,21 @@ SELECT
         ELSE 'active'
     END,
     CURRENT_TIMESTAMP - INTERVAL '30 days',
-    CURRENT_TIMESTAMP + INTERVAL '335 days', -- ~11 months from now
+    CURRENT_TIMESTAMP + INTERVAL '335 days',
     true,
-    CASE WHEN u.tier != 'free' THEN CONCAT('sub_test_', u.uid) ELSE NULL END
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
 FROM users u
 WHERE u.tier != 'free'
 ON CONFLICT (user_id) DO NOTHING;
 
--- Create test payment intents
-INSERT INTO payment_intents (id, user_id, amount, currency, status, product_tier, billing_period_months, stripe_intent_id, created_at, updated_at)
-SELECT
-    CONCAT('pi_test_', u.uid, '_', EXTRACT(epoch FROM CURRENT_TIMESTAMP)::text),
-    u.id,
-    CASE
-        WHEN u.tier = 'standard' THEN 99900  -- $999
-        WHEN u.tier = 'premium' THEN 199900  -- $1999
-        ELSE 0
-    END,
-    'USD',
-    'succeeded',
-    u.tier,
-    12,
-    CONCAT('pi_stripe_', u.uid),
-    CURRENT_TIMESTAMP - INTERVAL '30 days',
-    CURRENT_TIMESTAMP - INTERVAL '29 days'
-FROM users u
-WHERE u.tier != 'free'
-ON CONFLICT (id) DO NOTHING;
-
--- Create test invoices
-INSERT INTO invoices (user_id, subscription_id, amount, status, due_date, paid_date, stripe_invoice_id, created_at)
-SELECT
-    s.user_id,
-    s.id,
-    CASE
-        WHEN s.tier = 'standard' THEN 99900
-        WHEN s.tier = 'premium' THEN 199900
-        ELSE 0
-    END,
-    'paid',
-    CURRENT_TIMESTAMP - INTERVAL '30 days',
-    CURRENT_TIMESTAMP - INTERVAL '29 days',
-    CONCAT('inv_stripe_', u.uid),
-    CURRENT_TIMESTAMP - INTERVAL '30 days'
-FROM subscriptions s
-JOIN users u ON s.user_id = u.id
-WHERE s.tier != 'free'
-ON CONFLICT DO NOTHING;
-
--- Create test approval requests
-INSERT INTO approval_requests (request_type, requester_id, target_id, target_data, status, approved_by, created_at, expires_at)
-SELECT
-    'org_binding',
-    u.id,
-    o.id,
-    jsonb_build_object('reason', 'Requesting access to organization resources', 'department', 'Engineering'),
-    CASE
-        WHEN RANDOM() < 0.7 THEN 'approved'
-        WHEN RANDOM() < 0.8 THEN 'pending'
-        ELSE 'rejected'
-    END,
-    CASE WHEN RANDOM() < 0.7 THEN (SELECT id FROM users WHERE email = 'admin@test.com') ELSE NULL END,
-    CURRENT_TIMESTAMP - INTERVAL '10 days' + (RANDOM() * INTERVAL '20 days'),
-    CURRENT_TIMESTAMP - INTERVAL '10 days' + (RANDOM() * INTERVAL '20 days') + INTERVAL '30 days'
-FROM users u
-CROSS JOIN organizations o
-WHERE u.tier != 'free'
-  AND RANDOM() < 0.4  -- 40% chance of having approval requests
-ON CONFLICT DO NOTHING;
-
--- Create test audit logs
-INSERT INTO audit_logs (user_id, action, resource, resource_id, details, ip_address, created_at)
-SELECT
-    u.id,
-    CASE
-        WHEN RANDOM() < 0.3 THEN 'login'
-        WHEN RANDOM() < 0.5 THEN 'license_generated'
-        WHEN RANDOM() < 0.7 THEN 'profile_updated'
-        WHEN RANDOM() < 0.9 THEN 'password_changed'
-        ELSE 'license_used'
-    END,
-    CASE
-        WHEN RANDOM() < 0.4 THEN 'user'
-        WHEN RANDOM() < 0.7 THEN 'license'
-        ELSE 'product'
-    END,
-    CASE WHEN RANDOM() < 0.5 THEN u.id ELSE NULL END,
-    jsonb_build_object('user_agent', 'Mozilla/5.0 (Test Browser)', 'action_details', 'Test audit log entry'),
-    CONCAT('192.168.1.', (RANDOM() * 255)::int),
-    CURRENT_TIMESTAMP - (RANDOM() * INTERVAL '30 days')
-FROM users u
-WHERE RANDOM() < 0.8  -- 80% chance of having audit logs
-ORDER BY RANDOM()
-LIMIT 50;
-
--- Create test license usage history
-INSERT INTO license_usage_history (license_id, action, usage_count, metadata, created_at)
-SELECT
-    ul.id,
-    CASE
-        WHEN RANDOM() < 0.6 THEN 'used'
-        WHEN RANDOM() < 0.8 THEN 'reset_daily'
-        ELSE 'reset_monthly'
-    END,
-    CASE
-        WHEN RANDOM() < 0.7 THEN FLOOR(RANDOM() * 10) + 1
-        ELSE NULL
-    END,
-    jsonb_build_object('ip_address', CONCAT('192.168.1.', (RANDOM() * 255)::int), 'user_agent', 'Test Client'),
-    CURRENT_TIMESTAMP - (RANDOM() * INTERVAL '30 days')
-FROM user_licenses ul
-WHERE RANDOM() < 0.6  -- 60% chance of having usage history
-ORDER BY RANDOM()
-LIMIT 100;
-
--- Create test bulk operations
-INSERT INTO bulk_operations (operation_type, user_id, batch_id, records_affected, status, error_message, created_at, completed_at)
-SELECT
-    CASE WHEN RANDOM() < 0.7 THEN 'generate' ELSE 'revoke' END,
-    u.id,
-    CONCAT('batch_', u.uid, '_', EXTRACT(epoch FROM CURRENT_TIMESTAMP)::text),
-    FLOOR(RANDOM() * 50) + 1,
-    CASE WHEN RANDOM() < 0.9 THEN 'completed' ELSE 'failed' END,
-    CASE WHEN RANDOM() < 0.1 THEN 'Test error message' ELSE NULL END,
-    CURRENT_TIMESTAMP - (RANDOM() * INTERVAL '30 days'),
-    CURRENT_TIMESTAMP - (RANDOM() * INTERVAL '30 days') + INTERVAL '5 minutes'
-FROM users u
-WHERE u.tier IN ('standard', 'premium')
-  AND RANDOM() < 0.5  -- 50% chance of having bulk operations
-ORDER BY RANDOM()
-LIMIT 20;
-
--- Create corresponding license batches
-INSERT INTO license_batches (batch_id, created_by, total_licenses, generated_count, revoked_count, status, product_id, tier, created_at, completed_at)
-SELECT
-    bo.batch_id,
-    bo.user_id,
-    bo.records_affected,
-    CASE WHEN bo.operation_type = 'generate' THEN bo.records_affected ELSE 0 END,
-    CASE WHEN bo.operation_type = 'revoke' THEN bo.records_affected ELSE 0 END,
-    bo.status,
-    'form-001',
-    'standard',
-    bo.created_at,
-    bo.completed_at
-FROM bulk_operations bo
-WHERE bo.operation_type IN ('generate', 'revoke')
-ON CONFLICT (batch_id) DO NOTHING;
-
--- Display summary of created test data
-SELECT
-    'Test Data Summary:' as info,
-    (SELECT COUNT(*) FROM users) as total_users,
-    (SELECT COUNT(*) FROM organizations) as total_organizations,
-    (SELECT COUNT(*) FROM groups) as total_groups,
-    (SELECT COUNT(*) FROM products) as total_products,
-    (SELECT COUNT(*) FROM product_versions) as total_product_versions,
-    (SELECT COUNT(*) FROM user_licenses) as total_licenses,
-    (SELECT COUNT(*) FROM subscriptions WHERE tier != 'free') as total_subscriptions,
-    (SELECT COUNT(*) FROM approval_requests) as total_approval_requests,
-    (SELECT COUNT(*) FROM audit_logs) as total_audit_logs;
-
--- Display test user credentials
-SELECT
-    'Test User Credentials:' as info,
-    u.email,
-    'TestPass123' as password,
-    u.tier,
-    u.status,
-    COALESCE(r.code, 'no role') as role_code,
-    COALESCE(o.org_id, 'no org') as organization
-FROM users u
-LEFT JOIN user_roles ur ON u.id = ur.user_id
-LEFT JOIN roles r ON ur.role_id = r.id
-LEFT JOIN user_groups ug ON u.id = ug.user_id
-LEFT JOIN groups g ON ug.group_id = g.id
-LEFT JOIN organizations o ON g.organization_id = o.id
-WHERE u.email LIKE '%@test.com'
-ORDER BY u.tier DESC, u.email;
+-- Summary information
+SELECT 
+    COUNT(DISTINCT CASE WHEN tier='admin' THEN 1 END) as admin_users,
+    COUNT(DISTINCT CASE WHEN tier='premium' THEN 1 END) as premium_users,
+    COUNT(DISTINCT CASE WHEN tier='standard' THEN 1 END) as standard_users,
+    COUNT(DISTINCT CASE WHEN tier='free' THEN 1 END) as free_users,
+    COUNT(DISTINCT CASE WHEN status='active' THEN 1 END) as active_users,
+    COUNT(*) as total_users
+FROM users
+WHERE email LIKE '%@test.com';

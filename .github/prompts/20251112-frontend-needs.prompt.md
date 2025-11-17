@@ -1,5 +1,7 @@
 ---
-mode: agent
+
+agent: Plan
+
 ---
 
 我希望前端可以使用https://github.com/TailAdmin/free-nextjs-admin-dashboard这个模板来做用户界面。
