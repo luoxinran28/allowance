@@ -19,45 +19,35 @@ fi
 
 echo "✅ Docker and Docker Compose are installed"
 
-# Build backend (Rust) - Optimized for development speed
+# Check if docker-compose.override.yml has development volumes enabled
+if ! grep -q "volumes:" docker-compose.override.yml; then
+    echo ""
+    echo "⚠️  Development volumes not enabled!"
+    echo "For fast development iteration, you should uncomment the volumes in docker-compose.override.yml"
+    echo "This enables hot reload for both Rust backend and Next.js frontend."
+    echo ""
+    read -p "Do you want me to enable development volumes? (y/n): " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        echo "Enabling development volumes..."
+        # Uncomment the volume sections in docker-compose.override.yml
+        sed -i 's/# \(volumes:\)/\1/' docker-compose.override.yml
+        sed -i 's/# \(  - \.\/server:\/app\)/\1/' docker-compose.override.yml
+        sed -i 's/# \(  - \/app\/target\)/\1/' docker-compose.override.yml
+        sed -i 's/# \(  - \.\/client:\/app\)/\1/' docker-compose.override.yml
+        sed -i 's/# \(  - \/app\/node_modules\)/\1/' docker-compose.override.yml
+        sed -i 's/# \(  - \/app\/.next\)/\1/' docker-compose.override.yml
+        # Also uncomment the hot reload commands
+        sed -i 's/# \(command: cargo watch -x run\)/\1/' docker-compose.override.yml
+        sed -i 's/# \(command: npm run dev\)/\1/' docker-compose.override.yml
+        echo "✅ Development volumes and hot reload commands enabled!"
+    fi
+fi
+
+# Build and start the services with development volumes
 echo ""
-echo "🔨 Building backend (Rust/Cargo) - Development mode..."
-cd server
-
-# Use debug build for faster development compilation
-# Enable mold linker if available for even faster linking
-BUILD_CMD="cargo build -j $(nproc)"
-if command -v mold &> /dev/null; then
-    echo "🐌 Using mold linker for faster linking..."
-    export RUSTFLAGS="-C link-arg=-fuse-ld=mold"
-fi
-
-if ! $BUILD_CMD; then
-    echo "❌ Backend build failed. Please check the errors above."
-    exit 1
-fi
-echo "✅ Backend build completed successfully (debug mode - much faster!)"
-cd ..
-
-# Build frontend (Next.js)
-echo ""
-echo "🔨 Building frontend (Next.js)..."
-cd client
-if ! npm install; then
-    echo "❌ Frontend npm install failed. Please check the errors above."
-    exit 1
-fi
-if ! npm run build; then
-    echo "❌ Frontend build failed. Please check the errors above."
-    exit 1
-fi
-echo "✅ Frontend build completed successfully"
-cd ..
-
-# Build and start the services
-echo ""
-echo "🏗️  Building and starting services..."
-echo "This may take a few minutes on first run..."
+echo "🏗️  Building and starting services with development volumes..."
+echo "This may take a few minutes on first run (downloading Docker images)..."
 echo ""
 
 if command -v docker-compose &> /dev/null; then
@@ -116,30 +106,33 @@ if ! check_service "allowance-client"; then
 fi
 
 echo ""
-echo "🎉 All services are running in development mode!"
+echo "🎉 All services are running with development volumes!"
 echo ""
 echo "📱 Access your application:"
 echo "   Frontend: http://localhost:3030"
 echo "   Backend API: http://localhost:4040"
 echo "   Database: localhost:5432 (postgres/password)"
 echo ""
-echo "⚡ Performance optimizations applied:"
-echo "   • Debug builds instead of release (much faster compilation)"
-echo "   • Parallel compilation with -j $(nproc)"
-echo "   • Mold linker if available (even faster linking)"
+echo "🔥 Hot reload is enabled:"
+echo "   • Rust backend: Auto-rebuilds on code changes"
+echo "   • Next.js frontend: Auto-rebuilds on code changes"
+echo "   • Database: Persistent data across restarts"
 echo ""
 echo "📊 Useful commands:"
 echo "   View logs: docker-compose logs -f [service-name]"
 echo "   Stop services: docker-compose down"
 echo "   Restart service: docker-compose restart [service-name]"
 echo "   View running containers: docker ps"
+echo "   Enter container: docker exec -it allowance-server bash"
 echo ""
-echo "🔧 For hot reload development:"
-echo "   1. Uncomment volumes in docker-compose.override.yml"
-echo "   2. Use 'cargo watch -x run' in server/ for auto-rebuild"
-echo "   3. Use 'npm run dev' in client/ for frontend auto-rebuild"
+echo "💡 Development tips:"
+echo "   • Code changes are reflected immediately (no rebuild needed)"
+echo "   • Use your IDE/editor normally - files are volume-mounted"
+echo "   • Check container logs for any compilation errors"
+echo "   • Database data persists between restarts"
 echo ""
 echo "📝 Next steps:"
 echo "   1. Visit http://localhost:3030 to access the application"
 echo "   2. Register a new user account"
 echo "   3. Check the API health at http://localhost:4040/health"
+echo "   4. Make code changes - they'll hot reload automatically!"
