@@ -2,7 +2,6 @@
 
 #[cfg(test)]
 mod tests {
-    use chrono::Utc;
 
     // Note: These are integration tests that would require a test database
     // For now, we'll document the test cases that should be implemented

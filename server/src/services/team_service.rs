@@ -194,7 +194,6 @@ impl TeamService {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use crate::utils::crypto::generate_uuid;
 
     #[test]

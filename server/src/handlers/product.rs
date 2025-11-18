@@ -63,7 +63,7 @@ pub async fn create_license(
 /// Get licenses by organization (Team Leader / Admin)
 pub async fn get_org_licenses(
     State(state): State<Arc<ProductHandler>>,
-    AuthClaims(claims): AuthClaims,
+    AuthClaims(_claims): AuthClaims,
     Path(org_id): Path<i64>,
 ) -> AppResult<Json<Vec<LicenseResponse>>> {
     let licenses = ProductService::get_licenses_by_org(&state.pool, org_id).await?;
@@ -74,7 +74,7 @@ pub async fn get_org_licenses(
 /// Revoke a license (Admin only)
 pub async fn revoke_license(
     State(state): State<Arc<ProductHandler>>,
-    AuthClaims(claims): AuthClaims,
+    AuthClaims(_claims): AuthClaims,
     Path(license_id): Path<i64>,
 ) -> AppResult<StatusCode> {
     ProductService::revoke_license(&state.pool, license_id).await?;
@@ -96,7 +96,7 @@ pub async fn assign_license(
 /// Revoke license from employee (Team Leader only)
 pub async fn revoke_user_license(
     State(state): State<Arc<ProductHandler>>,
-    AuthClaims(claims): AuthClaims,
+    AuthClaims(_claims): AuthClaims,
     Path(user_license_id): Path<i64>,
 ) -> AppResult<StatusCode> {
     ProductService::revoke_user_license(&state.pool, user_license_id).await?;
@@ -118,7 +118,7 @@ pub async fn request_license(
 /// Get pending approvals for team leader
 pub async fn get_pending_approvals(
     State(state): State<Arc<ProductHandler>>,
-    AuthClaims(claims): AuthClaims,
+    AuthClaims(_claims): AuthClaims,
     Path(team_id): Path<i64>,
 ) -> AppResult<Json<Vec<LicenseApprovalResponse>>> {
     let approvals = ProductService::get_pending_approvals_for_team(&state.pool, team_id).await?;

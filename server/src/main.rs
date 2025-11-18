@@ -88,13 +88,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         pool: Arc::new(pool.clone()),
     });
 
-    // Setup webhook state
-    let webhook_state = handlers::webhooks::WebhookState {
-        pool: Arc::new(pool.clone()),
-        stripe: stripe.clone(),
-        webhook_secret: config.stripe_webhook_secret.clone(),
-    };
-
     // Setup routes
     let cors = CorsLayer::permissive()
         .allow_origin(Any)

@@ -40,9 +40,9 @@ export PGPASSWORD="$DB_PASSWORD"
 
 # Check if database exists
 log_info "Checking database connection..."
-if ! psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -c "SELECT 1" >/dev/null 2>&1; then
+if ! docker exec allowance-postgres psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -c "SELECT 1" >/dev/null 2>&1; then
     log_warn "Database '$DB_NAME' does not exist. Creating it..."
-    psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -c "CREATE DATABASE $DB_NAME;"
+    docker exec allowance-postgres psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -c "CREATE DATABASE $DB_NAME;"
     log_info "Database created successfully."
 fi
 
@@ -56,6 +56,8 @@ MIGRATION_FILES=(
     "005_add_batch_license_tracking.sql"
     "006_optimize_queries.sql"
     "007_add_upid_support.sql"
+    "008_fix_enum_types.sql"
+    "009_refactor_product_id_to_upid.sql"
 )
 
 for migration_file in "${MIGRATION_FILES[@]}"; do
@@ -67,7 +69,7 @@ for migration_file in "${MIGRATION_FILES[@]}"; do
     fi
     
     log_info "Applying migration: $migration_file"
-    psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f "$migration_path" >/dev/null 2>&1
+    docker exec -i allowance-postgres psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" < "$migration_path" >/dev/null 2>&1
     
     if [ $? -eq 0 ]; then
         log_info "✓ $migration_file applied successfully"
@@ -80,7 +82,7 @@ done
 # Load seed data
 log_info "Loading test data..."
 if [ -f "$SEED_FILE" ]; then
-    psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f "$SEED_FILE" >/dev/null 2>&1
+    docker exec -i allowance-postgres psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" < "$SEED_FILE" >/dev/null 2>&1
     
     if [ $? -eq 0 ]; then
         log_info "✓ Seed data loaded successfully"
@@ -93,7 +95,7 @@ fi
 
 # Verify setup
 log_info "Verifying database setup..."
-RESULT=$(psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "
+RESULT=$(docker exec allowance-postgres psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "
     SELECT 
         (SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='public') as table_count,
         (SELECT COUNT(*) FROM users) as user_count,
@@ -107,7 +109,7 @@ echo "Database Statistics:"
 echo "$RESULT"
 echo ""
 log_info "Test user credentials (password: TestPass123):"
-psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -c "
+docker exec allowance-postgres psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -c "
     SELECT email, tier, status FROM users 
     WHERE email LIKE '%@test.com' 
     ORDER BY tier DESC, email 

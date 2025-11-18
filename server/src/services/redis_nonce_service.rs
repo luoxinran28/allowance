@@ -134,7 +134,6 @@ impl RedisNonceService {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
 
     #[tokio::test]
     #[ignore]

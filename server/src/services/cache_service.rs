@@ -1,4 +1,4 @@
-use redis::{Client, AsyncCommands, RedisResult};
+use redis::{Client, AsyncCommands, RedisResult, RedisError};
 use serde::{Serialize, Deserialize};
 
 #[derive(Clone, Debug)]
@@ -30,7 +30,7 @@ impl CacheService {
         key: &str,
         value: &T,
         ttl_secs: usize,
-    ) -> RedisResult<()> {
+    ) -> Result<(), RedisError> {
         let mut conn = self.client.get_async_connection().await?;
         let json = serde_json::to_string(value)
             .map_err(|_| redis::RedisError::from((redis::ErrorKind::TypeError, "Serialization failed")))?;

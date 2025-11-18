@@ -117,72 +117,26 @@ INSERT INTO user_groups (user_id, group_id, role) VALUES
 ON CONFLICT (user_id, group_id) DO NOTHING;
 
 -- Create additional test products with UPID support
--- UPID Format: UPID + ProductName (uppercase, 16 chars total)
--- Universal Format: UPID + 12-character code (e.g., UPIDFORM0001, UPIDSURVEY0001)
-INSERT INTO products (product_id, name, description, owner_id, upid) VALUES
-    ('survey-001', 'Survey Builder', 'Advanced survey creation and analytics platform',
-     (SELECT id FROM users WHERE email = 'admin@test.com'), 'UPIDSURVEY0001'),
-    ('doc-001', 'Document Generator', 'AI-powered document generation tool',
-     (SELECT id FROM users WHERE email = 'superadmin@test.com'), 'UPIDDOC000001'),
-    ('analytics-001', 'Business Analytics', 'Comprehensive business intelligence dashboard',
-     (SELECT id FROM users WHERE email = 'sarah.johnson@test.com'), 'UPIDANALYTIC'),
-    ('crm-001', 'Customer Relationship Manager', 'Complete CRM solution for businesses',
-     (SELECT id FROM users WHERE email = 'mike.davis@test.com'), 'UPIDCRM000001')
-ON CONFLICT (product_id) DO NOTHING;
+-- UPID Format: U + 13-character code (14 chars total)
+-- Products are only identified by UPID, no internal product_id
+INSERT INTO products (name, description, owner_id, upid) VALUES
+    ('Allowance System', 'Core allowance authorization management system',
+     (SELECT id FROM users WHERE email = 'admin@test.com'), 'UALLOWANCE0001')
+ON CONFLICT (upid) DO NOTHING;
 
 -- Create product versions for all products
 INSERT INTO product_versions (product_id, version_name, description, features, tier_required, daily_limit, monthly_limit)
 SELECT p.id, 'basic', 'Basic form building',
     '{"max_forms": 10, "ai_enabled": false, "storage_gb": 1}'::jsonb, 'free'::user_tier, 3, 100
-FROM products p WHERE p.product_id = 'form-001'
+FROM products p WHERE p.upid = 'UALLOWANCE0001'
 UNION ALL
 SELECT p.id, 'pro', 'Professional form building with AI',
     '{"max_forms": 100, "ai_enabled": true, "storage_gb": 50}'::jsonb, 'standard'::user_tier, 100, 10000
-FROM products p WHERE p.product_id = 'form-001'
+FROM products p WHERE p.upid = 'UALLOWANCE0001'
 UNION ALL
 SELECT p.id, 'enterprise', 'Enterprise form solution',
     '{"max_forms": 1000, "ai_enabled": true, "storage_gb": 500, "api_access": true}'::jsonb, 'premium'::user_tier, NULL, NULL
-FROM products p WHERE p.product_id = 'form-001'
-
-UNION ALL
-SELECT p.id, 'starter', 'Entry-level survey features',
-    '{"responses": 100, "questions": 10, "themes": 3}'::jsonb, 'free'::user_tier, 10, 500
-FROM products p WHERE p.product_id = 'survey-001'
-UNION ALL
-SELECT p.id, 'professional', 'Professional survey tools',
-    '{"responses": 1000, "questions": 50, "themes": 10, "analytics": true}'::jsonb, 'standard'::user_tier, 100, 5000
-FROM products p WHERE p.product_id = 'survey-001'
-UNION ALL
-SELECT p.id, 'enterprise', 'Enterprise survey platform',
-    '{"responses": -1, "questions": -1, "themes": -1, "analytics": true, "api": true, "white_label": true}'::jsonb, 'premium'::user_tier, NULL, NULL
-FROM products p WHERE p.product_id = 'survey-001'
-
-UNION ALL
-SELECT p.id, 'basic', 'Basic document generation',
-    '{"templates": 5, "documents": 50}'::jsonb, 'free'::user_tier, 5, 100
-FROM products p WHERE p.product_id = 'doc-001'
-UNION ALL
-SELECT p.id, 'premium', 'Advanced document generation with AI',
-    '{"templates": 50, "documents": 1000, "ai_assistant": true}'::jsonb, 'premium'::user_tier, 50, 2000
-FROM products p WHERE p.product_id = 'doc-001'
-
-UNION ALL
-SELECT p.id, 'standard', 'Standard analytics dashboard',
-    '{"dashboards": 5, "data_sources": 3, "users": 10}'::jsonb, 'standard'::user_tier, 100, 3000
-FROM products p WHERE p.product_id = 'analytics-001'
-UNION ALL
-SELECT p.id, 'enterprise', 'Enterprise analytics platform',
-    '{"dashboards": -1, "data_sources": -1, "users": -1, "advanced_analytics": true}'::jsonb, 'premium'::user_tier, NULL, NULL
-FROM products p WHERE p.product_id = 'analytics-001'
-
-UNION ALL
-SELECT p.id, 'small_business', 'CRM for small businesses',
-    '{"contacts": 500, "deals": 100, "email_integration": true}'::jsonb, 'standard'::user_tier, 50, 1500
-FROM products p WHERE p.product_id = 'crm-001'
-UNION ALL
-SELECT p.id, 'enterprise_crm', 'Enterprise CRM solution',
-    '{"contacts": -1, "deals": -1, "email_integration": true, "api": true, "custom_fields": true}'::jsonb, 'premium'::user_tier, NULL, NULL
-FROM products p WHERE p.product_id = 'crm-001'
+FROM products p WHERE p.upid = 'UALLOWANCE0001'
 ON CONFLICT (product_id, version_name) DO NOTHING;
 
 -- Create test licenses for users

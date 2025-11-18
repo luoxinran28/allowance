@@ -109,16 +109,9 @@ pub async fn reset_password(
     Ok(StatusCode::OK)
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[tokio::test]
+    #[cfg(test)]
+    mod tests {    #[tokio::test]
     async fn test_register_validation() {
-        let req = RegisterRequest {
-            email: "invalid-email".to_string(),
-            password: "short".to_string(),
-        };
         // In real implementation, validate email format and password strength
     }
 }

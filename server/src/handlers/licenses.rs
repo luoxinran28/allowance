@@ -59,7 +59,7 @@ pub struct LicenseQueryHandler {
 /// Optional filters: org_id
 pub async fn get_active_licenses(
     State(state): State<Arc<LicenseQueryHandler>>,
-    AuthClaims(claims): AuthClaims,
+    AuthClaims(_claims): AuthClaims,
     Query(params): Query<LicenseQueryParams>,
 ) -> AppResult<Json<Vec<ActiveLicenseResponse>>> {
     let limit = params.limit.unwrap_or(50).min(500);
@@ -121,7 +121,7 @@ pub async fn get_active_licenses(
 /// Get licenses expiring soon (within 30 days)
 pub async fn get_expiring_licenses(
     State(state): State<Arc<LicenseQueryHandler>>,
-    AuthClaims(claims): AuthClaims,
+    AuthClaims(_claims): AuthClaims,
     Query(params): Query<LicenseQueryParams>,
 ) -> AppResult<Json<Vec<ExpiringLicenseResponse>>> {
     let limit = params.limit.unwrap_or(50).min(500);
@@ -186,7 +186,7 @@ pub async fn get_expiring_licenses(
 /// Get all licenses for an organization (admin/org_admin only)
 pub async fn get_org_licenses(
     State(state): State<Arc<LicenseQueryHandler>>,
-    AuthClaims(claims): AuthClaims,
+    AuthClaims(_claims): AuthClaims,
     Query(params): Query<LicenseQueryParams>,
 ) -> AppResult<Json<Vec<OrgLicensesResponse>>> {
     let org_id = params.org_id.ok_or_else(|| {

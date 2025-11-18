@@ -267,7 +267,6 @@ pub struct ProductResponse {
     pub id: i64,
     pub upid: String,
     pub product_slug: String,
-    pub tier: String,
     pub name: String,
     pub description: Option<String>,
 }
@@ -293,7 +292,6 @@ pub async fn create_product(
             id: product.id,
             upid: product.upid,
             product_slug: product.product_slug,
-            tier: product.tier,
             name: product.name,
             description: product.description,
         }),

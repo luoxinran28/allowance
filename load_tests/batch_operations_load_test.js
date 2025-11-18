@@ -63,7 +63,7 @@ export default function (data) {
       const batchRes = http.post(
         `${BASE_URL}/licenses/batch/generate`,
         {
-          product_id: 'form-001',
+          upid: 'UALLOWANCE0001',
           quantity: size,
           tier: 'pro',
           days_valid: 30,
@@ -97,7 +97,7 @@ export default function (data) {
       `${BASE_URL}/licenses/batch/export`,
       {
         tier: 'pro',
-        product_id: 'form-001',
+        upid: 'UALLOWANCE0001',
       },
       { headers }
     );

@@ -147,8 +147,7 @@ impl PaymentService {
 
         // Calculate remaining days
         let now = Utc::now();
-        let remaining_days = (current.current_period_end - now).num_days();
-        let remaining_months = (remaining_days as f64 / 30.0).ceil() as i32;
+        let _remaining_days = (current.current_period_end - now).num_days();
 
         // Create new subscription with remaining period
         let new_subscription = sqlx::query_as::<_, Subscription>(

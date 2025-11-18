@@ -5,7 +5,8 @@
 -- Products table
 CREATE TABLE products (
     id BIGSERIAL PRIMARY KEY,
-    product_id VARCHAR(16) UNIQUE NOT NULL,
+    upid VARCHAR(16) UNIQUE NOT NULL,
+    product_slug VARCHAR(50) UNIQUE,
     name VARCHAR(255) NOT NULL,
     description TEXT,
     owner_id BIGINT REFERENCES users(id),
@@ -13,7 +14,8 @@ CREATE TABLE products (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_products_product_id ON products(product_id);
+CREATE INDEX idx_products_upid ON products(upid);
+CREATE INDEX idx_products_slug ON products(product_slug);
 
 -- Product versions (Basic, Pro, Enterprise, etc.)
 CREATE TABLE product_versions (
@@ -66,26 +68,27 @@ CREATE INDEX idx_license_usage_history_license_id ON license_usage_history(licen
 CREATE INDEX idx_license_usage_history_created_at ON license_usage_history(created_at);
 
 -- Insert sample products and versions for Form Builder
--- UPID Format: UPID + 12 characters
-INSERT INTO products (product_id, name, description, upid) VALUES
-    ('form-001', 'Form Builder', 'Online form creation and management tool', 'UPIDFORM0001');
+-- UPID Format: U + 13 characters
+INSERT INTO products (upid, product_slug, name, description) VALUES
+    ('UALLOWANCE0001', 'allowance', 'Allowance System', 'Core allowance authorization management system')
+ON CONFLICT (upid) DO NOTHING;
 
 INSERT INTO product_versions (product_id, version_name, description, features, tier_required, daily_limit, monthly_limit)
         SELECT p.id, 'basic', 'Basic form building',
             '{"max_forms": 10, "ai_enabled": false, "storage_gb": 1}'::jsonb,
             'free'::user_tier, 3, 100
-        FROM products p WHERE p.product_id = 'form-001'
+        FROM products p WHERE p.upid = 'UALLOWANCE0001'
 
         UNION ALL
 
         SELECT p.id, 'pro', 'Professional form building with AI',
             '{"max_forms": 100, "ai_enabled": true, "storage_gb": 50}'::jsonb,
             'standard'::user_tier, 100, 10000
-        FROM products p WHERE p.product_id = 'form-001'
+        FROM products p WHERE p.upid = 'UALLOWANCE0001'
 
         UNION ALL
 
         SELECT p.id, 'enterprise', 'Enterprise form solution',
             '{"max_forms": 1000, "ai_enabled": true, "storage_gb": 500, "api_access": true}'::jsonb,
             'premium'::user_tier, NULL, NULL
-        FROM products p WHERE p.product_id = 'form-001';
+        FROM products p WHERE p.upid = 'UALLOWANCE0001';

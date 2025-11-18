@@ -65,7 +65,7 @@ mod tests {
         
         let token = generate_license_token(
             1,
-            "form-001".to_string(),
+            "UALLOWANCE0001".to_string(),
             "pro".to_string(),
             "standard".to_string(),
             Some(100),
@@ -77,7 +77,7 @@ mod tests {
         let claims = verify_license_token(&token, secret).unwrap();
         
         assert_eq!(claims.user_id, 1);
-        assert_eq!(claims.product_id, "form-001");
+        assert_eq!(claims.product_id, "UALLOWANCE0001");
         assert_eq!(claims.version_name, "pro");
         assert_eq!(claims.tier, "standard");
         assert_eq!(claims.daily_limit, Some(100));

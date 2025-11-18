@@ -179,7 +179,6 @@ impl OrganizationService {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
 
     #[test]
     fn test_organization_name_validation() {

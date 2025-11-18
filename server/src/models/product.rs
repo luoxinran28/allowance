@@ -9,9 +9,9 @@ pub struct Product {
     pub id: i64,
     pub upid: String,
     pub product_slug: String,
-    pub tier: String,
     pub name: String,
     pub description: Option<String>,
+    pub owner_id: Option<i64>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
@@ -62,8 +62,8 @@ pub struct LicenseApproval {
 pub struct ProductResponse {
     pub id: i64,
     pub upid: String,
+    pub product_slug: String,
     pub name: String,
-    pub tier: String,
     pub description: Option<String>,
 }
 
@@ -72,8 +72,8 @@ impl From<Product> for ProductResponse {
         ProductResponse {
             id: product.id,
             upid: product.upid,
+            product_slug: product.product_slug,
             name: product.name,
-            tier: product.tier,
             description: product.description,
         }
     }

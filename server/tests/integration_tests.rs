@@ -463,7 +463,6 @@ mod token_tests {
     #[test]
     fn test_license_key_format() {
         // License keys are JWT format: header.payload.signature
-        let license_key_pattern = "^[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+$";
         
         // This is a mock JWT
         let sample_license =
@@ -627,7 +626,7 @@ mod database_query_tests {
             LicenseRow {
                 id: 1,
                 user_id: 1,
-                product_id: "form-001".to_string(),
+                product_id: "UALLOWANCE0001".to_string(),
                 _license_key: "jwt.token.here".to_string(),
                 daily_usage: 5,
                 daily_limit: Some(100),
@@ -635,7 +634,7 @@ mod database_query_tests {
             LicenseRow {
                 id: 2,
                 user_id: 2,
-                product_id: "form-001".to_string(),
+                product_id: "UALLOWANCE0001".to_string(),
                 _license_key: "jwt.token.here2".to_string(),
                 daily_usage: 0,
                 daily_limit: None, // Unlimited
