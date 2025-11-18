@@ -24,9 +24,11 @@ class ApiClient {
           config.headers.Authorization = `Bearer ${token}`;
         }
 
-        // Auto-add Nonce to POST/PUT/DELETE requests if not already present
+        // Auto-add Nonce to POST/PUT/DELETE requests EXCEPT for auth endpoints
+        const isAuthEndpoint = config.url?.includes('/auth/');
         if (
           ['post', 'put', 'delete'].includes(config.method?.toLowerCase() || '') &&
+          !isAuthEndpoint &&
           !config.headers['X-Nonce'] &&
           this.apiSecret
         ) {

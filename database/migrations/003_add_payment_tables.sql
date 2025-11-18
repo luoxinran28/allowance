@@ -22,7 +22,7 @@ CREATE INDEX idx_payment_intents_status ON payment_intents(status);
 CREATE TABLE IF NOT EXISTS subscriptions (
     id BIGSERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
-    tier VARCHAR(50) NOT NULL,  -- free, pro, enterprise
+    tier user_tier NOT NULL,  -- free, standard, premium
     status VARCHAR(20) NOT NULL,  -- active, canceled, suspended
     current_period_start TIMESTAMP WITH TIME ZONE NOT NULL,
     current_period_end TIMESTAMP WITH TIME ZONE NOT NULL,

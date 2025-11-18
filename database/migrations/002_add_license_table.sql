@@ -66,8 +66,9 @@ CREATE INDEX idx_license_usage_history_license_id ON license_usage_history(licen
 CREATE INDEX idx_license_usage_history_created_at ON license_usage_history(created_at);
 
 -- Insert sample products and versions for Form Builder
-INSERT INTO products (product_id, name, description) VALUES
-    ('form-001', 'Form Builder', 'Online form creation and management tool');
+-- UPID Format: UPID + 12 characters
+INSERT INTO products (product_id, name, description, upid) VALUES
+    ('form-001', 'Form Builder', 'Online form creation and management tool', 'UPIDFORM0001');
 
 INSERT INTO product_versions (product_id, version_name, description, features, tier_required, daily_limit, monthly_limit)
         SELECT p.id, 'basic', 'Basic form building',

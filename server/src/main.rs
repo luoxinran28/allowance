@@ -43,6 +43,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Load configuration
     let config = Config::from_env();
     eprintln!("Starting Allowance Server on {}:{}", config.server_host, config.server_port);
+    eprintln!("RUST_BUILD_TIMESTAMP: 2025-11-18T04:20:00Z");  // Force rebuild
     tracing::info!("Starting Allowance Server on {}:{}", config.server_host, config.server_port);
     eprintln!("Config loaded successfully");
 
@@ -98,7 +99,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cors = CorsLayer::permissive()
         .allow_origin(Any)
         .allow_methods([Method::GET, Method::POST, Method::PUT, Method::DELETE])
-        .allow_headers([header::CONTENT_TYPE, header::AUTHORIZATION]);
+        .allow_headers([
+            header::CONTENT_TYPE,
+            header::AUTHORIZATION,
+            "X-Nonce".parse().unwrap(),
+            "X-Timestamp".parse().unwrap(),
+            "X-Sign".parse().unwrap(),
+        ]);
 
     let openapi_doc = docs::get_openapi_doc();
 

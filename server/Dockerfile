@@ -46,6 +46,9 @@ RUN chmod +x /app/entrypoint.sh
 # Copy the binary from the builder stage
 COPY --from=builder /app/target/release/allowance-server /app/allowance-server
 
+# Copy the migrations directory
+COPY migrations ./migrations
+
 # Change ownership to the non-root user
 RUN chown appuser:appuser /app/allowance-server /app/entrypoint.sh
 

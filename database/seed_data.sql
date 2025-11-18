@@ -116,16 +116,18 @@ INSERT INTO user_groups (user_id, group_id, role) VALUES
     ((SELECT id FROM users WHERE email = 'free@test.com'), (SELECT id FROM groups WHERE group_id = 'STARTUP-ALL'), 'member')
 ON CONFLICT (user_id, group_id) DO NOTHING;
 
--- Create additional test products
-INSERT INTO products (product_id, name, description, owner_id) VALUES
+-- Create additional test products with UPID support
+-- UPID Format: UPID + ProductName (uppercase, 16 chars total)
+-- Universal Format: UPID + 12-character code (e.g., UPIDFORM0001, UPIDSURVEY0001)
+INSERT INTO products (product_id, name, description, owner_id, upid) VALUES
     ('survey-001', 'Survey Builder', 'Advanced survey creation and analytics platform',
-     (SELECT id FROM users WHERE email = 'admin@test.com')),
+     (SELECT id FROM users WHERE email = 'admin@test.com'), 'UPIDSURVEY0001'),
     ('doc-001', 'Document Generator', 'AI-powered document generation tool',
-     (SELECT id FROM users WHERE email = 'superadmin@test.com')),
+     (SELECT id FROM users WHERE email = 'superadmin@test.com'), 'UPIDDOC000001'),
     ('analytics-001', 'Business Analytics', 'Comprehensive business intelligence dashboard',
-     (SELECT id FROM users WHERE email = 'sarah.johnson@test.com')),
+     (SELECT id FROM users WHERE email = 'sarah.johnson@test.com'), 'UPIDANALYTIC'),
     ('crm-001', 'Customer Relationship Manager', 'Complete CRM solution for businesses',
-     (SELECT id FROM users WHERE email = 'mike.davis@test.com'))
+     (SELECT id FROM users WHERE email = 'mike.davis@test.com'), 'UPIDCRM000001')
 ON CONFLICT (product_id) DO NOTHING;
 
 -- Create product versions for all products
