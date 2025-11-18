@@ -6,10 +6,13 @@ use chrono::NaiveDateTime;
 #[sqlx(type_name = "user_status")]
 pub enum UserStatus {
     #[serde(rename = "active")]
+    #[sqlx(rename = "active")]
     Active,
     #[serde(rename = "inactive")]
+    #[sqlx(rename = "inactive")]
     Inactive,
     #[serde(rename = "suspended")]
+    #[sqlx(rename = "suspended")]
     Suspended,
 }
 
@@ -40,10 +43,13 @@ impl std::fmt::Display for UserStatus {
 #[sqlx(type_name = "user_tier")]
 pub enum UserTier {
     #[serde(rename = "free")]
+    #[sqlx(rename = "free")]
     Free,
     #[serde(rename = "standard")]
+    #[sqlx(rename = "standard")]
     Standard,
     #[serde(rename = "premium")]
+    #[sqlx(rename = "premium")]
     Premium,
 }
 
@@ -118,6 +124,7 @@ pub struct RegisterRequest {
 pub struct LoginRequest {
     pub email: String,
     pub password: String,
+    pub upid: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

@@ -87,6 +87,38 @@ impl AuthService {
         Ok(user)
     }
 
+    /// Login with email, password, and UPID (product validation)
+    pub async fn login_with_upid(
+        pool: &PgPool,
+        email: &str,
+        password: &str,
+        upid: &str,
+    ) -> AppResult<User> {
+        // First, perform regular authentication
+        let user = Self::login(pool, email, password).await?;
+
+        // Validate UPID access - check if user has license for this product
+        let license_count = sqlx::query_scalar::<_, i64>(
+            r#"
+            SELECT COUNT(*) FROM user_licenses ul
+            JOIN product_versions pv ON ul.product_version_id = pv.id
+            JOIN products p ON pv.product_id = p.id
+            WHERE ul.user_id = $1 AND p.upid = $2 AND ul.revoked_at IS NULL
+            AND (ul.expires_at IS NULL OR ul.expires_at > NOW())
+            "#
+        )
+        .bind(user.id)
+        .bind(upid)
+        .fetch_one(pool)
+        .await?;
+
+        if license_count == 0 {
+            return Err(AppError::BadRequest("No valid license found for this product".to_string()));
+        }
+
+        Ok(user)
+    }
+
     /// Create email activation token
     pub async fn create_activation_token(
         pool: &PgPool,

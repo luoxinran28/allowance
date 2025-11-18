@@ -39,11 +39,16 @@ pub async fn register(
 /// User login
 /// 
 /// Authenticates user with email and password. Returns JWT token and refresh token.
+/// If UPID is provided, validates that the user has access to the product.
 pub async fn login(
     State(state): State<Arc<AuthHandler>>,
     Json(req): Json<LoginRequest>,
 ) -> AppResult<Json<AuthResponse>> {
-    let user = AuthService::login(&state.pool, &req.email, &req.password).await?;
+    let user = if let Some(upid) = &req.upid {
+        AuthService::login_with_upid(&state.pool, &req.email, &req.password, upid).await?
+    } else {
+        AuthService::login(&state.pool, &req.email, &req.password).await?
+    };
 
     let token = state.jwt.generate_token(user.id, user.email.clone())?;
     let refresh_token = state.jwt.generate_refresh_token(user.id)?;

@@ -62,6 +62,10 @@ class ApiClient {
     nonce: string;
     sign: string;
   }> {
+    if (!this.apiSecret) {
+      throw new Error('API_SECRET is not configured. Cannot generate secure nonce.');
+    }
+
     const timestamp = Math.floor(Date.now() / 1000).toString();
     const nonce = crypto.randomUUID().replace(/-/g, '').substring(0, 32);
     const bodyHash = await this.hashBody(body);
@@ -92,22 +96,9 @@ class ApiClient {
     return this.client.post('/auth/register', { email, password });
   }
 
-  /// Login with email, password, and UPID (product)
-  async loginWithUpid(email: string, password: string, upid: string) {
-    const body = { email, password, upid };
-    const { timestamp, nonce, sign } = await this.generateNonce(body);
-    
-    return this.client.post('/auth/login', body, {
-      headers: {
-        'X-Timestamp': timestamp,
-        'X-Nonce': nonce,
-        'X-Sign': sign,
-      }
-    });
-  }
-
-  async login(email: string, password: string) {
-    return this.client.post('/auth/login', { email, password });
+  async login(email: string, password: string, upid?: string) {
+    const body = upid ? { email, password, upid } : { email, password };
+    return this.client.post('/auth/login', body);
   }
 
   async activate(token: string) {

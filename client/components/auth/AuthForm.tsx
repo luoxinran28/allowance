@@ -40,12 +40,8 @@ export function AuthForm({ mode }: AuthFormProps) {
         setError('');
         router.push(`/auth/activate?email=${email}`);
       } else {
-        // Login with UPID if available, otherwise fallback to old login
-        const loginPromise = upid
-          ? apiClient.loginWithUpid(email, password, upid)
-          : apiClient.login(email, password);
-        
-        const response = await loginPromise;
+        // Login with UPID if available
+        const response = await apiClient.login(email, password, upid || undefined);
         const { user, token } = response.data;
         setAuth(user, token);
         router.push('/dashboard');

@@ -9,6 +9,7 @@ pub struct Config {
     pub jwt_secret: String,
     pub jwt_expiration_hours: i64,
     pub refresh_token_expiration_days: i64,
+    pub api_secret_key: String,
     pub stripe_api_key: String,
     pub stripe_webhook_secret: String,
     pub stripe_test_mode: bool,
@@ -40,6 +41,17 @@ impl Config {
             }
         };
 
+        let api_secret_key = match env::var("API_SECRET") {
+            Ok(val) => {
+                eprintln!("API_SECRET found");
+                val
+            }
+            Err(e) => {
+                eprintln!("API_SECRET not found: {}, using default for development", e);
+                panic!("API_SECRET not set");
+            }
+        };
+
         Config {
             server_host: "0.0.0.0".to_string(),
             server_port: 4040,
@@ -47,6 +59,7 @@ impl Config {
             jwt_secret,
             jwt_expiration_hours: 24,
             refresh_token_expiration_days: 7,
+            api_secret_key,
             stripe_api_key: "sk_test_placeholder".to_string(),
             stripe_webhook_secret: "whsec_test_placeholder".to_string(),
             stripe_test_mode: true,
