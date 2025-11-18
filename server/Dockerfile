@@ -7,12 +7,6 @@ WORKDIR /app
 # Copy the Cargo.toml and Cargo.lock files
 COPY Cargo.toml Cargo.lock ./
 
-# Create a dummy main.rs to cache dependencies
-RUN mkdir src && echo "fn main() {}" > src/main.rs
-
-# Build the dependencies
-RUN cargo build --release && rm -rf src
-
 # Copy the source code
 COPY src ./src
 
@@ -51,6 +45,9 @@ COPY migrations ./migrations
 
 # Change ownership to the non-root user
 RUN chown appuser:appuser /app/allowance-server /app/entrypoint.sh
+
+# Switch to root user for testing (remove this line in production)
+USER root
 
 # Expose the port the app runs on
 EXPOSE 4040

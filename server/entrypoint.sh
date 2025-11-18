@@ -24,4 +24,5 @@ echo "Database is ready!"
 
 echo "Running Allowance Server..."
 echo "Starting server..."
-exec /app/allowance-server 2>&1
+# Try running without exec to see if it helps
+/app/allowance-server
