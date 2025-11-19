@@ -3,11 +3,25 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { usePermission } from '@/lib/hooks/usePermission';
+import { Button } from '@/components/ui/button';
+import {
+  LayoutDashboard,
+  Users,
+  Building2,
+  Package,
+  CreditCard,
+  Zap,
+  XCircle,
+  Download,
+  HelpCircle,
+  FileText,
+  CheckCircle2,
+} from 'lucide-react';
 
 interface NavItem {
   href: string;
   label: string;
-  icon: string;
+  icon: React.ReactNode;
   requiredPermission?: string;
 }
 
@@ -15,27 +29,27 @@ const mainNavItems: NavItem[] = [
   {
     href: '/dashboard',
     label: 'Dashboard',
-    icon: '📊',
+    icon: <LayoutDashboard className="h-4 w-4" />,
   },
   {
     href: '/dashboard/teams',
     label: 'Teams',
-    icon: '👥',
+    icon: <Users className="h-4 w-4" />,
   },
   {
     href: '/dashboard/organizations',
     label: 'Organizations',
-    icon: '🏢',
+    icon: <Building2 className="h-4 w-4" />,
   },
   {
     href: '/dashboard/products',
     label: 'Products',
-    icon: '📦',
+    icon: <Package className="h-4 w-4" />,
   },
   {
     href: '/dashboard/billing',
     label: 'Billing',
-    icon: '💳',
+    icon: <CreditCard className="h-4 w-4" />,
   },
 ];
 
@@ -43,17 +57,17 @@ const batchNavItems: NavItem[] = [
   {
     href: '/dashboard/batch/generate',
     label: 'Generate Licenses',
-    icon: '✨',
+    icon: <Zap className="h-4 w-4" />,
   },
   {
     href: '/dashboard/batch/revoke',
     label: 'Revoke Licenses',
-    icon: '❌',
+    icon: <XCircle className="h-4 w-4" />,
   },
   {
     href: '/dashboard/batch/export',
     label: 'Export Licenses',
-    icon: '⬇️',
+    icon: <Download className="h-4 w-4" />,
   },
 ];
 
@@ -61,19 +75,19 @@ const adminNavItems: NavItem[] = [
   {
     href: '/admin/products',
     label: 'Manage Products',
-    icon: '📦',
+    icon: <Package className="h-4 w-4" />,
     requiredPermission: 'product:read',
   },
   {
     href: '/admin/users',
     label: 'Manage Users',
-    icon: '👤',
+    icon: <Users className="h-4 w-4" />,
     requiredPermission: 'user:read',
   },
   {
     href: '/admin/approvals',
     label: 'Approvals',
-    icon: '✅',
+    icon: <CheckCircle2 className="h-4 w-4" />,
     requiredPermission: 'admin:approvals',
   },
 ];
@@ -93,17 +107,16 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
     }
 
     return (
-      <Link
-        href={item.href}
-        className={`flex items-center gap-3 px-4 py-2 rounded-lg transition ${
-          isActive(item.href)
-            ? 'bg-blue-100 text-blue-900 font-semibold'
-            : 'text-gray-700 hover:bg-gray-100'
-        }`}
+      <Button
+        variant={isActive(item.href) ? 'default' : 'ghost'}
+        className="w-full justify-start gap-3"
+        asChild
       >
-        <span className="text-xl">{item.icon}</span>
-        <span>{item.label}</span>
-      </Link>
+        <Link href={item.href}>
+          {item.icon}
+          <span>{item.label}</span>
+        </Link>
+      </Button>
     );
   };
 
@@ -111,11 +124,11 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
     <aside
       className={`${
         isOpen ? 'block' : 'hidden'
-      } w-64 bg-white border-r border-gray-200 p-4 space-y-6 overflow-y-auto h-[calc(100vh-64px)] sticky top-16`}
+      } w-64 border-r border-border bg-card p-4 space-y-6 overflow-y-auto h-[calc(100vh-64px)] sticky top-16`}
     >
       {/* Main Navigation */}
-      <nav>
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-4">
+      <nav className="space-y-2">
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-4">
           Main Menu
         </p>
         <div className="space-y-1">
@@ -126,8 +139,8 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
       </nav>
 
       {/* Batch Operations */}
-      <nav>
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-4">
+      <nav className="space-y-2">
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-4">
           Batch Operations
         </p>
         <div className="space-y-1">
@@ -139,8 +152,8 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
 
       {/* Admin Section */}
       {isAdmin() && (
-        <nav>
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-4">
+        <nav className="space-y-2">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-4">
             Administration
           </p>
           <div className="space-y-1">
@@ -152,25 +165,31 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
       )}
 
       {/* Help Section */}
-      <nav className="pt-4 border-t">
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-4">
+      <nav className="pt-4 border-t border-border space-y-2">
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-4">
           Resources
         </p>
         <div className="space-y-1">
-          <a
-            href="mailto:support@allowance.example.com"
-            className="flex items-center gap-3 px-4 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition"
+          <Button
+            variant="ghost"
+            className="w-full justify-start gap-3"
+            asChild
           >
-            <span className="text-xl">💬</span>
-            <span>Support</span>
-          </a>
-          <a
-            href="/docs"
-            className="flex items-center gap-3 px-4 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition"
+            <a href="mailto:support@allowance.example.com">
+              <HelpCircle className="h-4 w-4" />
+              <span>Support</span>
+            </a>
+          </Button>
+          <Button
+            variant="ghost"
+            className="w-full justify-start gap-3"
+            asChild
           >
-            <span className="text-xl">📖</span>
-            <span>Documentation</span>
-          </a>
+            <a href="/docs">
+              <FileText className="h-4 w-4" />
+              <span>Documentation</span>
+            </a>
+          </Button>
         </div>
       </nav>
     </aside>

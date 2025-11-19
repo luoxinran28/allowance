@@ -4,6 +4,10 @@ import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { apiClient } from '@/lib/api-client';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 
 function ActivateForm() {
   const searchParams = useSearchParams();
@@ -36,79 +40,83 @@ function ActivateForm() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
-        <div className="w-full max-w-md mx-auto">
-          <div className="bg-white rounded-lg shadow p-8 text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <h1 className="text-xl font-semibold mb-2">Activating Account</h1>
-            <p className="text-gray-600">Please wait while we activate your account...</p>
-          </div>
-        </div>
-      </div>
+      <main className="min-h-screen bg-gradient-to-b from-background to-muted flex items-center justify-center py-12 px-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="pt-8 text-center space-y-4">
+            <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary" />
+            <h2 className="text-lg font-semibold">Activating Account</h2>
+            <p className="text-sm text-muted-foreground">Please wait while we activate your account...</p>
+          </CardContent>
+        </Card>
+      </main>
+    );
+  }
+
+  if (success) {
+    return (
+      <main className="min-h-screen bg-gradient-to-b from-background to-muted flex items-center justify-center py-12 px-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center pb-3">
+            <div className="mx-auto mb-3 h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
+              <CheckCircle2 className="h-6 w-6 text-green-600" />
+            </div>
+            <CardTitle className="text-green-600">Account Activated!</CardTitle>
+            <CardDescription className="text-base text-foreground font-medium mt-2">
+              Your account has been successfully activated
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground text-center">
+              You can now sign in to your account and start using Allowance.
+            </p>
+            <Button asChild className="w-full">
+              <Link href="/auth/login">Sign In to Account</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </main>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
-      <div className="w-full max-w-md mx-auto">
-        <div className="bg-white rounded-lg shadow p-8 text-center">
-          {success ? (
-            <>
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-              <h1 className="text-2xl font-bold text-green-600 mb-2">Account Activated!</h1>
-              <p className="text-gray-600 mb-6">
-                Your account has been successfully activated. You can now sign in to your account.
-              </p>
-              <Link
-                href="/auth/login"
-                className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 inline-block"
-              >
-                Sign In
-              </Link>
-            </>
-          ) : (
-            <>
-              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </div>
-              <h1 className="text-2xl font-bold text-red-600 mb-2">Activation Failed</h1>
-              <p className="text-gray-600 mb-6">{error}</p>
-              <div className="space-y-3">
-                <Link
-                  href="/auth/login"
-                  className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 inline-block text-center"
-                >
-                  Back to Sign In
-                </Link>
-                <p className="text-sm text-gray-500">
-                  Need a new activation link? <Link href="/auth/login" className="text-blue-600 hover:underline">Register again</Link>
-                </p>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
-    </div>
+    <main className="min-h-screen bg-gradient-to-b from-background to-muted flex items-center justify-center py-12 px-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center pb-3">
+          <div className="mx-auto mb-3 h-12 w-12 rounded-full bg-red-100 flex items-center justify-center">
+            <AlertCircle className="h-6 w-6 text-red-600" />
+          </div>
+          <CardTitle className="text-red-600">Activation Failed</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+          <div className="space-y-3">
+            <Button asChild className="w-full" variant="default">
+              <Link href="/auth/login">Back to Sign In</Link>
+            </Button>
+            <Button asChild className="w-full" variant="outline">
+              <Link href="/auth/login">Register Again</Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </main>
   );
 }
 
 export default function ActivatePage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
-        <div className="w-full max-w-md mx-auto">
-          <div className="bg-white rounded-lg shadow p-8 text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="mt-4 text-gray-600">Loading...</p>
-          </div>
-        </div>
-      </div>
+      <main className="min-h-screen bg-gradient-to-b from-background to-muted flex items-center justify-center py-12 px-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="pt-8 text-center space-y-4">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto" />
+            <p className="text-sm text-muted-foreground">Loading...</p>
+          </CardContent>
+        </Card>
+      </main>
     }>
       <ActivateForm />
     </Suspense>

@@ -5,6 +5,12 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { apiClient } from '@/lib/api-client';
 import { useAuthStore } from '@/lib/auth-store';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
 
 interface AuthFormProps {
   mode: 'login' | 'register';
@@ -17,6 +23,7 @@ export function AuthForm({ mode }: AuthFormProps) {
   const [password, setPassword] = useState('');
   const [upid, setUpid] = useState('');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
 
   // Read UPID from meta tag on component mount
@@ -32,13 +39,16 @@ export function AuthForm({ mode }: AuthFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
     setLoading(true);
 
     try {
       if (mode === 'register') {
         await apiClient.register(email, password);
-        setError('');
-        router.push(`/auth/activate?email=${email}`);
+        setSuccess('Registration successful! Check your email to activate your account.');
+        setTimeout(() => {
+          router.push(`/auth/activate?email=${encodeURIComponent(email)}`);
+        }, 2000);
       } else {
         // Login with UPID if available
         const response = await apiClient.login(email, password, upid || undefined);
@@ -55,70 +65,119 @@ export function AuthForm({ mode }: AuthFormProps) {
 
   return (
     <div className="w-full max-w-md mx-auto">
-      <div className="bg-white rounded-lg shadow p-8">
-        <h1 className="text-2xl font-bold mb-6 text-center">
-          {mode === 'login' ? 'Sign In' : 'Create Account'}
-        </h1>
+      <Card>
+        <CardHeader className="space-y-2">
+          <CardTitle className="text-2xl">
+            {mode === 'login' ? 'Sign In' : 'Create Account'}
+          </CardTitle>
+          <CardDescription>
+            {mode === 'login'
+              ? 'Enter your credentials to access your account'
+              : 'Register for a new account to get started'}
+          </CardDescription>
+        </CardHeader>
 
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-            {error}
+        <CardContent>
+          {error && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
+          {success && (
+            <Alert className="mb-4 border-green-200 bg-green-50">
+              <CheckCircle2 className="h-4 w-4 text-green-600" />
+              <AlertDescription className="text-green-800">{success}</AlertDescription>
+            </Alert>
+          )}
+
+          {upid && (
+            <div className="mb-4 p-3 rounded-lg border border-border bg-muted">
+              <p className="text-xs text-muted-foreground">
+                <span className="font-semibold">Product:</span> {upid}
+              </p>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email Address</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                disabled={loading}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder={mode === 'register' ? 'Min. 8 characters' : 'Enter your password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={8}
+                disabled={loading}
+              />
+              {mode === 'register' && (
+                <p className="text-xs text-muted-foreground">
+                  Password must be at least 8 characters long
+                </p>
+              )}
+            </div>
+
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full"
+            >
+              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {loading ? 'Loading...' : (mode === 'register' ? 'Create Account' : 'Sign In')}
+            </Button>
+          </form>
+
+          <div className="mt-6 space-y-3">
+            {mode === 'login' && (
+              <>
+                <p className="text-center text-sm text-muted-foreground">
+                  <Link href="/auth/reset-password" className="text-primary hover:underline font-medium">
+                    Forgot your password?
+                  </Link>
+                </p>
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-border"></div>
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="px-2 bg-background text-muted-foreground">or</span>
+                  </div>
+                </div>
+                <p className="text-center text-sm text-muted-foreground">
+                  Don't have an account?{' '}
+                  <Link href="/auth/login" className="text-primary hover:underline font-medium">
+                    Create one
+                  </Link>
+                </p>
+              </>
+            )}
+            {mode === 'register' && (
+              <p className="text-center text-sm text-muted-foreground">
+                Already have an account?{' '}
+                <Link href="/auth/login" className="text-primary hover:underline font-medium">
+                  Sign in
+                </Link>
+              </p>
+            )}
           </div>
-        )}
-
-        {upid && (
-          <div className="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded mb-4 text-sm">
-            Product: {upid}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium mb-2">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            />
-          </div>
-
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium mb-2">
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-              minLength={8}
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400"
-          >
-            {loading ? 'Loading...' : (mode === 'register' ? 'Register' : 'Sign In')}
-          </button>
-        </form>
-
-        {mode === 'login' && (
-          <p className="mt-4 text-center text-sm text-gray-600">
-            <Link href="/auth/reset-password" className="text-blue-600 hover:underline">
-              Forgot password?
-            </Link>
-          </p>
-        )}
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

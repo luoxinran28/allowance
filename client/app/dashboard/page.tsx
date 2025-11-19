@@ -4,6 +4,11 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { apiClient } from '@/lib/api-client';
 import { User, UserLicense } from '@/lib/types';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Loader2, AlertCircle } from 'lucide-react';
 
 interface DashboardData {
   user: User | null;
@@ -59,139 +64,156 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-96">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading dashboard...</p>
-        </div>
+        <Card className="w-full max-w-md">
+          <CardContent className="pt-8 text-center space-y-4">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+            <p className="text-sm text-muted-foreground">Loading dashboard...</p>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-        <p className="text-red-700">{error}</p>
-      </div>
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>{error}</AlertDescription>
+      </Alert>
     );
   }
 
+  const activeLicenses = data.licenses.filter(l => !l.revoked_at && new Date(l.expires_at) > new Date()).length;
+
   return (
-    <div>
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2">Welcome back, {data.user?.email?.split('@')[0]}!</h1>
-        <p className="text-gray-600">Here's an overview of your account</p>
+    <div className="space-y-8">
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Welcome back, {data.user?.email?.split('@')[0]}!</h1>
+        <p className="text-muted-foreground mt-2">Here's an overview of your account</p>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-gray-600 text-sm font-medium mb-2">Account Tier</h3>
-          <p className="text-3xl font-bold text-blue-600 capitalize">{data.user?.tier}</p>
-          <p className="text-xs text-gray-500 mt-2">
-            Status: <span className="font-semibold capitalize">{data.user?.status}</span>
-          </p>
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Account Tier</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold capitalize mb-2">{data.user?.tier}</div>
+            <p className="text-xs text-muted-foreground">
+              Status: <span className="font-semibold capitalize">{data.user?.status}</span>
+            </p>
+          </CardContent>
+        </Card>
 
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-gray-600 text-sm font-medium mb-2">Active Licenses</h3>
-          <p className="text-3xl font-bold text-green-600">
-            {data.licenses.filter(l => !l.revoked_at && new Date(l.expires_at) > new Date()).length}
-          </p>
-          <p className="text-xs text-gray-500 mt-2">
-            Total: {data.licenses.length}
-          </p>
-        </div>
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Active Licenses</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold mb-2">{activeLicenses}</div>
+            <p className="text-xs text-muted-foreground">
+              Out of {data.licenses.length} total
+            </p>
+          </CardContent>
+        </Card>
 
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-gray-600 text-sm font-medium mb-2">Teams</h3>
-          <p className="text-3xl font-bold text-purple-600">{data.teamsCount}</p>
-          <Link
-            href="/dashboard/teams"
-            className="text-xs text-blue-600 hover:underline mt-2 inline-block"
-          >
-            Manage Teams →
-          </Link>
-        </div>
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Teams</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold mb-2">{data.teamsCount}</div>
+            <Button variant="link" className="h-auto p-0" asChild>
+              <Link href="/dashboard/teams" className="text-xs">
+                Manage Teams →
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
 
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-gray-600 text-sm font-medium mb-2">Organizations</h3>
-          <p className="text-3xl font-bold text-orange-600">{data.orgsCount}</p>
-          <Link
-            href="/dashboard/organizations"
-            className="text-xs text-blue-600 hover:underline mt-2 inline-block"
-          >
-            Manage Orgs →
-          </Link>
-        </div>
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Organizations</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold mb-2">{data.orgsCount}</div>
+            <Button variant="link" className="h-auto p-0" asChild>
+              <Link href="/dashboard/organizations" className="text-xs">
+                Manage Orgs →
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-6 border border-blue-200">
-          <h3 className="text-lg font-semibold text-blue-900 mb-2">Generate License</h3>
-          <p className="text-blue-700 text-sm mb-4">
-            Create a new license for your products
-          </p>
-          <Link
-            href="/dashboard/products"
-            className="inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm"
-          >
-            Go to Products
-          </Link>
-        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Generate License</CardTitle>
+            <CardDescription>Create a new license for your products</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild>
+              <Link href="/dashboard/products">Go to Products</Link>
+            </Button>
+          </CardContent>
+        </Card>
 
-        <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-lg p-6 border border-green-200">
-          <h3 className="text-lg font-semibold text-green-900 mb-2">Create Team</h3>
-          <p className="text-green-700 text-sm mb-4">
-            Collaborate with team members on licenses
-          </p>
-          <Link
-            href="/dashboard/teams"
-            className="inline-block bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 text-sm"
-          >
-            Create Team
-          </Link>
-        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Create Team</CardTitle>
+            <CardDescription>Collaborate with team members on licenses</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild>
+              <Link href="/dashboard/teams">Create Team</Link>
+            </Button>
+          </CardContent>
+        </Card>
 
-        <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg p-6 border border-purple-200">
-          <h3 className="text-lg font-semibold text-purple-900 mb-2">View Profile</h3>
-          <p className="text-purple-700 text-sm mb-4">
-            Manage your account settings and preferences
-          </p>
-          <Link
-            href="/dashboard/profile"
-            className="inline-block bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 text-sm"
-          >
-            View Profile
-          </Link>
-        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>View Profile</CardTitle>
+            <CardDescription>Manage your account settings and preferences</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild>
+              <Link href="/dashboard/profile">View Profile</Link>
+            </Button>
+          </CardContent>
+        </Card>
 
-        <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-lg p-6 border border-orange-200">
-          <h3 className="text-lg font-semibold text-orange-900 mb-2">Billing</h3>
-          <p className="text-orange-700 text-sm mb-4">
-            View subscription and billing information
-          </p>
-          <Link
-            href="/dashboard/billing"
-            className="inline-block bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700 text-sm"
-          >
-            Billing Info
-          </Link>
-        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Billing</CardTitle>
+            <CardDescription>View subscription and billing information</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild>
+              <Link href="/dashboard/billing">Billing Info</Link>
+            </Button>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Recent Licenses */}
       {data.licenses.length > 0 && (
-        <div className="mt-8">
-          <h2 className="text-2xl font-bold mb-4">Recent Licenses</h2>
-          <div className="bg-white rounded-lg shadow overflow-hidden">
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Licenses</CardTitle>
+            <CardDescription>Your most recent licenses and their status</CardDescription>
+          </CardHeader>
+          <CardContent>
             <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50 border-b">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">License Key</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Expires</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Status</th>
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left py-3 px-4 font-semibold">License Key</th>
+                    <th className="text-left py-3 px-4 font-semibold">Expires</th>
+                    <th className="text-left py-3 px-4 font-semibold">Status</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -200,23 +222,19 @@ export default function DashboardPage() {
                     const isRevoked = !!license.revoked_at;
 
                     return (
-                      <tr key={license.id} className="border-b hover:bg-gray-50">
-                        <td className="px-6 py-4 text-sm font-mono text-gray-900">
+                      <tr key={license.id} className="border-b hover:bg-muted/50">
+                        <td className="py-3 px-4 font-mono text-xs">
                           {license.license_key.substring(0, 20)}...
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-900">
+                        <td className="py-3 px-4">
                           {new Date(license.expires_at).toLocaleDateString()}
                         </td>
-                        <td className="px-6 py-4 text-sm">
-                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                            isRevoked
-                              ? 'bg-red-100 text-red-800'
-                              : isExpired
-                              ? 'bg-yellow-100 text-yellow-800'
-                              : 'bg-green-100 text-green-800'
-                          }`}>
+                        <td className="py-3 px-4">
+                          <Badge variant={
+                            isRevoked ? "destructive" : isExpired ? "outline" : "default"
+                          }>
                             {isRevoked ? 'Revoked' : isExpired ? 'Expired' : 'Active'}
-                          </span>
+                          </Badge>
                         </td>
                       </tr>
                     );
@@ -225,17 +243,16 @@ export default function DashboardPage() {
               </table>
             </div>
             {data.licenses.length > 5 && (
-              <div className="px-6 py-4 border-t bg-gray-50">
-                <Link
-                  href="/dashboard/products"
-                  className="text-blue-600 hover:underline text-sm font-medium"
-                >
-                  View all licenses →
-                </Link>
+              <div className="mt-4 pt-4 border-t">
+                <Button variant="link" asChild>
+                  <Link href="/dashboard/products">
+                    View all licenses →
+                  </Link>
+                </Button>
               </div>
             )}
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       )}
     </div>
   );
