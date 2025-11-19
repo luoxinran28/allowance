@@ -2,7 +2,7 @@
 
 # Docker Development Setup Script for Allowance Authorization Management System
 
-echo "🚀 Setting up Allowance Authorization Management System with Docker"
+echo "🚀 Setting up Allowance Authorization Management System (Development Mode)"
 echo ""
 
 # Check if Docker is installed
@@ -19,42 +19,20 @@ fi
 
 echo "✅ Docker and Docker Compose are installed"
 
-# Check if docker-compose.override.yml has development volumes enabled
-if ! grep -q "volumes:" docker-compose.override.yml; then
-    echo ""
-    echo "⚠️  Development volumes not enabled!"
-    echo "For fast development iteration, you should uncomment the volumes in docker-compose.override.yml"
-    echo "This enables hot reload for both Rust backend and Next.js frontend."
-    echo ""
-    read -p "Do you want me to enable development volumes? (y/n): " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        echo "Enabling development volumes..."
-        # Uncomment the volume sections in docker-compose.override.yml
-        sed -i 's/# \(volumes:\)/\1/' docker-compose.override.yml
-        sed -i 's/# \(  - \.\/server:\/app\)/\1/' docker-compose.override.yml
-        sed -i 's/# \(  - \/app\/target\)/\1/' docker-compose.override.yml
-        sed -i 's/# \(  - \.\/client:\/app\)/\1/' docker-compose.override.yml
-        sed -i 's/# \(  - \/app\/node_modules\)/\1/' docker-compose.override.yml
-        sed -i 's/# \(  - \/app\/.next\)/\1/' docker-compose.override.yml
-        # Also uncomment the hot reload commands
-        sed -i 's/# \(command: cargo watch -x run\)/\1/' docker-compose.override.yml
-        sed -i 's/# \(command: npm run dev\)/\1/' docker-compose.override.yml
-        echo "✅ Development volumes and hot reload commands enabled!"
-    fi
+# Determine which compose command to use
+if command -v docker-compose &> /dev/null; then
+    COMPOSE_CMD="docker-compose"
+else
+    COMPOSE_CMD="docker compose"
 fi
 
-# Build and start the services with development volumes
+# Build and start the services with override
 echo ""
-echo "🏗️  Building and starting services with development volumes..."
+echo "🏗️  Building and starting services (with docker-compose.override.yml)..."
 echo "This may take a few minutes on first run (downloading Docker images)..."
 echo ""
 
-if command -v docker-compose &> /dev/null; then
-    docker-compose up --build -d
-else
-    docker compose up --build -d
-fi
+$COMPOSE_CMD up --build -d
 
 # Wait for services to be healthy
 echo ""
@@ -106,33 +84,32 @@ if ! check_service "allowance-client"; then
 fi
 
 echo ""
-echo "🎉 All services are running with development volumes!"
+echo "🎉 All services are running!"
 echo ""
 echo "📱 Access your application:"
 echo "   Frontend: http://localhost:3030"
 echo "   Backend API: http://localhost:4040"
 echo "   Database: localhost:5432 (postgres/password)"
 echo ""
-echo "🔥 Hot reload is enabled:"
-echo "   • Rust backend: Auto-rebuilds on code changes"
-echo "   • Next.js frontend: Auto-rebuilds on code changes"
-echo "   • Database: Persistent data across restarts"
+echo "🔥 HOT RELOAD ENABLED:"
+echo "   • Rust backend: Auto-rebuilds on code changes via 'cargo watch'"
+echo "   • Next.js frontend: Auto-rebuilds on code changes via 'npm run dev'"
+echo "   • File changes sync immediately (volume mounted)"
 echo ""
 echo "📊 Useful commands:"
-echo "   View logs: docker-compose logs -f [service-name]"
-echo "   Stop services: docker-compose down"
-echo "   Restart service: docker-compose restart [service-name]"
+echo "   View logs: $COMPOSE_CMD logs -f [service-name]"
+echo "   Stop services: $COMPOSE_CMD down"
+echo "   Restart service: $COMPOSE_CMD restart [service-name]"
 echo "   View running containers: docker ps"
 echo "   Enter container: docker exec -it allowance-server bash"
 echo ""
 echo "💡 Development tips:"
-echo "   • Code changes are reflected immediately (no rebuild needed)"
-echo "   • Use your IDE/editor normally - files are volume-mounted"
-echo "   • Check container logs for any compilation errors"
+echo "   • Make code changes in your IDE - they'll hot reload automatically"
+echo "   • Check container logs for compilation errors: $COMPOSE_CMD logs -f server"
 echo "   • Database data persists between restarts"
+echo "   • To stop: $COMPOSE_CMD down"
 echo ""
 echo "📝 Next steps:"
 echo "   1. Visit http://localhost:3030 to access the application"
 echo "   2. Register a new user account"
 echo "   3. Check the API health at http://localhost:4040/health"
-echo "   4. Make code changes - they'll hot reload automatically!"
