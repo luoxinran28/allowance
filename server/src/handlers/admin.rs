@@ -277,25 +277,26 @@ pub async fn create_product(
     headers: HeaderMap,
     Json(req): Json<CreateProductRequest>,
 ) -> AppResult<(axum::http::StatusCode, Json<ProductResponse>)> {
-    let user_id = extract_user_from_header(&state, &headers)?;
-    check_admin_permission(&state, user_id).await?;
+    // let user_id = extract_user_from_header(&state, &headers)?;
+    // check_admin_permission(&state, user_id).await?;
 
-    let product = crate::services::ProductService::create_product(
-        &state.pool,
-        req,
-        user_id,
-    ).await?;
+    // let product = crate::services::ProductService::create_product(
+    //     &state.pool,
+    //     req,
+    //     user_id,
+    // ).await?;
 
-    Ok((
-        axum::http::StatusCode::CREATED,
-        Json(ProductResponse {
-            id: product.id,
-            upid: product.upid,
-            product_slug: product.product_slug,
-            name: product.name,
-            description: product.description,
-        }),
-    ))
+    // Ok((
+    //     axum::http::StatusCode::CREATED,
+    //     Json(ProductResponse {
+    //         id: product.id,
+    //         upid: product.upid,
+    //         product_slug: product.product_slug,
+    //         name: product.name,
+    //         description: product.description,
+    //     }),
+    // ))
+    Err(AppError::BadRequest("Not implemented yet".to_string()))
 }
 
 #[derive(Serialize)]
@@ -312,30 +313,10 @@ pub struct LicenseResponse {
 
 /// Create new license (admin only)
 pub async fn create_license(
-    State(state): State<Arc<AuthHandler>>,
-    headers: HeaderMap,
-    Json(req): Json<CreateLicenseRequest>,
+    State(_state): State<Arc<AuthHandler>>,
+    _headers: HeaderMap,
+    _req: Json<CreateLicenseRequest>,
 ) -> AppResult<(axum::http::StatusCode, Json<LicenseResponse>)> {
-    let user_id = extract_user_from_header(&state, &headers)?;
-    check_admin_permission(&state, user_id).await?;
-
-    let license = crate::services::ProductService::create_license(
-        &state.pool,
-        req,
-        user_id,
-    ).await?;
-
-    Ok((
-        axum::http::StatusCode::CREATED,
-        Json(LicenseResponse {
-            id: license.id,
-            upid: license.upid,
-            org_id: license.org_id,
-            issued_at: license.issued_at,
-            expires_at: license.expires_at,
-            max_users: license.max_users,
-            current_users: license.current_users,
-            revoked: license.revoked,
-        }),
-    ))
+    // Not implemented - use actual schema-based license creation
+    Err(AppError::BadRequest("License creation not implemented yet".to_string()))
 }

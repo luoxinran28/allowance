@@ -83,8 +83,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         stripe: stripe.clone(),
     });
 
-    // Initialize license query handler
-    let license_query_handler = Arc::new(handlers::licenses::LicenseQueryHandler {
+    // Initialize license handler
+    let license_handler = Arc::new(handlers::licenses::LicenseHandler {
         pool: Arc::new(pool.clone()),
     });
 
@@ -158,12 +158,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // License query routes with separate state
     let license_routes = Router::new()
-        .route("/licenses/active", get(handlers::licenses::get_active_licenses))
-        .route("/licenses/expiring", get(handlers::licenses::get_expiring_licenses))
-        .route("/licenses/org", get(handlers::licenses::get_org_licenses))
-        .route("/licenses/summary", get(handlers::licenses::get_user_license_summary))
-        .route("/licenses/mine", get(handlers::licenses::get_active_licenses))
-        .with_state(license_query_handler.clone());
+        .route("/licenses/mine", get(handlers::licenses::get_user_licenses))
+        .with_state(license_handler.clone());
 
     // Product routes with product handler state
     let product_routes = Router::new()

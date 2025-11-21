@@ -1,4 +1,4 @@
-use chrono::{Utc, Duration};
+use chrono::{Duration, Local};
 use sqlx::PgPool;
 use crate::utils::{AppResult, AppError};
 use crate::services::stripe_service::StripeService;
@@ -34,7 +34,7 @@ impl PaymentService {
         .bind(product_tier)
         .bind(billing_period_months)
         .bind(stripe_intent.id.to_string())
-        .bind(Utc::now())
+        .bind(Local::now().naive_local())
         .fetch_one(pool)
         .await?;
         
@@ -66,7 +66,7 @@ impl PaymentService {
              WHERE id = $3 RETURNING *"
         )
         .bind("succeeded")
-        .bind(Utc::now())
+        .bind(Local::now().naive_local())
         .bind(intent_id)
         .fetch_one(pool)
         .await?;
@@ -81,7 +81,7 @@ impl PaymentService {
         tier: &str,
         billing_period_months: i32,
     ) -> AppResult<Subscription> {
-        let now = Utc::now();
+        let now = Local::now().naive_local();
         let end_date = now + Duration::days((billing_period_months as i64) * 30);
 
         let subscription = sqlx::query_as::<_, Subscription>(
@@ -140,13 +140,13 @@ impl PaymentService {
         // Cancel current subscription
         sqlx::query("UPDATE subscriptions SET status = $1, updated_at = $2 WHERE id = $3")
             .bind("canceled")
-            .bind(Utc::now())
+            .bind(chrono::Local::now().naive_local())
             .bind(current.id)
             .execute(&mut *tx)
             .await?;
 
         // Calculate remaining days
-        let now = Utc::now();
+        let now = chrono::Local::now().naive_local();
         let _remaining_days = (current.current_period_end - now).num_days();
 
         // Create new subscription with remaining period
@@ -198,7 +198,7 @@ impl PaymentService {
         // Schedule downgrade for next billing period
         sqlx::query("UPDATE subscriptions SET tier = $1, updated_at = $2 WHERE id = $3")
             .bind(new_tier)
-            .bind(Utc::now())
+            .bind(Local::now().naive_local())
             .bind(current.id)
             .execute(&mut *tx)
             .await?;
@@ -225,7 +225,7 @@ impl PaymentService {
         )
         .bind("canceled")
         .bind(false)
-        .bind(Utc::now())
+        .bind(Local::now().naive_local())
         .bind(user_id)
         .bind("active")
         .fetch_optional(pool)
@@ -237,7 +237,7 @@ impl PaymentService {
 
     /// Auto-renew subscriptions that are expiring
     pub async fn auto_renew_expiring_subscriptions(pool: &PgPool) -> AppResult<u64> {
-        let now = Utc::now();
+        let now = Local::now().naive_local();
         let renewal_window = now + Duration::days(7);  // Renew subscriptions expiring in next 7 days
 
         let result = sqlx::query(
@@ -267,7 +267,7 @@ impl PaymentService {
         subscription_id: i64,
         amount: i64,
     ) -> AppResult<Invoice> {
-        let due_date = Utc::now() + Duration::days(30);
+        let due_date = Local::now().naive_local() + Duration::days(30);
 
         let invoice = sqlx::query_as::<_, Invoice>(
             "INSERT INTO invoices (user_id, subscription_id, amount, status, due_date, created_at)
@@ -278,7 +278,7 @@ impl PaymentService {
         .bind(amount)
         .bind("draft")
         .bind(due_date)
-        .bind(Utc::now())
+        .bind(Local::now().naive_local())
         .fetch_one(pool)
         .await?;
 
@@ -294,7 +294,7 @@ impl PaymentService {
             "UPDATE invoices SET status = $1, paid_date = $2 WHERE id = $3 RETURNING *"
         )
         .bind("paid")
-        .bind(Utc::now())
+        .bind(Local::now().naive_local())
         .bind(invoice_id)
         .fetch_optional(pool)
         .await?

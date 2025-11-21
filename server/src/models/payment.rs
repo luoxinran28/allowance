@@ -1,6 +1,13 @@
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
-use chrono::{DateTime, Utc};
+use chrono::NaiveDateTime;
+
+fn serialize_naive_datetime<S>(dt: &NaiveDateTime, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: serde::Serializer,
+{
+    serializer.serialize_str(&dt.to_string())
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
 pub struct PaymentIntent {
@@ -12,8 +19,10 @@ pub struct PaymentIntent {
     pub product_tier: String,
     pub billing_period_months: i32,
     pub stripe_intent_id: Option<String>,
-    pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
+    #[sqlx(default)]
+    pub created_at: NaiveDateTime,
+    #[sqlx(default)]
+    pub updated_at: NaiveDateTime,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -41,12 +50,16 @@ pub struct Subscription {
     pub user_id: i64,
     pub tier: String,
     pub status: String,
-    pub current_period_start: DateTime<Utc>,
-    pub current_period_end: DateTime<Utc>,
+    #[sqlx(default)]
+    pub current_period_start: NaiveDateTime,
+    #[sqlx(default)]
+    pub current_period_end: NaiveDateTime,
     pub auto_renew: bool,
     pub stripe_subscription_id: Option<String>,
-    pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
+    #[sqlx(default)]
+    pub created_at: NaiveDateTime,
+    #[sqlx(default)]
+    pub updated_at: NaiveDateTime,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -54,7 +67,8 @@ pub struct SubscriptionResponse {
     pub id: i64,
     pub tier: String,
     pub status: String,
-    pub current_period_end: DateTime<Utc>,
+    #[serde(serialize_with = "serialize_naive_datetime")]
+    pub current_period_end: NaiveDateTime,
     pub auto_renew: bool,
 }
 
@@ -77,10 +91,12 @@ pub struct Invoice {
     pub subscription_id: i64,
     pub amount: i64,
     pub status: String,
-    pub due_date: DateTime<Utc>,
-    pub paid_date: Option<DateTime<Utc>>,
+    #[sqlx(default)]
+    pub due_date: NaiveDateTime,
+    pub paid_date: Option<NaiveDateTime>,
     pub stripe_invoice_id: Option<String>,
-    pub created_at: DateTime<Utc>,
+    #[sqlx(default)]
+    pub created_at: NaiveDateTime,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -88,7 +104,8 @@ pub struct InvoiceResponse {
     pub id: i64,
     pub amount: i64,
     pub status: String,
-    pub due_date: DateTime<Utc>,
+    #[serde(serialize_with = "serialize_naive_datetime")]
+    pub due_date: NaiveDateTime,
 }
 
 impl From<Invoice> for InvoiceResponse {

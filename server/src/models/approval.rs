@@ -1,6 +1,13 @@
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
-use chrono::{DateTime, Utc};
+use chrono::NaiveDateTime;
+
+fn serialize_naive_datetime<S>(dt: &NaiveDateTime, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: serde::Serializer,
+{
+    serializer.serialize_str(&dt.to_string())
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
 pub struct ApprovalRequest {
@@ -12,9 +19,11 @@ pub struct ApprovalRequest {
     pub status: String,  // 'pending', 'approved', 'rejected'
     pub approved_by: Option<i64>,
     pub rejection_reason: Option<String>,
-    pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
-    pub expires_at: Option<DateTime<Utc>>,
+    #[sqlx(default)]
+    pub created_at: NaiveDateTime,
+    #[sqlx(default)]
+    pub updated_at: NaiveDateTime,
+    pub expires_at: Option<NaiveDateTime>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -22,6 +31,8 @@ pub struct ApprovalResponse {
     pub id: i64,
     pub request_type: String,
     pub status: String,
-    pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
+    #[serde(serialize_with = "serialize_naive_datetime")]
+    pub created_at: NaiveDateTime,
+    #[serde(serialize_with = "serialize_naive_datetime")]
+    pub updated_at: NaiveDateTime,
 }

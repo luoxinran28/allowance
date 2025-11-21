@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
-use chrono::{DateTime, Utc};
+use chrono::NaiveDateTime;
 
 // ============= Models =============
 
@@ -12,48 +12,45 @@ pub struct Product {
     pub name: String,
     pub description: Option<String>,
     pub owner_id: Option<i64>,
-    pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
+    #[sqlx(default)]
+    pub created_at: NaiveDateTime,
+    #[sqlx(default)]
+    pub updated_at: NaiveDateTime,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct ProductVersion {
+    pub id: i64,
+    pub product_id: i64,
+    pub version_name: String,
+    pub description: Option<String>,
+    pub features: Option<serde_json::Value>,
+    pub tier_required: String,
+    pub daily_limit: Option<i32>,
+    pub monthly_limit: Option<i32>,
+    #[sqlx(default)]
+    pub created_at: NaiveDateTime,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
 pub struct License {
     pub id: i64,
-    pub upid: String,
-    pub org_id: i64,
-    pub issued_at: DateTime<Utc>,
-    pub expires_at: DateTime<Utc>,
-    pub max_users: i32,
-    pub current_users: i32,
-    pub revoked: bool,
-    pub created_by: i64,
-    pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
-pub struct UserLicense {
-    pub id: i64,
     pub user_id: i64,
-    pub license_id: i64,
-    pub assigned_at: DateTime<Utc>,
-    pub assigned_by: i64,
-    pub revoked_at: Option<DateTime<Utc>>,
-    pub created_at: DateTime<Utc>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
-pub struct LicenseApproval {
-    pub id: i64,
-    pub user_id: i64,
-    pub license_id: i64,
-    pub status: String,
-    pub requested_at: DateTime<Utc>,
-    pub approver_id: Option<i64>,
-    pub approved_at: Option<DateTime<Utc>>,
-    pub remarks: Option<String>,
-    pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
+    pub product_version_id: i64,
+    pub license_key: String,
+    #[sqlx(default)]
+    pub starts_at: NaiveDateTime,
+    #[sqlx(default)]
+    pub expires_at: NaiveDateTime,
+    pub daily_usage: i32,
+    pub monthly_usage: i32,
+    pub last_used_at: Option<NaiveDateTime>,
+    pub revoked_at: Option<NaiveDateTime>,
+    pub metadata: Option<serde_json::Value>,
+    #[sqlx(default)]
+    pub created_at: NaiveDateTime,
+    #[sqlx(default)]
+    pub updated_at: NaiveDateTime,
 }
 
 // ============= Response DTOs =============
@@ -82,87 +79,57 @@ impl From<Product> for ProductResponse {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LicenseResponse {
     pub id: i64,
-    pub upid: String,
-    pub expires_at: DateTime<Utc>,
-    pub max_users: i32,
-    pub current_users: i32,
-    pub revoked: bool,
+    pub user_id: i64,
+    pub product_version_id: i64,
+    pub license_key: String,
+    #[serde(serialize_with = "serialize_naive_datetime")]
+    pub starts_at: NaiveDateTime,
+    #[serde(serialize_with = "serialize_naive_datetime")]
+    pub expires_at: NaiveDateTime,
+    pub daily_usage: i32,
+    pub monthly_usage: i32,
+    pub revoked_at: Option<NaiveDateTime>,
+}
+
+fn serialize_naive_datetime<S>(dt: &NaiveDateTime, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: serde::Serializer,
+{
+    serializer.serialize_str(&dt.to_string())
 }
 
 impl From<License> for LicenseResponse {
     fn from(license: License) -> Self {
         LicenseResponse {
             id: license.id,
-            upid: license.upid,
+            user_id: license.user_id,
+            product_version_id: license.product_version_id,
+            license_key: license.license_key,
+            starts_at: license.starts_at,
             expires_at: license.expires_at,
-            max_users: license.max_users,
-            current_users: license.current_users,
-            revoked: license.revoked,
+            daily_usage: license.daily_usage,
+            monthly_usage: license.monthly_usage,
+            revoked_at: license.revoked_at,
         }
     }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LicenseApprovalResponse {
-    pub id: i64,
-    pub user_id: i64,
-    pub license_id: i64,
-    pub status: String,
-    pub requested_at: DateTime<Utc>,
-    pub approved_at: Option<DateTime<Utc>>,
-}
-
-impl From<LicenseApproval> for LicenseApprovalResponse {
-    fn from(approval: LicenseApproval) -> Self {
-        LicenseApprovalResponse {
-            id: approval.id,
-            user_id: approval.user_id,
-            license_id: approval.license_id,
-            status: approval.status,
-            requested_at: approval.requested_at,
-            approved_at: approval.approved_at,
-        }
-    }
-}
-
-// ============= Request DTOs =============
+pub struct CreateProductRequest;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CreateProductRequest {
-    pub product_slug: String,
-    pub tier: String,
-    pub name: String,
-    pub description: Option<String>,
-}
+pub struct CreateLicenseRequest;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CreateLicenseRequest {
-    pub upid: String,
-    pub org_id: i64,
-    pub issued_at: DateTime<Utc>,
-    pub expires_at: DateTime<Utc>,
-    pub max_users: i32,
-}
+pub struct AssignLicenseRequest;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AssignLicenseRequest {
-    pub user_id: i64,
-    pub license_id: i64,
-}
+pub struct RequestLicenseRequest;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RequestLicenseRequest {
-    pub license_id: i64,
-}
+pub struct ApproveLicenseRequest;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ApproveLicenseRequest {
-    pub status: String,
-    pub remarks: Option<String>,
-}
-
-// ============= Legacy License Claims (for backward compatibility) =============
-
+// ============= License JWT Claims =============
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LicenseClaims {
     pub user_id: i64,

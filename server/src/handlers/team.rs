@@ -3,6 +3,7 @@ use axum::{
     extract::{State, Json, Path},
     http::HeaderMap,
 };
+use sqlx::Row;
 
 use crate::models::{Group, UserGroup};
 use crate::services::TeamService;
@@ -13,7 +14,7 @@ use crate::handlers::auth::AuthHandler;
 pub struct CreateTeamRequest {
     pub name: String,
     pub description: Option<String>,
-    pub organization_id: i64,
+    pub organization_id: Option<i64>,
 }
 
 #[derive(serde::Deserialize)]
@@ -51,10 +52,26 @@ pub async fn create_team(
 ) -> AppResult<Json<Group>> {
     let user_id = extract_user_from_header(&state, &headers)?;
 
+    // If organization_id not provided, create a default organization for the user
+    let org_id = if let Some(org_id) = req.organization_id {
+        org_id
+    } else {
+        // Get or create default organization
+        let org: (i64,) = sqlx::query_as(
+            "SELECT id FROM organizations WHERE created_by = $1 LIMIT 1"
+        )
+            .bind(user_id)
+            .fetch_optional(state.pool.as_ref())
+            .await?
+            .map(|(id,)| (id,))
+            .ok_or_else(|| AppError::BadRequest("No organization found. Please create one first.".to_string()))?;
+        org.0
+    };
+
     let team = TeamService::create_team(
         &state.pool,
         user_id,
-        req.organization_id,
+        org_id,
         &req.name,
         req.description.as_deref(),
     )
