@@ -51,6 +51,7 @@ pub struct License {
     pub created_at: NaiveDateTime,
     #[sqlx(default)]
     pub updated_at: NaiveDateTime,
+    pub upid: Option<String>,
 }
 
 // ============= Response DTOs =============

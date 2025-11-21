@@ -1,6 +1,6 @@
 -- Seed Data: Test Users and Allowance Product Data
 -- Simplified test data for Allowance System testing
--- Password: TestPass123 (already hashed with Argon2)
+-- Password hash for: P*s8*9* (IT IS A HINT)
 
 -- Create core test users
 INSERT INTO users (
@@ -14,22 +14,22 @@ INSERT INTO users (
     updated_at
 ) VALUES
     -- Admin user
-    ('UADMIN0001', 'admin@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$eVEBPWjt24iWOXM+W/2JNA$po+YfCHkCkZAaUx9jrCx8Nj8WOwym3KB0xY+YB3q9Q0', 'premium', 'active',
+    ('UADMIN0001', 'admin@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$ut4E+1Moschkt+mbTccjnw$trAVdBm/i2qA3FAOlv+hUvcm9LIRUKbW5prLafzjj/I', 'premium', 'active',
      '{"first_name": "Admin", "last_name": "User", "role": "Administrator"}',
      CURRENT_TIMESTAMP - INTERVAL '30 days', CURRENT_TIMESTAMP),
 
     -- Standard tier users
-    ('USTD00001', 'standard@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$eVEBPWjt24iWOXM+W/2JNA$po+YfCHkCkZAaUx9jrCx8Nj8WOwym3KB0xY+YB3q9Q0', 'standard', 'active',
+    ('USTD00001', 'standard@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$ut4E+1Moschkt+mbTccjnw$trAVdBm/i2qA3FAOlv+hUvcm9LIRUKbW5prLafzjj/I', 'standard', 'active',
      '{"first_name": "Standard", "last_name": "User"}',
      CURRENT_TIMESTAMP - INTERVAL '20 days', CURRENT_TIMESTAMP),
 
     -- Premium tier user
-    ('UPRM00001', 'premium@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$eVEBPWjt24iWOXM+W/2JNA$po+YfCHkCkZAaUx9jrCx8Nj8WOwym3KB0xY+YB3q9Q0', 'premium', 'active',
+    ('UPRM00001', 'premium@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$ut4E+1Moschkt+mbTccjnw$trAVdBm/i2qA3FAOlv+hUvcm9LIRUKbW5prLafzjj/I', 'premium', 'active',
      '{"first_name": "Premium", "last_name": "User"}',
      CURRENT_TIMESTAMP - INTERVAL '10 days', CURRENT_TIMESTAMP),
 
     -- Free tier user
-    ('UFREE0001', 'free@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$eVEBPWjt24iWOXM+W/2JNA$po+YfCHkCkZAaUx9jrCx8Nj8WOwym3KB0xY+YB3q9Q0', 'free', 'active',
+    ('UFREE0001', 'free@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$ut4E+1Moschkt+mbTccjnw$trAVdBm/i2qA3FAOlv+hUvcm9LIRUKbW5prLafzjj/I', 'free', 'active',
      '{"first_name": "Free", "last_name": "User"}',
      CURRENT_TIMESTAMP - INTERVAL '5 days', CURRENT_TIMESTAMP)
 ON CONFLICT (email) DO NOTHING;

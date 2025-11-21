@@ -4,10 +4,12 @@ use axum::{
     middleware::Next,
     response::Response,
     http::HeaderMap,
+    Extension,
 };
 use axum::http::request::Parts;
+use std::sync::Arc;
 
-use crate::utils::{AppError, jwt::Claims};
+use crate::utils::{AppError, jwt::{Claims, JwtManager}};
 
 /// JWT extractor for extracting claims from Authorization header
 pub struct AuthClaims(pub Claims);
@@ -32,17 +34,18 @@ where
             return Err(AppError::Unauthorized);
         }
 
-        let _token = &auth_header[7..];
+        let token = &auth_header[7..];
 
-        // Parse token - we need access to JWT manager
-        // This will be passed through state in handler layer
-        // For now, return a placeholder that handlers will override
-        Ok(AuthClaims(Claims {
-            user_id: 0,
-            email: String::new(),
-            iat: 0,
-            exp: 0,
-        }))
+        // Try to get JWT manager from extensions
+        let jwt_manager = parts
+            .extensions
+            .get::<Arc<JwtManager>>()
+            .ok_or(AppError::InternalServerError)?;
+
+        // Verify and decode token
+        let claims = jwt_manager.verify_token(token)?;
+        
+        Ok(AuthClaims(claims))
     }
 }
 

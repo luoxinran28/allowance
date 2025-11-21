@@ -64,6 +64,7 @@ impl ProductService {
 
     /// Get user licenses (only active ones)
     pub async fn get_user_licenses(pool: &PgPool, user_id: i64) -> AppResult<Vec<License>> {
+        eprintln!("[ProductService::get_user_licenses] Fetching licenses for user_id: {}", user_id);
         let licenses = sqlx::query_as::<_, License>(
             r#"
             SELECT * FROM user_licenses
@@ -75,6 +76,7 @@ impl ProductService {
             .fetch_all(pool)
             .await?;
 
+        eprintln!("[ProductService::get_user_licenses] Found {} licenses", licenses.len());
         Ok(licenses)
     }
 

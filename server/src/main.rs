@@ -12,6 +12,7 @@ use axum::{
     http::{header, Method},
     routing::{get, post, delete},
     Router,
+    Extension,
 };
 use std::sync::Arc;
 use tower_http::cors::{CorsLayer, Any};
@@ -171,6 +172,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .merge(payment_routes)
         .merge(license_routes)
         .merge(product_routes)
+        .layer(Extension(jwt.clone()))
         .layer(DefaultBodyLimit::max(5_242_880)) // 5MB
         .layer(TraceLayer::new_for_http())
         .layer(cors.clone())
