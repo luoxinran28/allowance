@@ -88,8 +88,8 @@ cd allowance
 # Run the setup script
 ./docker-run.sh
 
-# Or manually with docker-compose
-docker-compose up --build
+# Or manually with docker compose
+docker compose up --build
 
 # Access the application
 # Frontend: http://localhost:3030
@@ -124,19 +124,19 @@ docker-compose up --build
 
 ```bash
 # Start services
-docker-compose up --build
+docker compose up --build
 
 # Start in background
-docker-compose up --build -d
+docker compose up --build -d
 
 # View logs
-docker-compose logs -f
+docker compose logs -f
 
 # Stop services
-docker-compose down
+docker compose down
 
 # Restart specific service
-docker-compose restart server
+docker compose restart server
 
 # View running containers
 docker ps
@@ -147,10 +147,10 @@ docker exec -it allowance-postgres psql -U postgres -d allowance
 
 #### Development with Docker
 
-For development with hot reload, uncomment the volumes in `docker-compose.override.yml`:
+For development with hot reload, uncomment the volumes in `docker compose.override.yml`:
 
 ```yaml
-# In docker-compose.override.yml
+# In docker compose.override.yml
 services:
   server:
     volumes:

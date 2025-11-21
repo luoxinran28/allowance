@@ -2,7 +2,7 @@ use sqlx::PgPool;
 use chrono::Utc;
 
 use crate::models::Organization;
-use crate::utils::{errors::{AppError, AppResult}, crypto::generate_uuid};
+use crate::utils::{errors::{AppError, AppResult}, crypto::generate_token};
 
 /// Organization service
 pub struct OrganizationService;
@@ -15,7 +15,7 @@ impl OrganizationService {
         name: &str,
         description: Option<&str>,
     ) -> AppResult<Organization> {
-        let org_id = generate_uuid();
+        let org_id = generate_token(8);
         let now = Utc::now().naive_utc();
 
         let org = sqlx::query_as::<_, Organization>(

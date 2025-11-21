@@ -88,6 +88,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         pool: Arc::new(pool.clone()),
     });
 
+    // Initialize product handler
+    let product_handler = Arc::new(handlers::product::ProductHandler {
+        pool: Arc::new(pool.clone()),
+    });
+
     // Setup routes
     let cors = CorsLayer::permissive()
         .allow_origin(Any)
@@ -157,11 +162,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .route("/licenses/expiring", get(handlers::licenses::get_expiring_licenses))
         .route("/licenses/org", get(handlers::licenses::get_org_licenses))
         .route("/licenses/summary", get(handlers::licenses::get_user_license_summary))
+        .route("/licenses/mine", get(handlers::licenses::get_active_licenses))
         .with_state(license_query_handler.clone());
+
+    // Product routes with product handler state
+    let product_routes = Router::new()
+        .route("/products", get(handlers::product::list_products))
+        .route("/products/:upid", get(handlers::product::get_product_by_upid))
+        .with_state(product_handler.clone());
 
     let app = auth_routes
         .merge(payment_routes)
         .merge(license_routes)
+        .merge(product_routes)
         .layer(DefaultBodyLimit::max(5_242_880)) // 5MB
         .layer(TraceLayer::new_for_http())
         .layer(cors.clone())

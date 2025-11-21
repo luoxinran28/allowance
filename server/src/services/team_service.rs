@@ -2,7 +2,7 @@ use sqlx::PgPool;
 use chrono::Utc;
 
 use crate::models::{Group, UserGroup};
-use crate::utils::{errors::{AppError, AppResult}, crypto::generate_uuid};
+use crate::utils::{errors::{AppError, AppResult}, crypto::generate_token};
 
 /// Team/Group service
 pub struct TeamService;
@@ -16,7 +16,7 @@ impl TeamService {
         name: &str,
         description: Option<&str>,
     ) -> AppResult<Group> {
-        let group_id = generate_uuid();
+        let group_id = generate_token(8);
         let now = Utc::now().naive_utc();
 
         let group = sqlx::query_as::<_, Group>(

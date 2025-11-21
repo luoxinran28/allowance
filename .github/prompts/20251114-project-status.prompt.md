@@ -324,7 +324,7 @@ DELETE /admin/products/:id          ✅ Delete product
 2. Run database migrations: `sqlx migrate run`
 3. Build backend: `cargo build --release`
 4. Build frontend: `npm run build`
-5. Start Docker Compose: `docker-compose up --build`
+5. Start Docker Compose: `docker compose up --build`
 6. Verify health: `curl http://localhost/health`
 7. Access frontend: `http://localhost:3000`
 

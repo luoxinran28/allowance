@@ -173,7 +173,7 @@ allowance/
 - ✅ Security validation (headers, rate limiting, JWT)
 
 ### Deployment
-- ✅ Docker containerization (docker-compose)
+- ✅ Docker containerization (docker compose)
 - ✅ AWS ECS deployment guide (300+ lines)
 - ✅ Kubernetes deployment guide (400+ lines)
 - ✅ Docker Swarm deployment guide (300+ lines)
@@ -290,10 +290,10 @@ NEXT_PUBLIC_FRONTEND_URL=http://localhost:3030
 ### Quick Start
 ```bash
 # Docker (easiest)
-docker-compose up --build
+docker compose up --build
 
 # Local development
-docker-compose up postgres -d
+docker compose up postgres -d
 cd server && cargo run
 cd client && npm run dev
 ```
