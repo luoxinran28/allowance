@@ -16,9 +16,15 @@ interface Product {
   [key: string]: any;
 }
 
+interface Organization {
+  id: number;
+  name: string;
+}
+
 export default function AdminProductsPage() {
   const { isAdmin } = usePermission();
   const [products, setProducts] = useState<Product[]>([]);
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [page, setPage] = useState(1);
   const pageSize = 20;
   const [total, setTotal] = useState(0);
@@ -27,7 +33,7 @@ export default function AdminProductsPage() {
   const [success, setSuccess] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Modal state
+  // Product create modal state
   const [showModal, setShowModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [formData, setFormData] = useState({
@@ -35,6 +41,14 @@ export default function AdminProductsPage() {
     name: '',
     description: '',
   });
+
+  // License generation modal state
+  const [showLicenseModal, setShowLicenseModal] = useState(false);
+  const [licensingProduct, setLicensingProduct] = useState<Product | null>(null);
+  const [licenseOrgId, setLicenseOrgId] = useState<number | ''>('');
+  const [licenseQuantity, setLicenseQuantity] = useState(1);
+  const [licenseExpirationDays, setLicenseExpirationDays] = useState(30);
+  const [generatingLicense, setGeneratingLicense] = useState(false);
 
   // Confirm dialog state
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -45,41 +59,36 @@ export default function AdminProductsPage() {
       setError('You do not have permission to access this page');
       return;
     }
-    loadProducts();
+    loadData();
   }, [page, isAdmin]);
 
-  const loadProducts = async () => {
+  const loadData = async () => {
     try {
       setLoading(true);
       setError('');
 
-      let response;
-      if (searchQuery) {
-        response = await apiClient.listProducts();
-        // Filter products based on search query
-        const filtered = response.data.filter(
-          (p: Product) =>
-            p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            p.uid.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-        const paginated = filtered.slice(
-          (page - 1) * pageSize,
-          page * pageSize
-        );
-        setProducts(paginated);
-        setTotal(filtered.length);
-      } else {
-        response = await apiClient.listProducts();
-        const data = Array.isArray(response.data) ? response.data : response.data.data || [];
-        const paginated = data.slice(
-          (page - 1) * pageSize,
-          page * pageSize
-        );
-        setProducts(paginated);
-        setTotal(data.length);
-      }
+      const [productsResponse, orgsResponse] = await Promise.all([
+        apiClient.listProducts(),
+        apiClient.getUserOrganizations(),
+      ]);
+
+      let response = productsResponse;
+      const data = Array.isArray(response.data) ? response.data : response.data.data || [];
+      const paginated = data.slice(
+        (page - 1) * pageSize,
+        page * pageSize
+      );
+      setProducts(paginated);
+      setTotal(data.length);
+
+      const orgsList = Array.isArray(orgsResponse.data?.data)
+        ? orgsResponse.data.data
+        : Array.isArray(orgsResponse.data)
+          ? orgsResponse.data
+          : [];
+      setOrganizations(orgsList);
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to load products');
+      setError(err.response?.data?.error || 'Failed to load data');
     } finally {
       setLoading(false);
     }
@@ -145,7 +154,7 @@ export default function AdminProductsPage() {
       }
 
       handleCloseModal();
-      await loadProducts();
+      await loadData();
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to save product');
     }
@@ -167,7 +176,7 @@ export default function AdminProductsPage() {
       if (product) {
         // Delete product
         setSuccess('Product deleted successfully');
-        await loadProducts();
+        await loadData();
       }
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to delete product');
@@ -177,26 +186,56 @@ export default function AdminProductsPage() {
     }
   };
 
-  const handleGenerateLicense = async (product: Product) => {
+  const handleGenerateLicense = (product: Product) => {
+    setLicensingProduct(product);
+    setLicenseOrgId('');
+    setLicenseQuantity(1);
+    setLicenseExpirationDays(30);
+    setShowLicenseModal(true);
+  };
+
+  const handleSubmitLicense = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!licensingProduct) return;
+
+    if (licenseQuantity < 1) {
+      setError('Quantity must be at least 1');
+      return;
+    }
+
     try {
+      setGeneratingLicense(true);
       setError('');
       setSuccess('');
 
-      const response = await apiClient.generateBatchLicenses(
-        product.uid,
-        product.version || 'pro',
-        1, // Generate single license
-        30
-      );
+      const response = licenseOrgId
+        ? await apiClient.generateBatchOrgLicenses(
+            licensingProduct.product_id,
+            licenseOrgId as number,
+            licensingProduct.version || 'pro',
+            licenseQuantity,
+            licenseExpirationDays
+          )
+        : await apiClient.generateBatchLicenses(
+            licensingProduct.product_id,
+            licensingProduct.version || 'pro',
+            licenseQuantity,
+            licenseExpirationDays
+          );
 
       if (response.data.licenses && response.data.licenses.length > 0) {
-        setSuccess(`License generated: ${response.data.licenses[0].license_key}`);
+        setSuccess(`Generated ${response.data.licenses.length} license(s)`);
       } else {
-        setSuccess('License generated successfully');
+        setSuccess('License(s) generated successfully');
       }
-      await loadProducts();
+
+      setShowLicenseModal(false);
+      setLicensingProduct(null);
+      await loadData();
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to generate license');
+    } finally {
+      setGeneratingLicense(false);
     }
   };
 
@@ -252,7 +291,7 @@ export default function AdminProductsPage() {
             setSearchQuery(e.target.value);
             setPage(1);
           }}
-          onKeyUp={() => loadProducts()}
+          onKeyUp={() => loadData()}
           className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
         />
       </div>
@@ -439,6 +478,89 @@ export default function AdminProductsPage() {
           setSelectedProductId(null);
         }}
       />
+
+      {/* Generate License Modal */}
+      {showLicenseModal && licensingProduct && (
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-lg max-w-md w-full">
+            <div className="px-6 py-4 border-b border-gray-200">
+              <h2 className="text-lg font-bold text-gray-900">Generate License</h2>
+              <p className="text-sm text-gray-600 mt-1">Product: {licensingProduct.name}</p>
+            </div>
+            <form onSubmit={handleSubmitLicense} className="space-y-4 p-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Organization (Optional)
+                </label>
+                <select
+                  value={licenseOrgId}
+                  onChange={(e) => setLicenseOrgId(e.target.value ? Number(e.target.value) : '')}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                >
+                  <option value="">No Organization (General)</option>
+                  {organizations.map((org) => (
+                    <option key={org.id} value={org.id}>
+                      {org.name}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-gray-500 mt-1">
+                  If selected, licenses will be assigned to this org
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Quantity
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  max="1000"
+                  value={licenseQuantity}
+                  onChange={(e) => setLicenseQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Expiration (Days)
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  value={licenseExpirationDays}
+                  onChange={(e) => setLicenseExpirationDays(Math.max(1, parseInt(e.target.value) || 30))}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                  required
+                />
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowLicenseModal(false);
+                    setLicensingProduct(null);
+                  }}
+                  className="flex-1 rounded-lg border border-gray-300 px-4 py-2 font-medium text-gray-700 hover:bg-gray-50 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={generatingLicense}
+                  className="flex-1 rounded-lg bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700 transition disabled:opacity-50"
+                >
+                  {generatingLicense ? 'Generating...' : 'Generate'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

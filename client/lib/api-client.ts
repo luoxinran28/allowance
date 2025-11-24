@@ -383,6 +383,18 @@ class ApiClient {
     });
   }
 
+  // ============= Batch Org License Endpoints (NEW) =============
+
+  async generateBatchOrgLicenses(productId: string, organizationId: number, version: string, quantity: number, expirationDays: number) {
+    return this.client.post('/licenses/batch/generate-org', {
+      product_id: productId,
+      organization_id: organizationId,
+      version_name: version,
+      quantity,
+      expiration_days: expirationDays,
+    });
+  }
+
   // ============= Team Lead License Endpoints (NEW) =============
 
   async getTeamLicenses(teamId: number) {
@@ -398,6 +410,16 @@ class ApiClient {
 
   async revokeLicenseFromTeamMember(teamId: number, assignmentId: number) {
     return this.client.post(`/team/${teamId}/licenses/${assignmentId}/revoke`, {});
+  }
+
+  // ============= Team Lead Promotion Endpoints (NEW) =============
+
+  async promoteTeamMemberToLead(teamId: number, userId: number) {
+    return this.client.post(`/team/${teamId}/members/${userId}/promote`, {});
+  }
+
+  async demoteTeamLead(teamId: number, userId: number) {
+    return this.client.post(`/team/${teamId}/members/${userId}/demote`, {});
   }
 }
 

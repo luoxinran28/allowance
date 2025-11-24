@@ -58,6 +58,7 @@ MIGRATION_FILES=(
     "007_add_upid_support.sql"
     "008_fix_enum_types.sql"
     "009_refactor_product_id_to_upid.sql"
+    "010_add_org_product_licenses.sql"
 )
 
 for migration_file in "${MIGRATION_FILES[@]}"; do

@@ -33,6 +33,14 @@ export default function TeamDetailsPage() {
   const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; memberId?: number }>({
     show: false,
   });
+  const [promoteConfirm, setPromoteConfirm] = useState<{
+    show: boolean;
+    memberId?: number;
+    memberEmail?: string;
+    action?: 'promote' | 'demote';
+  }>({
+    show: false,
+  });
 
   useEffect(() => {
     loadTeamData();
@@ -85,6 +93,24 @@ export default function TeamDetailsPage() {
       await loadTeamData();
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to remove member');
+    }
+  };
+
+  const handlePromoteTeamMember = async () => {
+    if (!promoteConfirm.memberId) return;
+
+    try {
+      if (promoteConfirm.action === 'promote') {
+        await apiClient.promoteTeamMemberToLead(teamId, promoteConfirm.memberId);
+        setError('');
+      } else if (promoteConfirm.action === 'demote') {
+        await apiClient.demoteTeamLead(teamId, promoteConfirm.memberId);
+        setError('');
+      }
+      setPromoteConfirm({ show: false });
+      await loadTeamData();
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to update member role');
     }
   };
 
@@ -206,12 +232,45 @@ export default function TeamDetailsPage() {
                       <RoleTag role={member.role} />
                     </td>
                     <td className="px-6 py-4 text-sm">
-                      <button
-                        onClick={() => setDeleteConfirm({ show: true, memberId: member.user_id })}
-                        className="text-red-600 hover:text-red-800 font-medium"
-                      >
-                        Remove
-                      </button>
+                      <div className="flex gap-2 flex-wrap">
+                        {member.role !== 'team_leader' ? (
+                          <button
+                            onClick={() =>
+                              setPromoteConfirm({
+                                show: true,
+                                memberId: member.user_id,
+                                memberEmail: member.email,
+                                action: 'promote',
+                              })
+                            }
+                            className="text-green-600 hover:text-green-800 font-medium"
+                            title="Promote to Team Lead"
+                          >
+                            Promote
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() =>
+                              setPromoteConfirm({
+                                show: true,
+                                memberId: member.user_id,
+                                memberEmail: member.email,
+                                action: 'demote',
+                              })
+                            }
+                            className="text-yellow-600 hover:text-yellow-800 font-medium"
+                            title="Demote from Team Lead"
+                          >
+                            Demote
+                          </button>
+                        )}
+                        <button
+                          onClick={() => setDeleteConfirm({ show: true, memberId: member.user_id })}
+                          className="text-red-600 hover:text-red-800 font-medium"
+                        >
+                          Remove
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -229,6 +288,20 @@ export default function TeamDetailsPage() {
         isDangerous
         onConfirm={handleRemoveMember}
         onCancel={() => setDeleteConfirm({ show: false })}
+      />
+
+      <ConfirmDialog
+        isOpen={promoteConfirm.show}
+        title={promoteConfirm.action === 'promote' ? 'Promote to Team Lead' : 'Demote from Team Lead'}
+        message={
+          promoteConfirm.action === 'promote'
+            ? `Promote ${promoteConfirm.memberEmail} to Team Lead? They will be able to assign licenses to team members.`
+            : `Demote ${promoteConfirm.memberEmail} from Team Lead? They will lose license management permissions.`
+        }
+        confirmText={promoteConfirm.action === 'promote' ? 'Promote' : 'Demote'}
+        isDangerous={promoteConfirm.action === 'demote'}
+        onConfirm={handlePromoteTeamMember}
+        onCancel={() => setPromoteConfirm({ show: false })}
       />
     </div>
   );

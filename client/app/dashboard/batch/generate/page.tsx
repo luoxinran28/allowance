@@ -24,12 +24,19 @@ interface Product {
   versions: Array<{ name: string }>;
 }
 
+interface Organization {
+  id: number;
+  name: string;
+}
+
 export default function BatchGeneratePage() {
   const router = useRouter();
   const { isAuthenticated } = useAuthStore();
   const [products, setProducts] = useState<Product[]>([]);
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [selectedProduct, setSelectedProduct] = useState('');
   const [selectedVersion, setSelectedVersion] = useState('');
+  const [selectedOrganization, setSelectedOrganization] = useState<number | ''>('');
   const [quantity, setQuantity] = useState(1);
   const [expirationDays, setExpirationDays] = useState(365);
   const [loading, setLoading] = useState(true);
@@ -43,33 +50,47 @@ export default function BatchGeneratePage() {
       return;
     }
 
-    const loadProducts = async () => {
+    const loadData = async () => {
       try {
-        const response = await apiClient.getProducts();
-        if (response.status === 200) {
-          setProducts(response.data);
-          if (response.data.length > 0) {
-            setSelectedProduct(response.data[0].id);
-            if (response.data[0].versions?.length > 0) {
-              setSelectedVersion(response.data[0].versions[0].name);
+        const [productsResponse, orgsResponse] = await Promise.all([
+          apiClient.getProducts(),
+          apiClient.getUserOrganizations(),
+        ]);
+
+        if (productsResponse.status === 200) {
+          setProducts(productsResponse.data);
+          if (productsResponse.data.length > 0) {
+            setSelectedProduct(productsResponse.data[0].id);
+            if (productsResponse.data[0].versions?.length > 0) {
+              setSelectedVersion(productsResponse.data[0].versions[0].name);
             }
           }
         }
+
+        const orgsList = Array.isArray(orgsResponse.data?.data)
+          ? orgsResponse.data.data
+          : Array.isArray(orgsResponse.data)
+            ? orgsResponse.data
+            : [];
+        setOrganizations(orgsList);
+        if (orgsList.length > 0) {
+          setSelectedOrganization(orgsList[0].id);
+        }
       } catch (err) {
-        setError('Failed to load products');
-        console.error('Products load error:', err);
+        setError('Failed to load data');
+        console.error('Data load error:', err);
       } finally {
         setLoading(false);
       }
     };
 
-    loadProducts();
+    loadData();
   }, [isAuthenticated, router]);
 
   const handleGenerateBatch = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!selectedProduct || !selectedVersion || quantity < 1 || quantity > 10000) {
+    if (!selectedProduct || !selectedVersion || quantity < 1 || quantity > 10000 || !selectedOrganization) {
       setError('Please fill in all fields with valid values');
       return;
     }
@@ -78,12 +99,20 @@ export default function BatchGeneratePage() {
       setGenerating(true);
       setError('');
 
-      const response = await apiClient.generateBatchLicenses(
-        selectedProduct,
-        selectedVersion,
-        quantity,
-        expirationDays
-      );
+      const response = selectedOrganization
+        ? await apiClient.generateBatchOrgLicenses(
+            selectedProduct,
+            selectedOrganization as number,
+            selectedVersion,
+            quantity,
+            expirationDays
+          )
+        : await apiClient.generateBatchLicenses(
+            selectedProduct,
+            selectedVersion,
+            quantity,
+            expirationDays
+          );
 
       if (response.status === 201) {
         setResult(response.data);
@@ -139,6 +168,28 @@ export default function BatchGeneratePage() {
         {!result ? (
           <div className="bg-white rounded-lg shadow p-8">
             <form onSubmit={handleGenerateBatch} className="space-y-6">
+              {/* Organization Selection */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Organization (Optional) *
+                </label>
+                <select
+                  value={selectedOrganization}
+                  onChange={(e) => setSelectedOrganization(e.target.value ? Number(e.target.value) : '')}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                >
+                  <option value="">Select an organization...</option>
+                  {organizations.map((org) => (
+                    <option key={org.id} value={org.id}>
+                      {org.name}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-gray-500 mt-1">
+                  Licenses will be assigned to the selected organization and available for team leads to assign to members
+                </p>
+              </div>
+
               {/* Product Selection */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -220,6 +271,9 @@ export default function BatchGeneratePage() {
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <h3 className="font-semibold text-blue-900 mb-2">Generation Summary</h3>
                 <div className="text-sm text-blue-800 space-y-1">
+                  {selectedOrganization && (
+                    <p>• Organization: <span className="font-semibold">{organizations.find(o => o.id === selectedOrganization)?.name}</span></p>
+                  )}
                   <p>• Product: <span className="font-semibold capitalize">{products.find(p => p.id === selectedProduct)?.name}</span></p>
                   <p>• Version: <span className="font-semibold capitalize">{selectedVersion}</span></p>
                   <p>• Quantity: <span className="font-semibold">{quantity.toLocaleString()} licenses</span></p>
