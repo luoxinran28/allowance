@@ -1,6 +1,6 @@
 use sqlx::PgPool;
 
-use crate::models::{Product, ProductVersion, License};
+use crate::models::{Product, ProductVersion, License, OrgProductLicense, TeamMemberLicenseAssignment};
 use crate::utils::errors::{AppError, AppResult};
 
 pub struct ProductService;
@@ -96,5 +96,211 @@ impl ProductService {
             .fetch_optional(pool)
             .await?
             .ok_or(AppError::NotFound("License not found".to_string()))
+    }
+
+    // ============= Admin Product Creation =============
+
+    /// Create a new product (admin only)
+    pub async fn create_product_admin(
+        pool: &PgPool,
+        name: &str,
+        product_slug: &str,
+        description: Option<&str>,
+        owner_id: i64,
+    ) -> AppResult<Product> {
+        // Generate UPID: UPID-{slug}-{tier} format
+        let upid = format!("UPID-{}-basic", product_slug);
+
+        let product = sqlx::query_as::<_, Product>(
+            r#"
+            INSERT INTO products (upid, product_slug, name, description, owner_id)
+            VALUES ($1, $2, $3, $4, $5)
+            RETURNING *
+            "#
+        )
+            .bind(&upid)
+            .bind(product_slug)
+            .bind(name)
+            .bind(description)
+            .bind(owner_id)
+            .fetch_one(pool)
+            .await?;
+
+        Ok(product)
+    }
+
+    // ============= Organization Product Licenses =============
+
+    /// Generate licenses for an organization
+    pub async fn generate_org_licenses(
+        pool: &PgPool,
+        product_id: i64,
+        organization_id: i64,
+        count: i32,
+        expires_in_days: i32,
+        created_by: i64,
+    ) -> AppResult<OrgProductLicense> {
+        let expires_at = chrono::Utc::now().naive_utc() + chrono::Duration::days(expires_in_days as i64);
+
+        let license = sqlx::query_as::<_, OrgProductLicense>(
+            r#"
+            INSERT INTO org_product_licenses 
+            (organization_id, product_id, total_count, assigned_count, available_count, expires_at, created_by)
+            VALUES ($1, $2, $3, 0, $3, $4, $5)
+            RETURNING *
+            "#
+        )
+            .bind(organization_id)
+            .bind(product_id)
+            .bind(count)
+            .bind(expires_at)
+            .bind(created_by)
+            .fetch_one(pool)
+            .await?;
+
+        Ok(license)
+    }
+
+    /// Get organization licenses
+    pub async fn get_org_licenses(pool: &PgPool, organization_id: i64) -> AppResult<Vec<OrgProductLicense>> {
+        let licenses = sqlx::query_as::<_, OrgProductLicense>(
+            r#"
+            SELECT * FROM org_product_licenses
+            WHERE organization_id = $1 AND expires_at > NOW()
+            ORDER BY created_at DESC
+            "#
+        )
+            .bind(organization_id)
+            .fetch_all(pool)
+            .await?;
+
+        Ok(licenses)
+    }
+
+    /// Get org license by ID
+    pub async fn get_org_license_by_id(pool: &PgPool, id: i64) -> AppResult<OrgProductLicense> {
+        sqlx::query_as::<_, OrgProductLicense>(
+            "SELECT * FROM org_product_licenses WHERE id = $1"
+        )
+            .bind(id)
+            .fetch_optional(pool)
+            .await?
+            .ok_or(AppError::NotFound("Organization license not found".to_string()))
+    }
+
+    /// Assign license to team member
+    pub async fn assign_license_to_team_member(
+        pool: &PgPool,
+        org_license_id: i64,
+        group_id: i64,
+        user_id: i64,
+    ) -> AppResult<TeamMemberLicenseAssignment> {
+        let mut tx = pool.begin().await?;
+
+        // Check available licenses
+        let org_license = sqlx::query_as::<_, OrgProductLicense>(
+            "SELECT * FROM org_product_licenses WHERE id = $1"
+        )
+            .bind(org_license_id)
+            .fetch_one(&mut *tx)
+            .await?;
+
+        if org_license.available_count <= 0 {
+            return Err(AppError::Conflict("No available licenses".to_string()));
+        }
+
+        // Generate license key
+        let license_key = format!("LIC-{}-{}", org_license_id, uuid::Uuid::new_v4().to_string()[..8].to_uppercase());
+
+        // Create assignment
+        let assignment = sqlx::query_as::<_, TeamMemberLicenseAssignment>(
+            r#"
+            INSERT INTO team_member_license_assignments 
+            (org_license_id, group_id, user_id, license_key)
+            VALUES ($1, $2, $3, $4)
+            RETURNING *
+            "#
+        )
+            .bind(org_license_id)
+            .bind(group_id)
+            .bind(user_id)
+            .bind(&license_key)
+            .fetch_one(&mut *tx)
+            .await?;
+
+        // Update org license counts
+        sqlx::query(
+            r#"
+            UPDATE org_product_licenses
+            SET assigned_count = assigned_count + 1,
+                available_count = available_count - 1,
+                updated_at = NOW()
+            WHERE id = $1
+            "#
+        )
+            .bind(org_license_id)
+            .execute(&mut *tx)
+            .await?;
+
+        tx.commit().await?;
+        Ok(assignment)
+    }
+
+    /// Get team member license assignments for a group
+    pub async fn get_team_member_licenses(pool: &PgPool, group_id: i64) -> AppResult<Vec<TeamMemberLicenseAssignment>> {
+        let assignments = sqlx::query_as::<_, TeamMemberLicenseAssignment>(
+            r#"
+            SELECT * FROM team_member_license_assignments
+            WHERE group_id = $1 AND revoked_at IS NULL
+            ORDER BY assigned_at DESC
+            "#
+        )
+            .bind(group_id)
+            .fetch_all(pool)
+            .await?;
+
+        Ok(assignments)
+    }
+
+    /// Revoke license from team member
+    pub async fn revoke_team_member_license(pool: &PgPool, assignment_id: i64) -> AppResult<()> {
+        let mut tx = pool.begin().await?;
+
+        // Get assignment
+        let assignment = sqlx::query_as::<_, TeamMemberLicenseAssignment>(
+            "SELECT * FROM team_member_license_assignments WHERE id = $1"
+        )
+            .bind(assignment_id)
+            .fetch_one(&mut *tx)
+            .await?;
+
+        // Update assignment
+        sqlx::query(
+            r#"
+            UPDATE team_member_license_assignments
+            SET revoked_at = NOW()
+            WHERE id = $1
+            "#
+        )
+            .bind(assignment_id)
+            .execute(&mut *tx)
+            .await?;
+
+        // Update org license counts
+        sqlx::query(
+            r#"
+            UPDATE org_product_licenses
+            SET assigned_count = assigned_count - 1,
+                available_count = available_count + 1,
+                updated_at = NOW()
+            WHERE id = $1
+            "#
+        )
+            .bind(assignment.org_license_id)
+            .execute(&mut *tx)
+            .await?;
+
+        tx.commit().await?;
+        Ok(())
     }
 }

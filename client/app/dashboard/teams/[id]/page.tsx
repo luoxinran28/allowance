@@ -119,12 +119,20 @@ export default function TeamDetailsPage() {
             Created {new Date(team.created_at).toLocaleDateString()}
           </p>
         </div>
-        <button
-          onClick={() => setShowAddMember(!showAddMember)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-        >
-          {showAddMember ? 'Cancel' : '+ Add Member'}
-        </button>
+        <div className="flex gap-3">
+          <Link
+            href={`/dashboard/teams/${teamId}/licenses`}
+            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
+          >
+            Manage Licenses
+          </Link>
+          <button
+            onClick={() => setShowAddMember(!showAddMember)}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+          >
+            {showAddMember ? 'Cancel' : '+ Add Member'}
+          </button>
+        </div>
       </div>
 
       {error && (

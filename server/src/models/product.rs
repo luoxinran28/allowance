@@ -130,6 +130,88 @@ pub struct RequestLicenseRequest;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ApproveLicenseRequest;
 
+// ============= Organization Product Licenses =============
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct OrgProductLicense {
+    pub id: i64,
+    pub organization_id: i64,
+    pub product_id: i64,
+    pub total_count: i32,
+    pub assigned_count: i32,
+    pub available_count: i32,
+    pub expires_at: NaiveDateTime,
+    pub created_by: i64,
+    #[sqlx(default)]
+    pub created_at: NaiveDateTime,
+    #[sqlx(default)]
+    pub updated_at: NaiveDateTime,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct TeamMemberLicenseAssignment {
+    pub id: i64,
+    pub org_license_id: i64,
+    pub group_id: i64,
+    pub user_id: i64,
+    pub license_key: String,
+    pub assigned_at: NaiveDateTime,
+    pub revoked_at: Option<NaiveDateTime>,
+    #[sqlx(default)]
+    pub created_at: NaiveDateTime,
+}
+
+// ============= Request DTOs =============
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CreateProductAdminRequest {
+    pub name: String,
+    pub product_slug: String,
+    pub description: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GenerateLicensesRequest {
+    pub product_id: i64,
+    pub organization_id: i64,
+    pub count: i32,
+    pub expires_in_days: i32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AssignLicenseToTeamRequest {
+    pub org_license_id: i64,
+    pub user_id: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OrgProductLicenseResponse {
+    pub id: i64,
+    pub organization_id: i64,
+    pub product_id: i64,
+    pub total_count: i32,
+    pub assigned_count: i32,
+    pub available_count: i32,
+    #[serde(serialize_with = "serialize_naive_datetime")]
+    pub expires_at: NaiveDateTime,
+    pub created_by: i64,
+}
+
+impl From<OrgProductLicense> for OrgProductLicenseResponse {
+    fn from(license: OrgProductLicense) -> Self {
+        OrgProductLicenseResponse {
+            id: license.id,
+            organization_id: license.organization_id,
+            product_id: license.product_id,
+            total_count: license.total_count,
+            assigned_count: license.assigned_count,
+            available_count: license.available_count,
+            expires_at: license.expires_at,
+            created_by: license.created_by,
+        }
+    }
+}
+
 // ============= License JWT Claims =============
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LicenseClaims {

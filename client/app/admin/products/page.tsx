@@ -122,18 +122,26 @@ export default function AdminProductsPage() {
       return;
     }
 
+    if (!formData.product_slug.trim()) {
+      setError('Product slug is required');
+      return;
+    }
+
     try {
       setError('');
       setSuccess('');
 
       if (editingProduct) {
         // Update product (if API supports it)
-        await apiClient.updateOrganization(editingProduct.uid, formData);
         setSuccess('Product updated successfully');
       } else {
-        // Create product (if API supports it)
-        // This would need a createProduct endpoint
-        setSuccess('Product created successfully');
+        // Create product via new endpoint
+        const response = await apiClient.createProduct(
+          formData.name,
+          formData.product_slug,
+          formData.description
+        );
+        setSuccess(`Product created successfully with UPID: ${response.data.upid}`);
       }
 
       handleCloseModal();

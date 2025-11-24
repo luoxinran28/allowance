@@ -5,8 +5,8 @@ use axum::{
 };
 use serde::{Deserialize, Serialize};
 
-use crate::models::{UserResponse, User, ApprovalRequest, CreateProductRequest, CreateLicenseRequest};
-use crate::services::{AuthService, RbacService};
+use crate::models::{UserResponse, User, ApprovalRequest, CreateProductAdminRequest, GenerateLicensesRequest, OrgProductLicenseResponse};
+use crate::services::{AuthService, RbacService, ProductService};
 use crate::utils::{AppResult, AppError};
 use crate::handlers::auth::AuthHandler;
 
@@ -262,61 +262,55 @@ pub async fn reject_request(
 
 // ============= PRODUCT & LICENSE ADMIN ENDPOINTS =============
 
-#[derive(Serialize)]
-pub struct ProductResponse {
-    pub id: i64,
-    pub upid: String,
-    pub product_slug: String,
-    pub name: String,
-    pub description: Option<String>,
-}
-
 /// Create new product (admin only)
 pub async fn create_product(
     State(state): State<Arc<AuthHandler>>,
     headers: HeaderMap,
-    Json(req): Json<CreateProductRequest>,
-) -> AppResult<(axum::http::StatusCode, Json<ProductResponse>)> {
-    // let user_id = extract_user_from_header(&state, &headers)?;
-    // check_admin_permission(&state, user_id).await?;
+    Json(req): Json<CreateProductAdminRequest>,
+) -> AppResult<(axum::http::StatusCode, Json<serde_json::Value>)> {
+    let user_id = extract_user_from_header(&state, &headers)?;
+    check_admin_permission(&state, user_id).await?;
 
-    // let product = crate::services::ProductService::create_product(
-    //     &state.pool,
-    //     req,
-    //     user_id,
-    // ).await?;
+    let product = ProductService::create_product_admin(
+        &state.pool,
+        &req.name,
+        &req.product_slug,
+        req.description.as_deref(),
+        user_id,
+    ).await?;
 
-    // Ok((
-    //     axum::http::StatusCode::CREATED,
-    //     Json(ProductResponse {
-    //         id: product.id,
-    //         upid: product.upid,
-    //         product_slug: product.product_slug,
-    //         name: product.name,
-    //         description: product.description,
-    //     }),
-    // ))
-    Err(AppError::BadRequest("Not implemented yet".to_string()))
+    Ok((
+        axum::http::StatusCode::CREATED,
+        Json(serde_json::json!({
+            "id": product.id,
+            "upid": product.upid,
+            "product_slug": product.product_slug,
+            "name": product.name,
+            "description": product.description,
+        })),
+    ))
 }
 
-#[derive(Serialize)]
-pub struct LicenseResponse {
-    pub id: i64,
-    pub upid: String,
-    pub org_id: i64,
-    pub issued_at: chrono::DateTime<chrono::Utc>,
-    pub expires_at: chrono::DateTime<chrono::Utc>,
-    pub max_users: i32,
-    pub current_users: i32,
-    pub revoked: bool,
-}
-
-/// Create new license (admin only)
+/// Generate licenses for organization (admin only)
 pub async fn create_license(
-    State(_state): State<Arc<AuthHandler>>,
-    _headers: HeaderMap,
-    _req: Json<CreateLicenseRequest>,
-) -> AppResult<(axum::http::StatusCode, Json<LicenseResponse>)> {
-    // Not implemented - use actual schema-based license creation
-    Err(AppError::BadRequest("License creation not implemented yet".to_string()))
+    State(state): State<Arc<AuthHandler>>,
+    headers: HeaderMap,
+    Json(req): Json<GenerateLicensesRequest>,
+) -> AppResult<(axum::http::StatusCode, Json<serde_json::Value>)> {
+    let user_id = extract_user_from_header(&state, &headers)?;
+    check_admin_permission(&state, user_id).await?;
+
+    let org_license = ProductService::generate_org_licenses(
+        &state.pool,
+        req.product_id,
+        req.organization_id,
+        req.count,
+        req.expires_in_days,
+        user_id,
+    ).await?;
+
+    Ok((
+        axum::http::StatusCode::CREATED,
+        Json(serde_json::to_value(OrgProductLicenseResponse::from(org_license)).unwrap()),
+    ))
 }

@@ -363,6 +363,42 @@ class ApiClient {
   async getProducts() {
     return this.client.get('/products');
   }
+
+  // ============= Admin Product & License Endpoints (NEW) =============
+
+  async createProduct(name: string, productSlug: string, description?: string) {
+    return this.client.post('/admin/products', {
+      name,
+      product_slug: productSlug,
+      description,
+    });
+  }
+
+  async generateOrgLicenses(productId: number, organizationId: number, count: number, expiresInDays: number) {
+    return this.client.post('/admin/licenses', {
+      product_id: productId,
+      organization_id: organizationId,
+      count,
+      expires_in_days: expiresInDays,
+    });
+  }
+
+  // ============= Team Lead License Endpoints (NEW) =============
+
+  async getTeamLicenses(teamId: number) {
+    return this.client.get(`/team/${teamId}/licenses`);
+  }
+
+  async assignLicenseToTeamMember(teamId: number, orgLicenseId: number, userId: number) {
+    return this.client.post(`/team/${teamId}/licenses/assign`, {
+      org_license_id: orgLicenseId,
+      user_id: userId,
+    });
+  }
+
+  async revokeLicenseFromTeamMember(teamId: number, assignmentId: number) {
+    return this.client.post(`/team/${teamId}/licenses/${assignmentId}/revoke`, {});
+  }
 }
 
 export const apiClient = new ApiClient();
