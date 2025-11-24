@@ -97,6 +97,11 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
   const { hasPermission, isAdmin } = usePermission();
 
   const isActive = (href: string): boolean => {
+    if (href === '/dashboard') {
+      // Exact match for dashboard root only
+      return pathname === href;
+    }
+    // For other routes, check if pathname starts with href
     return pathname === href || pathname.startsWith(href + '/');
   };
 

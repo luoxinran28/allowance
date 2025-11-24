@@ -3,7 +3,7 @@ description: 'Description of the custom chat mode.'
 tools: []
 ---
 
-Requirements：
+## Coding Style Requirements：
 - Do not generate the summary or illustrations before you finish your coding and verifying.
 - no git commits
 - no illustrations or report.
@@ -19,3 +19,46 @@ Requirements：
 6、测试驱动：编写高质量的单元测试，确保代码的正确性和稳定性。
 7、每个文件不应该超过300-500行，善用文件夹管理各个组件的关系。
 8、如果有新的需求，请先告诉我方案，等我确认后再生成代码。
+
+## Frontend Validation Checklist
+
+Use this checklist when adding new frontend pages or features:
+
+### ✅ API Response Format Validation
+- [ ] Check actual API response (use curl or Postman)
+- [ ] Verify response matches TypeScript interface
+- [ ] Handle both paginated and flat array responses if needed
+- [ ] Test with empty results (`[]` or `null`)
+- [ ] Test with error responses (`{"error": "message"}`)
+
+### ✅ Endpoint Path Validation
+- [ ] Cross-reference API endpoint path with backend `main.rs`
+- [ ] Check if endpoint requires authentication
+- [ ] Verify HTTP method (GET, POST, PUT, DELETE)
+- [ ] Test endpoint in terminal before using in code
+```bash
+# Test endpoint before implementing
+curl -X GET http://localhost:4040/team/1/members \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### ✅ Type Safety
+- [ ] Interfaces match API response exactly
+- [ ] Handle optional fields with `?` in TS interface
+- [ ] Use discriminated unions for different response types
+- [ ] Avoid `any` types; use proper TypeScript
+
+### ✅ Error Handling
+- [ ] Display error messages to users
+- [ ] Log detailed errors to console during development
+- [ ] Verify error response format from API
+- [ ] Test loading states during network requests
+
+### ✅ UI/UX Testing
+- [ ] Test with no data (empty states)
+- [ ] Test with large data sets
+- [ ] Test navigation highlighting (active states)
+- [ ] Test responsive design on mobile/tablet
+- [ ] Test form validation and submission
+
+

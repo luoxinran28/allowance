@@ -333,7 +333,7 @@ class ApiClient {
 
   // Batch License endpoints
   async generateBatchLicenses(productId: string, version: string, quantity: number, expirationDays: number) {
-    return this.client.post('/batch/generate', {
+    return this.client.post('/licenses/batch/generate', {
       product_id: productId,
       version_name: version,
       quantity,
@@ -342,14 +342,14 @@ class ApiClient {
   }
 
   async revokeBatchLicenses(licenseKeys: string[], reason?: string) {
-    return this.client.post('/batch/revoke', {
+    return this.client.post('/licenses/batch/revoke', {
       license_keys: licenseKeys,
       reason,
     });
   }
 
   async revokeBatchById(batchId: string, reason?: string) {
-    return this.client.post(`/batch/${batchId}/revoke`, {
+    return this.client.post(`/licenses/batch/${batchId}/revoke`, {
       reason,
     });
   }

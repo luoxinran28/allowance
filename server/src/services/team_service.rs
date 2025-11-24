@@ -135,7 +135,7 @@ impl TeamService {
     ) -> AppResult<Vec<UserGroup>> {
         let members = sqlx::query_as::<_, UserGroup>(
             r#"
-            SELECT * FROM user_groups
+            SELECT id, user_id, group_id, role::text as role, created_at FROM user_groups
             WHERE group_id = $1
             ORDER BY created_at ASC
             "#

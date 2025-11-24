@@ -10,13 +10,6 @@ interface Organization {
   created_at: string;
 }
 
-interface PaginatedResponse {
-  data: Organization[];
-  page: number;
-  page_size: number;
-  total: number;
-}
-
 export default function OrganizationsPage() {
   const [orgs, setOrgs] = useState<Organization[]>([]);
   const [page, setPage] = useState(1);
@@ -44,9 +37,10 @@ export default function OrganizationsPage() {
         response = await apiClient.getUserOrganizations(page, pageSize);
       }
 
-      const data: PaginatedResponse = response.data;
-      setOrgs(data.data || []);
-      setTotal(data.total || 0);
+      // Handle both paginated and flat array responses
+      const data = Array.isArray(response.data) ? response.data : response.data.data || [];
+      setOrgs(data);
+      setTotal(response.data.total || data.length);
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to load organizations');
     } finally {
