@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { apiClient } from '@/lib/api-client';
 import { usePermission } from '@/lib/hooks/usePermission';
-import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 
 interface Product {
   id: number;
@@ -45,6 +44,15 @@ export default function AdminOrgLicensesPage() {
   });
   const [isGenerating, setIsGenerating] = useState(false);
 
+  // Edit license usage state
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingLicense, setEditingLicense] = useState<OrgProductLicense | null>(null);
+  const [editFormData, setEditFormData] = useState({
+    totalCount: 0,
+    availableCount: 0,
+  });
+  const [isUpdating, setIsUpdating] = useState(false);
+
   useEffect(() => {
     if (!isAdmin()) {
       setError('You do not have permission to access this page');
@@ -77,8 +85,9 @@ export default function AdminOrgLicensesPage() {
       } catch (err) {
         console.error('Failed to load org licenses');
       }
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to load data');
+    } catch (err) {
+      const error = err as any;
+      setError(error.response?.data?.error || 'Failed to load data');
     } finally {
       setLoading(false);
     }
@@ -96,6 +105,47 @@ export default function AdminOrgLicensesPage() {
 
   const handleCloseGenerateModal = () => {
     setShowGenerateModal(false);
+  };
+
+  const handleOpenEditModal = (license: OrgProductLicense) => {
+    setEditingLicense(license);
+    setEditFormData({
+      totalCount: license.total_count,
+      availableCount: license.available_count,
+    });
+    setShowEditModal(true);
+  };
+
+  const handleCloseEditModal = () => {
+    setShowEditModal(false);
+    setEditingLicense(null);
+  };
+
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!editingLicense) return;
+
+    try {
+      setIsUpdating(true);
+      setError('');
+      setSuccess('');
+
+      await apiClient.updateOrgLicense(
+        editingLicense.id,
+        editFormData.totalCount,
+        editFormData.availableCount
+      );
+
+      setSuccess('License usage updated successfully');
+      handleCloseEditModal();
+      await loadData();
+    } catch (err) {
+      const error = err as any;
+      setError(error.response?.data?.error || 'Failed to update license');
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   const handleGenerateSubmit = async (e: React.FormEvent) => {
@@ -121,8 +171,9 @@ export default function AdminOrgLicensesPage() {
       setSuccess(`Generated ${formData.count} licenses successfully`);
       handleCloseGenerateModal();
       await loadData();
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to generate licenses');
+    } catch (err) {
+      const error = err as any;
+      setError(error.response?.data?.error || 'Failed to generate licenses');
     } finally {
       setIsGenerating(false);
     }
@@ -205,6 +256,9 @@ export default function AdminOrgLicensesPage() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                     Progress
                   </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
@@ -257,6 +311,15 @@ export default function AdminOrgLicensesPage() {
                             {Math.round(progressPercent)}%
                           </span>
                         </div>
+                      </td>
+                      <td className="px-6 py-4 text-sm">
+                        <button
+                          onClick={() => handleOpenEditModal(license)}
+                          className="text-blue-600 hover:text-blue-800 font-medium transition"
+                          title="Edit usage limits"
+                        >
+                          ✏️ Edit
+                        </button>
                       </td>
                     </tr>
                   );
@@ -355,6 +418,78 @@ export default function AdminOrgLicensesPage() {
                   className="flex-1 rounded-lg bg-green-600 px-4 py-2 font-medium text-white hover:bg-green-700 disabled:bg-gray-400 transition"
                 >
                   {isGenerating ? 'Generating...' : 'Generate'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit License Modal */}
+      {showEditModal && editingLicense && (
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-lg max-w-md w-full">
+            <div className="px-6 py-4 border-b border-gray-200">
+              <h2 className="text-lg font-bold text-gray-900">Update License Usage</h2>
+              <p className="text-sm text-gray-600 mt-1">
+                Organization {editingLicense.organization_id} - Product {editingLicense.product_id}
+              </p>
+            </div>
+            <form onSubmit={handleEditSubmit} className="space-y-4 p-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Total Count <span className="text-red-600">*</span>
+                </label>
+                <input
+                  type="number"
+                  value={editFormData.totalCount}
+                  onChange={(e) =>
+                    setEditFormData({ ...editFormData, totalCount: Math.max(0, Number(e.target.value)) })
+                  }
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                  min="0"
+                  required
+                />
+                <p className="text-xs text-gray-500 mt-1">Total number of licenses for this organization</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Available Count <span className="text-red-600">*</span>
+                </label>
+                <input
+                  type="number"
+                  value={editFormData.availableCount}
+                  onChange={(e) =>
+                    setEditFormData({ ...editFormData, availableCount: Math.max(0, Number(e.target.value)) })
+                  }
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                  min="0"
+                  required
+                />
+                <p className="text-xs text-gray-500 mt-1">Number of unassigned licenses</p>
+              </div>
+
+              <div className="bg-gray-50 p-3 rounded-lg">
+                <p className="text-sm text-gray-700">
+                  <strong>Assigned:</strong> {editingLicense.total_count - editFormData.availableCount} / {editFormData.totalCount}
+                </p>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={handleCloseEditModal}
+                  className="flex-1 rounded-lg border border-gray-300 px-4 py-2 font-medium text-gray-700 hover:bg-gray-50 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isUpdating}
+                  className="flex-1 rounded-lg bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700 disabled:bg-gray-400 transition"
+                >
+                  {isUpdating ? 'Updating...' : 'Update'}
                 </button>
               </div>
             </form>

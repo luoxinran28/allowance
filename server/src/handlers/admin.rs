@@ -314,3 +314,85 @@ pub async fn create_license(
         Json(serde_json::to_value(OrgProductLicenseResponse::from(org_license)).unwrap()),
     ))
 }
+
+/// Update organization license usage (admin only)
+#[derive(Deserialize)]
+pub struct UpdateOrgLicenseRequest {
+    pub total_count: Option<i32>,
+    pub available_count: Option<i32>,
+}
+
+pub async fn update_org_license(
+    State(state): State<Arc<AuthHandler>>,
+    headers: HeaderMap,
+    Path(license_id): Path<i64>,
+    Json(req): Json<UpdateOrgLicenseRequest>,
+) -> AppResult<Json<OrgProductLicenseResponse>> {
+    let user_id = extract_user_from_header(&state, &headers)?;
+    check_admin_permission(&state, user_id).await?;
+
+    // Get current license
+    let current = ProductService::get_org_license_by_id(&state.pool, license_id).await?;
+
+    let new_total = req.total_count.unwrap_or(current.total_count);
+    let new_available = req.available_count.unwrap_or(current.available_count);
+
+    // Update license
+    let updated = sqlx::query_as::<_, crate::models::OrgProductLicense>(
+        r#"
+        UPDATE org_product_licenses
+        SET total_count = $1, available_count = $2, updated_at = NOW()
+        WHERE id = $3
+        RETURNING *
+        "#
+    )
+        .bind(new_total)
+        .bind(new_available)
+        .bind(license_id)
+        .fetch_one(&*state.pool)
+        .await?;
+
+    Ok(Json(OrgProductLicenseResponse::from(updated)))
+}
+
+/// Get organization licenses (admin only)
+pub async fn get_org_licenses(
+    State(state): State<Arc<AuthHandler>>,
+    headers: HeaderMap,
+    Query(params): Query<PaginationParams>,
+) -> AppResult<Json<serde_json::Value>> {
+    let user_id = extract_user_from_header(&state, &headers)?;
+    check_admin_permission(&state, user_id).await?;
+
+    let page = params.page.unwrap_or(1);
+    let page_size = params.page_size.unwrap_or(20);
+    let offset = (page - 1) * page_size;
+
+    let licenses = sqlx::query_as::<_, crate::models::OrgProductLicense>(
+        r#"
+        SELECT * FROM org_product_licenses
+        ORDER BY created_at DESC
+        LIMIT $1 OFFSET $2
+        "#
+    )
+        .bind(page_size)
+        .bind(offset)
+        .fetch_all(&*state.pool)
+        .await?;
+
+    let total: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM org_product_licenses")
+        .fetch_one(&*state.pool)
+        .await?;
+
+    let responses: Vec<OrgProductLicenseResponse> = licenses
+        .into_iter()
+        .map(OrgProductLicenseResponse::from)
+        .collect();
+
+    Ok(Json(serde_json::json!({
+        "licenses": responses,
+        "total": total,
+        "page": page,
+        "page_size": page_size
+    })))
+}

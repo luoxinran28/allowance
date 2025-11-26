@@ -299,3 +299,97 @@ pub async fn revoke_license_from_member(
         "message": "License revoked successfully"
     })))
 }
+
+/// Promote team member to lead (team admin only)
+pub async fn promote_member_to_lead(
+    State(state): State<Arc<AuthHandler>>,
+    headers: HeaderMap,
+    Path((team_id, user_id)): Path<(i64, i64)>,
+) -> AppResult<Json<serde_json::Value>> {
+    let requester_id = extract_user_from_header(&state, &headers)?;
+
+    // Check if requester is team admin
+    let is_admin: bool = sqlx::query_scalar(
+        "SELECT COUNT(*) > 0 FROM user_groups WHERE group_id = $1 AND user_id = $2 AND role = 'admin'"
+    )
+        .bind(team_id)
+        .bind(requester_id)
+        .fetch_one(state.pool.as_ref())
+        .await?;
+
+    if !is_admin {
+        return Err(AppError::PermissionDenied);
+    }
+
+    // Check if user is already in team
+    let exists: bool = sqlx::query_scalar(
+        "SELECT COUNT(*) > 0 FROM user_groups WHERE group_id = $1 AND user_id = $2"
+    )
+        .bind(team_id)
+        .bind(user_id)
+        .fetch_one(state.pool.as_ref())
+        .await?;
+
+    if !exists {
+        return Err(AppError::BadRequest("User is not a member of this team".to_string()));
+    }
+
+    // Update user role to leader
+    sqlx::query("UPDATE user_groups SET role = 'leader' WHERE group_id = $1 AND user_id = $2")
+        .bind(team_id)
+        .bind(user_id)
+        .execute(state.pool.as_ref())
+        .await?;
+
+    Ok(Json(serde_json::json!({
+        "success": true,
+        "message": "Team member promoted to lead successfully"
+    })))
+}
+
+/// Demote team lead to member (team admin only)
+pub async fn demote_lead_to_member(
+    State(state): State<Arc<AuthHandler>>,
+    headers: HeaderMap,
+    Path((team_id, user_id)): Path<(i64, i64)>,
+) -> AppResult<Json<serde_json::Value>> {
+    let requester_id = extract_user_from_header(&state, &headers)?;
+
+    // Check if requester is team admin
+    let is_admin: bool = sqlx::query_scalar(
+        "SELECT COUNT(*) > 0 FROM user_groups WHERE group_id = $1 AND user_id = $2 AND role = 'admin'"
+    )
+        .bind(team_id)
+        .bind(requester_id)
+        .fetch_one(state.pool.as_ref())
+        .await?;
+
+    if !is_admin {
+        return Err(AppError::PermissionDenied);
+    }
+
+    // Check if user is a lead
+    let is_lead: bool = sqlx::query_scalar(
+        "SELECT COUNT(*) > 0 FROM user_groups WHERE group_id = $1 AND user_id = $2 AND role = 'leader'"
+    )
+        .bind(team_id)
+        .bind(user_id)
+        .fetch_one(state.pool.as_ref())
+        .await?;
+
+    if !is_lead {
+        return Err(AppError::BadRequest("User is not a team lead".to_string()));
+    }
+
+    // Update user role to member
+    sqlx::query("UPDATE user_groups SET role = 'member' WHERE group_id = $1 AND user_id = $2")
+        .bind(team_id)
+        .bind(user_id)
+        .execute(state.pool.as_ref())
+        .await?;
+
+    Ok(Json(serde_json::json!({
+        "success": true,
+        "message": "Team lead demoted to member successfully"
+    })))
+}

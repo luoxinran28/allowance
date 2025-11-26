@@ -15,7 +15,6 @@ interface Approval {
   approved_at?: string;
   product_upid?: string;
   justification?: string;
-  [key: string]: any;
 }
 
 interface PaginatedResponse {
@@ -47,10 +46,10 @@ export default function AdminApprovalsPage() {
   const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
-    loadApprovals();
+    loadApprovalsCallback();
   }, [page, statusFilter]);
 
-  const loadApprovals = async () => {
+  const loadApprovalsCallback = async () => {
     try {
       setLoading(true);
       const response = await (apiClient as any).client.get(
@@ -59,8 +58,9 @@ export default function AdminApprovalsPage() {
       const data: PaginatedResponse = response.data;
       setApprovals(data.data || []);
       setTotal(data.total || 0);
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to load approvals');
+    } catch (err) {
+      const error = err as any;
+      setError(error.response?.data?.error || 'Failed to load approvals');
     } finally {
       setLoading(false);
     }
@@ -71,9 +71,10 @@ export default function AdminApprovalsPage() {
       setActionLoading(true);
       await (apiClient as any).client.post(`/admin/approvals/${approval.id}/approve`);
       setSelectedApproval(null);
-      await loadApprovals();
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to approve request');
+      await loadApprovalsCallback();
+    } catch (err) {
+      const error = err as any;
+      setError(error.response?.data?.error || 'Failed to approve request');
     } finally {
       setActionLoading(false);
     }
@@ -96,9 +97,10 @@ export default function AdminApprovalsPage() {
       setRejectReason('');
       setApprovalToReject(null);
       setSelectedApproval(null);
-      await loadApprovals();
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to reject request');
+      await loadApprovalsCallback();
+    } catch (err) {
+      const error = err as any;
+      setError(error.response?.data?.error || 'Failed to reject request');
     } finally {
       setActionLoading(false);
     }

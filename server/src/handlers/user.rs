@@ -66,3 +66,49 @@ pub async fn get_licenses(
     let licenses = crate::services::ProductService::get_user_licenses(&state.pool, user_id).await?;
     Ok(Json(serde_json::to_value(licenses)?))
 }
+
+/// Get user's teams and organizations (for dashboard display)
+pub async fn get_user_associations(
+    State(state): State<Arc<AuthHandler>>,
+    headers: HeaderMap,
+) -> AppResult<Json<serde_json::Value>> {
+    let user_id = extract_user_from_header(&state, &headers)?;
+    
+    // Get user's teams
+    let teams = sqlx::query_as::<_, (i64, String)>(
+        r#"
+        SELECT g.id, g.name FROM groups g
+        JOIN user_groups ug ON g.id = ug.group_id
+        WHERE ug.user_id = $1
+        ORDER BY g.name ASC
+        "#
+    )
+        .bind(user_id)
+        .fetch_all(&*state.pool)
+        .await?
+        .into_iter()
+        .map(|(id, name)| serde_json::json!({ "id": id, "name": name }))
+        .collect::<Vec<_>>();
+
+    // Get user's organizations
+    let organizations = sqlx::query_as::<_, (i64, String)>(
+        r#"
+        SELECT DISTINCT o.id, o.name FROM organizations o
+        JOIN groups g ON o.id = g.organization_id
+        JOIN user_groups ug ON g.id = ug.group_id
+        WHERE ug.user_id = $1
+        ORDER BY o.name ASC
+        "#
+    )
+        .bind(user_id)
+        .fetch_all(&*state.pool)
+        .await?
+        .into_iter()
+        .map(|(id, name)| serde_json::json!({ "id": id, "name": name }))
+        .collect::<Vec<_>>();
+
+    Ok(Json(serde_json::json!({
+        "teams": teams,
+        "organizations": organizations
+    })))
+}

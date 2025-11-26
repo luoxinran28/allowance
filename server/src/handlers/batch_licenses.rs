@@ -16,6 +16,15 @@ pub struct BatchLicenseRequest {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BatchOrgLicenseRequest {
+    pub product_id: String,
+    pub organization_id: i64,
+    pub version_name: String,
+    pub quantity: i32,
+    pub expiration_days: i32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BatchLicenseResponse {
     pub total_generated: i32,
     pub licenses: Vec<BatchLicenseItem>,
@@ -197,4 +206,77 @@ fn format_licenses_as_csv(licenses: Vec<(String, String, String)>) -> String {
     }
 
     csv
+}
+
+/// Generate batch licenses for organization (team lead/admin only)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BatchOrgLicenseResponse {
+    pub id: String,
+    pub status: String,
+    pub total_licenses: i32,
+    pub generated_count: i32,
+    pub error_count: i32,
+    pub created_at: String,
+    pub licenses: Vec<BatchOrgLicenseItem>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BatchOrgLicenseItem {
+    pub key: String,
+    pub expiration_date: String,
+}
+
+pub async fn generate_batch_org_licenses(
+    State(state): State<Arc<crate::handlers::auth::AuthHandler>>,
+    Json(req): Json<BatchOrgLicenseRequest>,
+) -> impl IntoResponse {
+    // Validation
+    if req.quantity <= 0 || req.quantity > 10000 {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({"error": "Quantity must be between 1 and 10000"})),
+        )
+            .into_response();
+    }
+
+    if req.expiration_days <= 0 || req.expiration_days > 3650 {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({"error": "Expiration days must be between 1 and 3650"})),
+        )
+            .into_response();
+    }
+
+    let batch_id = uuid::Uuid::new_v4().to_string();
+    let mut licenses = Vec::new();
+    let mut error_count = 0;
+
+    // Generate licenses for the organization
+    for _ in 0..req.quantity {
+        let license_key = format!(
+            "ORG-{}-{}-{}",
+            req.organization_id,
+            uuid::Uuid::new_v4().to_string()[..8].to_string(),
+            chrono::Local::now().timestamp_millis()
+        );
+        
+        let expires_at = Utc::now() + chrono::Duration::days(req.expiration_days as i64);
+        
+        licenses.push(BatchOrgLicenseItem {
+            key: license_key.clone(),
+            expiration_date: expires_at.to_rfc3339(),
+        });
+    }
+
+    let response = BatchOrgLicenseResponse {
+        id: batch_id,
+        status: "success".to_string(),
+        total_licenses: req.quantity,
+        generated_count: licenses.len() as i32,
+        error_count,
+        created_at: Utc::now().to_rfc3339(),
+        licenses,
+    };
+
+    (StatusCode::CREATED, Json(response)).into_response()
 }

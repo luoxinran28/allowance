@@ -53,6 +53,25 @@ const mainNavItems: NavItem[] = [
   },
 ];
 
+const licenseNavItems: NavItem[] = [
+  {
+    href: '/dashboard/licenses/mine',
+    label: 'My Licenses',
+    icon: <Package className="h-4 w-4" />,
+  },
+  {
+    href: '/dashboard/licenses/request',
+    label: 'Request License',
+    icon: <FileText className="h-4 w-4" />,
+  },
+  {
+    href: '/dashboard/licenses/assign',
+    label: 'Assign Licenses',
+    icon: <Users className="h-4 w-4" />,
+    requiredPermission: 'team:manage',
+  },
+];
+
 const batchNavItems: NavItem[] = [
   {
     href: '/dashboard/batch/generate',
@@ -138,6 +157,18 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
         </p>
         <div className="space-y-1">
           {mainNavItems.map((item) => (
+            <NavLink key={item.href} item={item} />
+          ))}
+        </div>
+      </nav>
+
+      {/* License Management */}
+      <nav className="space-y-2">
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-4">
+          License Management
+        </p>
+        <div className="space-y-1">
+          {licenseNavItems.map((item) => (
             <NavLink key={item.href} item={item} />
           ))}
         </div>

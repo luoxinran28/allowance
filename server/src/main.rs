@@ -10,7 +10,7 @@ mod docs;
 use axum::{
     extract::DefaultBodyLimit,
     http::{header, Method},
-    routing::{get, post, delete},
+    routing::{get, post, delete, put},
     Router,
     Extension,
 };
@@ -120,11 +120,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         
         .route("/user/profile", get(handlers::user::get_profile).put(handlers::user::update_profile))
         .route("/user/licenses", get(handlers::user::get_licenses))
+        .route("/user/associations", get(handlers::user::get_user_associations))
         .route("/team/create", post(handlers::team::create_team))
         .route("/team/list", get(handlers::team::list_teams))
         .route("/team/:team_id", get(handlers::team::get_team))
         .route("/team/:team_id/members", get(handlers::team::list_members).post(handlers::team::add_member))
         .route("/team/:team_id/members/:user_id", delete(handlers::team::remove_member).put(handlers::team::update_member_role))
+        .route("/team/:team_id/members/:user_id/promote", post(handlers::team::promote_member_to_lead))
+        .route("/team/:team_id/members/:user_id/demote", post(handlers::team::demote_lead_to_member))
         .route("/team/:team_id/licenses", get(handlers::team::get_team_licenses))
         .route("/team/:team_id/licenses/assign", post(handlers::team::assign_license_to_member))
         .route("/team/:team_id/licenses/:assignment_id/revoke", post(handlers::team::revoke_license_from_member))
@@ -137,12 +140,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .route("/admin/approvals/:approval_id/reject", post(handlers::admin::reject_request))
         .route("/admin/products", post(handlers::admin::create_product))
         .route("/admin/licenses", post(handlers::admin::create_license))
+        .route("/admin/licenses/:license_id", put(handlers::admin::update_org_license))
+        .route("/admin/org-licenses", get(handlers::admin::get_org_licenses))
         .route("/org/create", post(handlers::organization::create_organization))
         .route("/org", get(handlers::organization::list_organizations))
         .route("/org/search", get(handlers::organization::search_organizations))
         .route("/org/my", get(handlers::organization::get_user_organizations))
         .route("/org/:org_id", get(handlers::organization::get_organization).put(handlers::organization::update_organization).delete(handlers::organization::delete_organization))
         .route("/licenses/batch/generate", post(handlers::batch_licenses::generate_batch_licenses))
+        .route("/licenses/batch/generate-org", post(handlers::batch_licenses::generate_batch_org_licenses))
         .route("/licenses/batch/revoke", post(handlers::batch_licenses::revoke_batch_licenses))
         .route("/licenses/batch/export", post(handlers::batch_licenses::export_batch_licenses))
         // .route("/webhooks/stripe", post(handlers::webhooks::handle_stripe_webhook))

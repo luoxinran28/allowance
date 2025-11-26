@@ -142,6 +142,11 @@ class ApiClient {
     return this.client.get('/licenses/mine');
   }
 
+  /// Get user's teams and organizations
+  async getUserAssociations() {
+    return this.client.get('/user/associations');
+  }
+
   /// Employee requests license access (requires Nonce)
   async requestLicense(licenseId: number) {
     const body = { license_id: licenseId };
@@ -380,6 +385,19 @@ class ApiClient {
       organization_id: organizationId,
       count,
       expires_in_days: expiresInDays,
+    });
+  }
+
+  async updateOrgLicense(licenseId: number, totalCount?: number, availableCount?: number) {
+    return this.client.put(`/admin/licenses/${licenseId}`, {
+      total_count: totalCount,
+      available_count: availableCount,
+    });
+  }
+
+  async getOrgLicenses(page?: number, pageSize?: number) {
+    return this.client.get('/admin/org-licenses', {
+      params: { page, page_size: pageSize },
     });
   }
 

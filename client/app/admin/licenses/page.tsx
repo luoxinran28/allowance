@@ -94,8 +94,9 @@ export default function AdminLicensesPage() {
         const response = await (apiClient as any).client.get(`/admin/licenses?${params}`);
         setLicenses(response.data.licenses || []);
         setTotalCount(response.data.total_count || 0);
-      } catch (err: any) {
-        setError(err.response?.data?.error || 'Failed to load licenses');
+      } catch (err) {
+        const error = err as any;
+        setError(error.response?.data?.error || 'Failed to load licenses');
         console.error('Error fetching licenses:', err);
       } finally {
         setLoading(false);
@@ -106,27 +107,29 @@ export default function AdminLicensesPage() {
   }, [skip, filters, isAuthenticated, hasPermission, router]);
 
   // Handle create license
-  const handleCreateLicense = async (data: any) => {
+  const handleCreateLicense = async (data: unknown) => {
     try {
       await (apiClient as any).client.post('/admin/licenses', data);
       setShowCreateModal(false);
       // Refresh list
       setSkip(0);
-    } catch (err: any) {
-      alert(err.response?.data?.error || 'Failed to create license');
+    } catch (err) {
+      const error = err as any;
+      alert(error.response?.data?.error || 'Failed to create license');
     }
   };
 
   // Handle update license
-  const handleUpdateLicense = async (id: number, data: any) => {
+  const handleUpdateLicense = async (id: number, data: unknown) => {
     try {
       await (apiClient as any).client.put(`/admin/licenses/${id}`, data);
       setShowEditModal(false);
       setEditingLicense(null);
       // Refresh list
       setSkip(0);
-    } catch (err: any) {
-      alert(err.response?.data?.error || 'Failed to update license');
+    } catch (err) {
+      const error = err as any;
+      alert(error.response?.data?.error || 'Failed to update license');
     }
   };
 
@@ -140,8 +143,9 @@ export default function AdminLicensesPage() {
       setRevokeTarget(null);
       // Refresh list
       setSkip(0);
-    } catch (err: any) {
-      alert(err.response?.data?.error || 'Failed to revoke license');
+    } catch (err) {
+      const error = err as any;
+      alert(error.response?.data?.error || 'Failed to revoke license');
     }
   };
 
@@ -152,15 +156,16 @@ export default function AdminLicensesPage() {
         responseType: 'blob',
       });
       
-      const url = window.URL.createObjectURL(response.data);
+      const url = window.URL.createObjectURL(response.data as Blob);
       const link = document.createElement('a');
       link.href = url;
       link.setAttribute('download', `licenses-${new Date().toISOString().split('T')[0]}.csv`);
       document.body.appendChild(link);
       link.click();
       link.parentElement?.removeChild(link);
-    } catch (err: any) {
-      alert(err.response?.data?.error || 'Failed to export licenses');
+    } catch (err) {
+      const error = err as any;
+      alert(error.response?.data?.error || 'Failed to export licenses');
     }
   };
 
