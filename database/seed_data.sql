@@ -1,93 +1,316 @@
--- Seed Data: Test Users and Allowance Product Data
--- Simplified test data for Allowance System testing
--- Password hash for: P*s8*9* (IT IS A HINT)
+-- Seed Data: Complete Test Data for Allowance System
+-- Includes users with different roles, organizations, teams, products, and licenses
+-- All test users use the same hashed password (for security, plain text is not stored)
+-- Password hash is Argon2id with version 19, 19456 memory, 2 time cost, 1 parallelism
 
--- Create core test users
+-- ============================================================
+-- 1. CREATE TEST USERS WITH DIFFERENT ROLES
+-- ============================================================
+
+-- Admin user (full system access)
+-- Password hash for Pass888999 (Argon2id: m=19456, t=2, p=1)
 INSERT INTO users (
-    uid,
-    email,
-    password_hash,
-    tier,
-    status,
-    profile_data,
-    created_at,
-    updated_at
+    uid, email, password_hash, tier, status, profile_data, created_at, updated_at
 ) VALUES
-    -- Admin user
-    ('UADMIN0001', 'admin@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$ut4E+1Moschkt+mbTccjnw$trAVdBm/i2qA3FAOlv+hUvcm9LIRUKbW5prLafzjj/I', 'premium', 'active',
-     '{"first_name": "Admin", "last_name": "User", "role": "Administrator"}',
-     CURRENT_TIMESTAMP - INTERVAL '30 days', CURRENT_TIMESTAMP),
-
-    -- Standard tier users
-    ('USTD00001', 'standard@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$ut4E+1Moschkt+mbTccjnw$trAVdBm/i2qA3FAOlv+hUvcm9LIRUKbW5prLafzjj/I', 'standard', 'active',
-     '{"first_name": "Standard", "last_name": "User"}',
-     CURRENT_TIMESTAMP - INTERVAL '20 days', CURRENT_TIMESTAMP),
-
-    -- Premium tier user
-    ('UPRM00001', 'premium@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$ut4E+1Moschkt+mbTccjnw$trAVdBm/i2qA3FAOlv+hUvcm9LIRUKbW5prLafzjj/I', 'premium', 'active',
-     '{"first_name": "Premium", "last_name": "User"}',
-     CURRENT_TIMESTAMP - INTERVAL '10 days', CURRENT_TIMESTAMP),
-
-    -- Free tier user
-    ('UFREE0001', 'free@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$ut4E+1Moschkt+mbTccjnw$trAVdBm/i2qA3FAOlv+hUvcm9LIRUKbW5prLafzjj/I', 'free', 'active',
-     '{"first_name": "Free", "last_name": "User"}',
-     CURRENT_TIMESTAMP - INTERVAL '5 days', CURRENT_TIMESTAMP)
+    ('UADMIN0001', 'admin@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$PHa9Z7qkDXpEggftF04cQQ$l+6pK2zQUge9eD9wXb2oJi7w7JFSpDAZ94I+sbavkgk', 'premium', 'active',
+     '{"first_name": "System", "last_name": "Admin", "role": "Administrator"}',
+     CURRENT_TIMESTAMP - INTERVAL '90 days', CURRENT_TIMESTAMP)
 ON CONFLICT (email) DO NOTHING;
 
--- Assign roles to test users
+-- Team Leader users (can manage teams and see team members)
+INSERT INTO users (
+    uid, email, password_hash, tier, status, profile_data, created_at, updated_at
+) VALUES
+    ('ULEAD0001', 'leader1@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$PHa9Z7qkDXpEggftF04cQQ$l+6pK2zQUge9eD9wXb2oJi7w7JFSpDAZ94I+sbavkgk', 'standard', 'active',
+     '{"first_name": "Alice", "last_name": "Leader", "department": "Engineering"}',
+     CURRENT_TIMESTAMP - INTERVAL '60 days', CURRENT_TIMESTAMP),
+    ('ULEAD0002', 'leader2@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$PHa9Z7qkDXpEggftF04cQQ$l+6pK2zQUge9eD9wXb2oJi7w7JFSpDAZ94I+sbavkgk', 'standard', 'active',
+     '{"first_name": "Bob", "last_name": "Manager", "department": "Sales"}',
+     CURRENT_TIMESTAMP - INTERVAL '50 days', CURRENT_TIMESTAMP)
+ON CONFLICT (email) DO NOTHING;
+
+-- Regular team members (standard employees)
+INSERT INTO users (
+    uid, email, password_hash, tier, status, profile_data, created_at, updated_at
+) VALUES
+    ('UMEM00001', 'member1@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$PHa9Z7qkDXpEggftF04cQQ$l+6pK2zQUge9eD9wXb2oJi7w7JFSpDAZ94I+sbavkgk', 'standard', 'active',
+     '{"first_name": "Charlie", "last_name": "Developer"}',
+     CURRENT_TIMESTAMP - INTERVAL '40 days', CURRENT_TIMESTAMP),
+    ('UMEM00002', 'member2@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$PHa9Z7qkDXpEggftF04cQQ$l+6pK2zQUge9eD9wXb2oJi7w7JFSpDAZ94I+sbavkgk', 'standard', 'active',
+     '{"first_name": "Diana", "last_name": "Designer"}',
+     CURRENT_TIMESTAMP - INTERVAL '35 days', CURRENT_TIMESTAMP),
+    ('UMEM00003', 'member3@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$PHa9Z7qkDXpEggftF04cQQ$l+6pK2zQUge9eD9wXb2oJi7w7JFSpDAZ94I+sbavkgk', 'standard', 'active',
+     '{"first_name": "Eve", "last_name": "Engineer"}',
+     CURRENT_TIMESTAMP - INTERVAL '30 days', CURRENT_TIMESTAMP),
+    ('UMEM00004', 'member4@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$PHa9Z7qkDXpEggftF04cQQ$l+6pK2zQUge9eD9wXb2oJi7w7JFSpDAZ94I+sbavkgk', 'standard', 'active',
+     '{"first_name": "Frank", "last_name": "Analyst"}',
+     CURRENT_TIMESTAMP - INTERVAL '25 days', CURRENT_TIMESTAMP)
+ON CONFLICT (email) DO NOTHING;
+
+-- Free tier user (limited access)
+INSERT INTO users (
+    uid, email, password_hash, tier, status, profile_data, created_at, updated_at
+) VALUES
+    ('UFREE0001', 'free@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$PHa9Z7qkDXpEggftF04cQQ$l+6pK2zQUge9eD9wXb2oJi7w7JFSpDAZ94I+sbavkgk', 'free', 'active',
+     '{"first_name": "Grace", "last_name": "Trial"}',
+     CURRENT_TIMESTAMP - INTERVAL '10 days', CURRENT_TIMESTAMP)
+ON CONFLICT (email) DO NOTHING;
+
+-- ============================================================
+-- 2. ASSIGN ROLES TO USERS
+-- ============================================================
+
+-- Admin role
 INSERT INTO user_roles (user_id, role_id)
 SELECT u.id, r.id FROM users u, roles r
 WHERE u.email = 'admin@allowance.test' AND r.code = 'admin'
 ON CONFLICT (user_id, role_id) DO NOTHING;
 
+-- Team leader role
 INSERT INTO user_roles (user_id, role_id)
 SELECT u.id, r.id FROM users u, roles r
-WHERE u.email IN ('standard@allowance.test', 'premium@allowance.test') AND r.code = 'standard_employee'
+WHERE u.email IN ('leader1@allowance.test', 'leader2@allowance.test') AND r.code = 'team_leader'
 ON CONFLICT (user_id, role_id) DO NOTHING;
 
+-- Standard employee role
+INSERT INTO user_roles (user_id, role_id)
+SELECT u.id, r.id FROM users u, roles r
+WHERE u.email IN ('member1@allowance.test', 'member2@allowance.test', 'member3@allowance.test', 'member4@allowance.test') 
+  AND r.code = 'standard_employee'
+ON CONFLICT (user_id, role_id) DO NOTHING;
+
+-- Free user role
 INSERT INTO user_roles (user_id, role_id)
 SELECT u.id, r.id FROM users u, roles r
 WHERE u.email = 'free@allowance.test' AND r.code = 'free_user'
 ON CONFLICT (user_id, role_id) DO NOTHING;
 
--- Create one test organization
+-- ============================================================
+-- 3. CREATE ORGANIZATIONS
+-- ============================================================
+
 INSERT INTO organizations (org_id, name, description, created_by) VALUES
-    ('ALLOWANCE', 'Allowance Test Org', 'Test organization for Allowance System', (SELECT id FROM users WHERE email = 'admin@allowance.test'))
+    ('ACME001', 'ACME Corporation', 'Main test organization for Allowance System', 
+     (SELECT id FROM users WHERE email = 'admin@allowance.test')),
+    ('STARTUP01', 'StartupX', 'Second test organization',
+     (SELECT id FROM users WHERE email = 'admin@allowance.test'))
 ON CONFLICT (org_id) DO NOTHING;
 
--- Create one test group
+-- ============================================================
+-- 4. CREATE TEAMS (GROUPS)
+-- ============================================================
+
 INSERT INTO groups (group_id, organization_id, name, description, created_by) VALUES
-    ('ALLOW-TEAM', (SELECT id FROM organizations WHERE org_id = 'ALLOWANCE'), 'Allowance Team', 'Main allowance team',
+    ('ENGTEAM', (SELECT id FROM organizations WHERE org_id = 'ACME001'), 
+     'Engineering Team', 'Main engineering team', 
+     (SELECT id FROM users WHERE email = 'leader1@allowance.test')),
+    ('SALES', (SELECT id FROM organizations WHERE org_id = 'ACME001'), 
+     'Sales Team', 'Sales and marketing team',
+     (SELECT id FROM users WHERE email = 'leader2@allowance.test')),
+    ('STARTUP-DEV', (SELECT id FROM organizations WHERE org_id = 'STARTUP01'),
+     'Development Team', 'StartupX development team',
      (SELECT id FROM users WHERE email = 'admin@allowance.test'))
 ON CONFLICT (group_id) DO NOTHING;
 
--- Assign test users to group
+-- ============================================================
+-- 5. ASSIGN USERS TO TEAMS
+-- ============================================================
+
+-- Engineering Team: leader1 as leader, member1, member2, member3 as members
 INSERT INTO user_groups (user_id, group_id, role) VALUES
-    ((SELECT id FROM users WHERE email = 'admin@allowance.test'), (SELECT id FROM groups WHERE group_id = 'ALLOW-TEAM'), 'leader'),
-    ((SELECT id FROM users WHERE email = 'standard@allowance.test'), (SELECT id FROM groups WHERE group_id = 'ALLOW-TEAM'), 'member'),
-    ((SELECT id FROM users WHERE email = 'premium@allowance.test'), (SELECT id FROM groups WHERE group_id = 'ALLOW-TEAM'), 'member'),
-    ((SELECT id FROM users WHERE email = 'free@allowance.test'), (SELECT id FROM groups WHERE group_id = 'ALLOW-TEAM'), 'member')
+    ((SELECT id FROM users WHERE email = 'leader1@allowance.test'), 
+     (SELECT id FROM groups WHERE group_id = 'ENGTEAM'), 'leader'),
+    ((SELECT id FROM users WHERE email = 'member1@allowance.test'), 
+     (SELECT id FROM groups WHERE group_id = 'ENGTEAM'), 'member'),
+    ((SELECT id FROM users WHERE email = 'member2@allowance.test'), 
+     (SELECT id FROM groups WHERE group_id = 'ENGTEAM'), 'member'),
+    ((SELECT id FROM users WHERE email = 'member3@allowance.test'), 
+     (SELECT id FROM groups WHERE group_id = 'ENGTEAM'), 'member')
 ON CONFLICT (user_id, group_id) DO NOTHING;
 
--- Create licenses for test users based on their tier
+-- Sales Team: leader2 as leader, member4 as member
+INSERT INTO user_groups (user_id, group_id, role) VALUES
+    ((SELECT id FROM users WHERE email = 'leader2@allowance.test'), 
+     (SELECT id FROM groups WHERE group_id = 'SALES'), 'leader'),
+    ((SELECT id FROM users WHERE email = 'member4@allowance.test'), 
+     (SELECT id FROM groups WHERE group_id = 'SALES'), 'member')
+ON CONFLICT (user_id, group_id) DO NOTHING;
+
+-- StartupX Team: admin as leader, free user as member (for testing mixed tiers)
+INSERT INTO user_groups (user_id, group_id, role) VALUES
+    ((SELECT id FROM users WHERE email = 'admin@allowance.test'), 
+     (SELECT id FROM groups WHERE group_id = 'STARTUP-DEV'), 'leader'),
+    ((SELECT id FROM users WHERE email = 'free@allowance.test'), 
+     (SELECT id FROM groups WHERE group_id = 'STARTUP-DEV'), 'member')
+ON CONFLICT (user_id, group_id) DO NOTHING;
+
+-- ============================================================
+-- 6. CREATE PRODUCTS (INCLUDING ALLOWANCE SYSTEM)
+-- ============================================================
+
+-- Allowance System product (the main product being tested)
+INSERT INTO products (upid, product_slug, name, description, owner_id)
+VALUES (
+    'UALLOWANCE0001',
+    'allowance',
+    'Allowance System',
+    'Core allowance authorization management system',
+    (SELECT id FROM users WHERE email = 'admin@allowance.test')
+)
+ON CONFLICT (upid) DO NOTHING;
+
+-- Additional test products
+INSERT INTO products (upid, product_slug, name, description, owner_id)
+VALUES 
+    ('UPROD000001', 'analytics-pro', 'Analytics Pro', 'Advanced analytics and reporting tool',
+     (SELECT id FROM users WHERE email = 'admin@allowance.test')),
+    ('UPROD000002', 'crm-suite', 'CRM Suite', 'Customer relationship management platform',
+     (SELECT id FROM users WHERE email = 'admin@allowance.test'))
+ON CONFLICT (upid) DO NOTHING;
+
+-- ============================================================
+-- 7. CREATE PRODUCT VERSIONS
+-- ============================================================
+
+-- Allowance System versions
+INSERT INTO product_versions (product_id, version_name, description, features, tier_required, daily_limit, monthly_limit)
+SELECT p.id, 'basic', 'Basic allowance features',
+    '{"max_recipients": 10, "reporting": false, "automation": false}'::jsonb,
+    'free'::user_tier, 10, 1000
+FROM products p WHERE p.upid = 'UALLOWANCE0001'
+UNION ALL
+SELECT p.id, 'standard', 'Standard allowance with reporting',
+    '{"max_recipients": 100, "reporting": true, "automation": false}'::jsonb,
+    'standard'::user_tier, 100, 10000
+FROM products p WHERE p.upid = 'UALLOWANCE0001'
+UNION ALL
+SELECT p.id, 'premium', 'Premium allowance with full features',
+    '{"max_recipients": 1000, "reporting": true, "automation": true, "api_access": true}'::jsonb,
+    'premium'::user_tier, NULL, NULL
+FROM products p WHERE p.upid = 'UALLOWANCE0001'
+ON CONFLICT (product_id, version_name) DO NOTHING;
+
+-- Analytics Pro versions
+INSERT INTO product_versions (product_id, version_name, description, features, tier_required, daily_limit, monthly_limit)
+SELECT p.id, 'basic', 'Basic analytics',
+    '{"dashboards": 5, "exports": "csv"}'::jsonb,
+    'free'::user_tier, 50, 5000
+FROM products p WHERE p.upid = 'UPROD000001'
+UNION ALL
+SELECT p.id, 'pro', 'Professional analytics',
+    '{"dashboards": 50, "exports": "csv,excel,pdf", "custom_reports": true}'::jsonb,
+    'standard'::user_tier, 500, 50000
+FROM products p WHERE p.upid = 'UPROD000001'
+ON CONFLICT (product_id, version_name) DO NOTHING;
+
+-- CRM Suite versions
+INSERT INTO product_versions (product_id, version_name, description, features, tier_required, daily_limit, monthly_limit)
+SELECT p.id, 'starter', 'CRM Starter',
+    '{"contacts": 100, "pipelines": 2}'::jsonb,
+    'free'::user_tier, 20, 2000
+FROM products p WHERE p.upid = 'UPROD000002'
+UNION ALL
+SELECT p.id, 'business', 'CRM Business',
+    '{"contacts": 10000, "pipelines": 20, "automation": true}'::jsonb,
+    'standard'::user_tier, 1000, 100000
+FROM products p WHERE p.upid = 'UPROD000002'
+ON CONFLICT (product_id, version_name) DO NOTHING;
+
+-- ============================================================
+-- 8. GENERATE ORG PRODUCT LICENSES (LICENSE POOLS)
+-- ============================================================
+
+-- ACME Corp gets Allowance System licenses (50 total, 50 available)
+INSERT INTO org_product_licenses (
+    organization_id, product_id, total_count, available_count, assigned_count, 
+    starts_at, expires_at, created_by, created_at, updated_at
+)
+SELECT 
+    o.id,
+    p.id,
+    50,
+    50,
+    0,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP + INTERVAL '1 year',
+    (SELECT id FROM users WHERE email = 'admin@allowance.test'),
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
+FROM organizations o, products p
+WHERE o.org_id = 'ACME001' AND p.upid = 'UALLOWANCE0001'
+ON CONFLICT DO NOTHING;
+
+-- ACME Corp gets Analytics Pro licenses (30 total, 30 available)
+INSERT INTO org_product_licenses (
+    organization_id, product_id, total_count, available_count, assigned_count,
+    starts_at, expires_at, created_by, created_at, updated_at
+)
+SELECT 
+    o.id,
+    p.id,
+    30,
+    30,
+    0,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP + INTERVAL '1 year',
+    (SELECT id FROM users WHERE email = 'admin@allowance.test'),
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
+FROM organizations o, products p
+WHERE o.org_id = 'ACME001' AND p.upid = 'UPROD000001'
+ON CONFLICT DO NOTHING;
+
+-- StartupX gets Allowance System licenses (10 total, 10 available)
+INSERT INTO org_product_licenses (
+    organization_id, product_id, total_count, available_count, assigned_count,
+    starts_at, expires_at, created_by, created_at, updated_at
+)
+SELECT 
+    o.id,
+    p.id,
+    10,
+    10,
+    0,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP + INTERVAL '6 months',
+    (SELECT id FROM users WHERE email = 'admin@allowance.test'),
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
+FROM organizations o, products p
+WHERE o.org_id = 'STARTUP01' AND p.upid = 'UALLOWANCE0001'
+ON CONFLICT DO NOTHING;
+
+-- ============================================================
+-- 9. ASSIGN INDIVIDUAL USER LICENSES
+-- ============================================================
+
+-- Assign Allowance System licenses to users based on their tier
 INSERT INTO user_licenses (user_id, product_version_id, license_key, starts_at, expires_at, daily_usage, monthly_usage, metadata)
 SELECT
     u.id,
     pv.id,
-    CONCAT('allowance-', u.uid, '-', pv.version_name),
+    CONCAT('allowance-', u.uid, '-', pv.version_name, '-', EXTRACT(epoch FROM CURRENT_TIMESTAMP)::text),
     CURRENT_TIMESTAMP,
     CURRENT_TIMESTAMP + INTERVAL '1 year',
     0,
     0,
-    '{"tier_matched": true}'::jsonb
+    jsonb_build_object(
+        'tier_matched', true,
+        'auto_assigned', true,
+        'product_upid', 'UALLOWANCE0001'
+    )
 FROM users u
 CROSS JOIN product_versions pv
 WHERE pv.product_id = (SELECT id FROM products WHERE upid = 'UALLOWANCE0001')
   AND u.tier::text = pv.tier_required::text
   AND u.status = 'active'
+  AND u.email LIKE '%@allowance.test%'
 ON CONFLICT (license_key) DO NOTHING;
 
--- Create subscriptions for paid tier users
+-- ============================================================
+-- 10. CREATE SUBSCRIPTIONS FOR PAID USERS
+-- ============================================================
+
 INSERT INTO subscriptions (user_id, tier, status, current_period_start, current_period_end, auto_renew, created_at, updated_at)
 SELECT
     u.id,
@@ -101,18 +324,92 @@ SELECT
 FROM users u
 WHERE u.tier IN ('standard', 'premium')
   AND u.status = 'active'
+  AND u.email LIKE '%@allowance.test%'
 ON CONFLICT (user_id) DO NOTHING;
 
--- Summary: Show test setup
+-- ============================================================
+-- SUMMARY: DISPLAY TEST DATA SETUP
+-- ============================================================
+
+\echo '=========================================='
+\echo 'ALLOWANCE SYSTEM - SEED DATA LOADED'
+\echo '=========================================='
+\echo ''
+\echo 'TEST CREDENTIALS (All users use the same hashed password)'
+\echo '------------------------------------------'
+
 SELECT 
-    'Test Users Created' as description,
+    email,
+    tier,
+    status,
+    CASE 
+        WHEN email = 'admin@allowance.test' THEN 'System Admin (sees all users)'
+        WHEN email LIKE 'leader%@allowance.test' THEN 'Team Leader (sees team members)'
+        WHEN email LIKE 'member%@allowance.test' THEN 'Team Member (no user access)'
+        WHEN email = 'free@allowance.test' THEN 'Free User (limited access)'
+    END as description
+FROM users 
+WHERE email LIKE '%@allowance.test%'
+ORDER BY 
+    CASE 
+        WHEN email = 'admin@allowance.test' THEN 1
+        WHEN email LIKE 'leader%@allowance.test' THEN 2
+        WHEN email LIKE 'member%@allowance.test' THEN 3
+        ELSE 4
+    END,
+    email;
+
+\echo ''
+\echo 'ORGANIZATIONS AND TEAMS'
+\echo '------------------------------------------'
+
+SELECT 
+    o.name as organization,
+    g.name as team,
+    (SELECT COUNT(*) FROM user_groups ug WHERE ug.group_id = g.id) as member_count
+FROM organizations o
+JOIN groups g ON o.id = g.organization_id
+ORDER BY o.name, g.name;
+
+\echo ''
+\echo 'PRODUCT LICENSE POOLS (ORG LICENSES)'
+\echo '------------------------------------------'
+
+SELECT 
+    o.name as organization,
+    p.name as product,
+    opl.total_count,
+    opl.available_count,
+    opl.assigned_count
+FROM org_product_licenses opl
+JOIN organizations o ON opl.organization_id = o.id
+JOIN products p ON opl.product_id = p.id
+ORDER BY o.name, p.name;
+
+\echo ''
+\echo 'DATA SUMMARY'
+\echo '------------------------------------------'
+
+SELECT 
+    'Test Users' as category,
     COUNT(*) as count
 FROM users WHERE email LIKE '%@allowance.test%'
 UNION ALL
-SELECT 'Organizations', COUNT(*) FROM organizations WHERE org_id LIKE 'ALLOWANCE%'
+SELECT 'Organizations', COUNT(*) FROM organizations
 UNION ALL
-SELECT 'Groups', COUNT(*) FROM groups WHERE group_id LIKE 'ALLOW%'
+SELECT 'Teams', COUNT(*) FROM groups
 UNION ALL
-SELECT 'Licenses', COUNT(*) FROM user_licenses
+SELECT 'Products', COUNT(*) FROM products
+UNION ALL
+SELECT 'Product Versions', COUNT(*) FROM product_versions
+UNION ALL
+SELECT 'Org License Pools', COUNT(*) FROM org_product_licenses
+UNION ALL
+SELECT 'User Licenses', COUNT(*) FROM user_licenses
 UNION ALL
 SELECT 'Subscriptions', COUNT(*) FROM subscriptions;
+
+\echo ''
+\echo '=========================================='
+\echo 'SETUP COMPLETE - READY FOR TESTING'
+\echo '=========================================='

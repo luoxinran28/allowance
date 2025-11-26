@@ -56,7 +56,7 @@ async fn check_admin_permission(
     let is_admin = RbacService::has_permission(
         &state.pool,
         user_id,
-        "admin:manage_users",
+        "admin:user_manage",
     ).await?;
 
     if !is_admin {
@@ -85,7 +85,7 @@ pub async fn list_users(
     let is_admin = RbacService::has_permission(
         &state.pool,
         user_id,
-        "admin:manage_users",
+        "admin:user_manage",
     ).await?;
 
     // Check if user is team leader

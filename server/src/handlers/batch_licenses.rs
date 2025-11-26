@@ -19,7 +19,6 @@ pub struct BatchLicenseRequest {
 pub struct BatchOrgLicenseRequest {
     pub product_id: String,
     pub organization_id: i64,
-    pub version_name: String,
     pub quantity: i32,
     pub expiration_days: i32,
 }

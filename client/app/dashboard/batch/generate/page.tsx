@@ -21,7 +21,6 @@ interface BatchGenerateResponse {
 interface Product {
   id: string;
   name: string;
-  versions: Array<{ name: string }>;
 }
 
 interface Organization {
@@ -35,7 +34,6 @@ export default function BatchGeneratePage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [selectedProduct, setSelectedProduct] = useState('');
-  const [selectedVersion, setSelectedVersion] = useState('');
   const [selectedOrganization, setSelectedOrganization] = useState<number | ''>('');
   const [quantity, setQuantity] = useState(1);
   const [expirationDays, setExpirationDays] = useState(365);
@@ -61,9 +59,6 @@ export default function BatchGeneratePage() {
           setProducts(productsResponse.data);
           if (productsResponse.data.length > 0) {
             setSelectedProduct(productsResponse.data[0].id);
-            if (productsResponse.data[0].versions?.length > 0) {
-              setSelectedVersion(productsResponse.data[0].versions[0].name);
-            }
           }
         }
 
@@ -90,7 +85,7 @@ export default function BatchGeneratePage() {
   const handleGenerateBatch = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!selectedProduct || !selectedVersion || quantity < 1 || quantity > 10000 || !selectedOrganization) {
+    if (!selectedProduct || quantity < 1 || quantity > 10000 || !selectedOrganization) {
       setError('Please fill in all fields with valid values');
       return;
     }
@@ -99,20 +94,13 @@ export default function BatchGeneratePage() {
       setGenerating(true);
       setError('');
 
-      const response = selectedOrganization
-        ? await apiClient.generateBatchOrgLicenses(
-            selectedProduct,
-            selectedOrganization as number,
-            selectedVersion,
-            quantity,
-            expirationDays
-          )
-        : await apiClient.generateBatchLicenses(
-            selectedProduct,
-            selectedVersion,
-            quantity,
-            expirationDays
-          );
+      // Generate org licenses (version not needed for org license pools)
+      const response = await apiClient.generateOrgLicenses(
+        Number(selectedProduct),
+        selectedOrganization as number,
+        quantity,
+        expirationDays
+      );
 
       if (response.status === 201) {
         setResult(response.data);
@@ -197,13 +185,7 @@ export default function BatchGeneratePage() {
                 </label>
                 <select
                   value={selectedProduct}
-                  onChange={(e) => {
-                    setSelectedProduct(e.target.value);
-                    const product = products.find((p) => p.id === e.target.value);
-                    if (product && product.versions && product.versions.length > 0) {
-                      setSelectedVersion(product.versions[0].name);
-                    }
-                  }}
+                  onChange={(e) => setSelectedProduct(e.target.value)}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
                 >
                   {products.map((product) => (
@@ -213,28 +195,6 @@ export default function BatchGeneratePage() {
                   ))}
                 </select>
               </div>
-
-              {/* Version Selection */}
-              {selectedProduct && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Version *
-                  </label>
-                  <select
-                    value={selectedVersion}
-                    onChange={(e) => setSelectedVersion(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
-                  >
-                    {products
-                      .find((p) => p.id === selectedProduct)
-                      ?.versions?.map((v) => (
-                        <option key={v.name} value={v.name}>
-                          {v.name}
-                        </option>
-                      ))}
-                  </select>
-                </div>
-              )}
 
               {/* Quantity */}
               <div>
@@ -275,7 +235,6 @@ export default function BatchGeneratePage() {
                     <p>• Organization: <span className="font-semibold">{organizations.find(o => o.id === selectedOrganization)?.name}</span></p>
                   )}
                   <p>• Product: <span className="font-semibold capitalize">{products.find(p => p.id === selectedProduct)?.name}</span></p>
-                  <p>• Version: <span className="font-semibold capitalize">{selectedVersion}</span></p>
                   <p>• Quantity: <span className="font-semibold">{quantity.toLocaleString()} licenses</span></p>
                   <p>• Expires in: <span className="font-semibold">{expirationDays} days</span></p>
                 </div>

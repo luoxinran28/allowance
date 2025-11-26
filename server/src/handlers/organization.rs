@@ -4,6 +4,7 @@ use axum::{
     http::HeaderMap,
 };
 use serde::Deserialize;
+use sqlx::Row;
 
 use crate::models::Organization;
 use crate::services::OrganizationService;
@@ -68,13 +69,65 @@ pub async fn create_organization(
     Ok(Json(org))
 }
 
-/// Get organization by ID
+/// Get organization by ID with product licenses
 pub async fn get_organization(
     State(state): State<Arc<AuthHandler>>,
     Path(org_id): Path<i64>,
-) -> AppResult<Json<Organization>> {
+) -> AppResult<Json<serde_json::Value>> {
     let org = OrganizationService::get_organization(&state.pool, org_id).await?;
-    Ok(Json(org))
+
+    // Get product licenses for this organization
+    let licenses = sqlx::query(
+        r#"
+        SELECT 
+            opl.id,
+            opl.organization_id,
+            opl.product_id,
+            opl.total_count,
+            opl.available_count,
+            opl.assigned_count,
+            opl.expires_at,
+            p.upid,
+            p.name as product_name,
+            p.description as product_description
+        FROM org_product_licenses opl
+        INNER JOIN products p ON opl.product_id = p.id
+        WHERE opl.organization_id = $1
+        ORDER BY opl.created_at DESC
+        "#
+    )
+        .bind(org_id)
+        .fetch_all(&*state.pool)
+        .await?;
+
+    let licenses_json: Vec<serde_json::Value> = licenses
+        .iter()
+        .map(|row| {
+            serde_json::json!({
+                "id": row.get::<i64, _>("id"),
+                "product_id": row.get::<i64, _>("product_id"),
+                "upid": row.get::<String, _>("upid"),
+                "product_name": row.get::<String, _>("product_name"),
+                "product_description": row.get::<Option<String>, _>("product_description"),
+                "total_count": row.get::<i32, _>("total_count"),
+                "available_count": row.get::<i32, _>("available_count"),
+                "assigned_count": row.get::<i32, _>("assigned_count"),
+                "expires_at": row.get::<chrono::NaiveDateTime, _>("expires_at").to_string(),
+            })
+        })
+        .collect();
+
+    Ok(Json(serde_json::json!({
+        "id": org.id,
+        "org_id": org.org_id,
+        "name": org.name,
+        "description": org.description,
+        "created_by": org.created_by,
+        "created_at": org.created_at,
+        "updated_at": org.updated_at,
+        "licenses": licenses_json,
+        "license_count": licenses_json.len()
+    })))
 }
 
 /// List all organizations

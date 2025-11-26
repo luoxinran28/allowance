@@ -10,6 +10,7 @@ import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 interface TeamMember {
   user_id: number;
   email: string;
+  uid: string;
   role: string;
 }
 
@@ -269,6 +270,7 @@ export default function TeamDetailsPage() {
               <thead className="bg-gray-50 border-b">
                 <tr>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Email</th>
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">UID</th>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Role</th>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Actions</th>
                 </tr>
@@ -277,6 +279,7 @@ export default function TeamDetailsPage() {
                 {members.map((member) => (
                   <tr key={member.user_id} className="border-b hover:bg-gray-50">
                     <td className="px-6 py-4 text-sm text-gray-900">{member.email}</td>
+                    <td className="px-6 py-4 text-sm text-gray-700">{member.uid}</td>
                     <td className="px-6 py-4 text-sm">
                       <RoleTag role={member.role} />
                     </td>

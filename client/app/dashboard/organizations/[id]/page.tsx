@@ -6,10 +6,23 @@ import Link from 'next/link';
 import { apiClient } from '@/lib/api-client';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 
+interface License {
+  id: number;
+  product_id: number;
+  upid: string;
+  product_name: string;
+  total_count: number;
+  available_count: number;
+  assigned_count: number;
+  expires_at: string;
+}
+
 interface Organization {
   id: string;
   name: string;
   created_at: string;
+  licenses?: License[];
+  license_count?: number;
 }
 
 export default function OrgDetailsPage() {
@@ -199,6 +212,76 @@ export default function OrgDetailsPage() {
           </div>
         )}
       </div>
+
+      {/* License Pools Section */}
+      {org?.licenses && org.licenses.length > 0 && (
+        <div className="mt-8 bg-white rounded-lg shadow p-6">
+          <div className="mb-6">
+            <h2 className="text-xl font-bold">License Pools ({org.licenses.length})</h2>
+            <p className="text-gray-600 text-sm mt-1">
+              Manage product licenses allocated to this organization
+            </p>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b">
+                <tr>
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
+                    Product
+                  </th>
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">UPID</th>
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Total</th>
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
+                    Available
+                  </th>
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
+                    Assigned
+                  </th>
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
+                    Expires
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {org.licenses.map((license) => (
+                  <tr key={license.id} className="border-b hover:bg-gray-50">
+                    <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                      {license.product_name}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-600">{license.upid}</td>
+                    <td className="px-6 py-4 text-sm text-gray-900 font-semibold">
+                      {license.total_count}
+                    </td>
+                    <td className="px-6 py-4 text-sm">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        {license.available_count}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-sm">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        {license.assigned_count}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-600">
+                      {new Date(license.expires_at).toLocaleDateString()}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {org && (!org.licenses || org.licenses.length === 0) && (
+        <div className="mt-8 bg-white rounded-lg shadow p-6 text-center">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">No License Pools</h3>
+          <p className="text-gray-600">
+            No license pools have been assigned to this organization yet.
+          </p>
+        </div>
+      )}
 
       <ConfirmDialog
         isOpen={deleteConfirm}
