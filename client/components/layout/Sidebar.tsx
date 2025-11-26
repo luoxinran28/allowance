@@ -32,6 +32,12 @@ const mainNavItems: NavItem[] = [
     icon: <LayoutDashboard className="h-4 w-4" />,
   },
   {
+    href: '/dashboard/users',
+    label: 'Users',
+    icon: <Users className="h-4 w-4" />,
+    requiredPermission: 'user:read',
+  },
+  {
     href: '/dashboard/teams',
     label: 'Teams',
     icon: <Users className="h-4 w-4" />,

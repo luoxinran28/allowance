@@ -66,34 +66,103 @@ async fn check_admin_permission(
     Ok(())
 }
 
-/// List all users (admin only)
+/// List users with role-based filtering
+/// - Admin: sees all users
+/// - Team Leader: sees only members of teams they lead
+/// - Regular users: denied access
 pub async fn list_users(
     State(state): State<Arc<AuthHandler>>,
     headers: HeaderMap,
     Query(params): Query<PaginationParams>,
 ) -> AppResult<Json<serde_json::Value>> {
     let user_id = extract_user_from_header(&state, &headers)?;
-    check_admin_permission(&state, user_id).await?;
-
+    
     let page = params.page.unwrap_or(1);
     let page_size = params.page_size.unwrap_or(20);
     let offset = (page - 1) * page_size;
 
-    let users = sqlx::query_as::<_, User>(
+    // Check if user is admin
+    let is_admin = RbacService::has_permission(
+        &state.pool,
+        user_id,
+        "admin:manage_users",
+    ).await?;
+
+    // Check if user is team leader
+    let is_team_leader = sqlx::query_scalar::<_, bool>(
         r#"
-        SELECT * FROM users
-        ORDER BY created_at DESC
-        LIMIT $1 OFFSET $2
+        SELECT EXISTS(
+            SELECT 1 FROM user_groups
+            WHERE user_id = $1 AND role IN ('leader', 'admin')
+        )
         "#
     )
-        .bind(page_size)
-        .bind(offset)
-        .fetch_all(&*state.pool)
-        .await?;
-
-    let total: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM users")
+        .bind(user_id)
         .fetch_one(&*state.pool)
         .await?;
+
+    // Deny access for regular users
+    if !is_admin && !is_team_leader {
+        return Err(AppError::Forbidden);
+    }
+
+    let (users, total) = if is_admin {
+        // Admin: Return all users
+        let users = sqlx::query_as::<_, User>(
+            r#"
+            SELECT * FROM users
+            ORDER BY created_at DESC
+            LIMIT $1 OFFSET $2
+            "#
+        )
+            .bind(page_size)
+            .bind(offset)
+            .fetch_all(&*state.pool)
+            .await?;
+
+        let total: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM users")
+            .fetch_one(&*state.pool)
+            .await?;
+
+        (users, total)
+    } else {
+        // Team Leader: Return only members from teams they lead
+        let users = sqlx::query_as::<_, User>(
+            r#"
+            SELECT DISTINCT u.* FROM users u
+            INNER JOIN user_groups ug_member ON u.id = ug_member.user_id
+            INNER JOIN groups g ON ug_member.group_id = g.id
+            WHERE g.id IN (
+                SELECT group_id FROM user_groups
+                WHERE user_id = $1 AND role IN ('leader', 'admin')
+            )
+            ORDER BY u.created_at DESC
+            LIMIT $2 OFFSET $3
+            "#
+        )
+            .bind(user_id)
+            .bind(page_size)
+            .bind(offset)
+            .fetch_all(&*state.pool)
+            .await?;
+
+        let total: i64 = sqlx::query_scalar(
+            r#"
+            SELECT COUNT(DISTINCT u.id) FROM users u
+            INNER JOIN user_groups ug_member ON u.id = ug_member.user_id
+            INNER JOIN groups g ON ug_member.group_id = g.id
+            WHERE g.id IN (
+                SELECT group_id FROM user_groups
+                WHERE user_id = $1 AND role IN ('leader', 'admin')
+            )
+            "#
+        )
+            .bind(user_id)
+            .fetch_one(&*state.pool)
+            .await?;
+
+        (users, total)
+    };
 
     let user_responses: Vec<UserResponse> = users.into_iter()
         .map(|u| UserResponse::from(u))

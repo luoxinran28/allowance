@@ -49,6 +49,7 @@ export default function UsersPage() {
       setError('');
 
       // Load users, teams, and organizations in parallel
+      // Backend now filters users based on requester's role
       const [usersRes, teamsRes, orgsRes] = await Promise.all([
         apiClient.listUsers(),
         apiClient.listTeams(),
@@ -57,7 +58,7 @@ export default function UsersPage() {
 
       const usersList = Array.isArray(usersRes.data)
         ? usersRes.data
-        : usersRes.data?.data || [];
+        : usersRes.data?.users || usersRes.data?.data || [];
 
       const teamsList = Array.isArray(teamsRes.data)
         ? teamsRes.data
