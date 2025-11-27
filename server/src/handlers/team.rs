@@ -1,7 +1,7 @@
 use std::sync::Arc;
 use axum::{
     extract::{State, Json, Path},
-    http::HeaderMap,
+    http::{HeaderMap, StatusCode},
 };
 use sqlx::Row;
 use serde::Serialize;
@@ -50,7 +50,7 @@ pub async fn create_team(
     State(state): State<Arc<AuthHandler>>,
     headers: HeaderMap,
     Json(req): Json<CreateTeamRequest>,
-) -> AppResult<Json<Group>> {
+) -> AppResult<(StatusCode, Json<Group>)> {
     let user_id = extract_user_from_header(&state, &headers)?;
 
     // If organization_id not provided, create a default organization for the user
@@ -78,7 +78,7 @@ pub async fn create_team(
     )
     .await?;
 
-    Ok(Json(team))
+    Ok((StatusCode::CREATED, Json(team)))
 }
 
 /// List user's teams

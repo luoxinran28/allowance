@@ -13,7 +13,7 @@ mod api_integration_tests {
     use axum::{
         extract::DefaultBodyLimit,
         http::{header, Method, StatusCode},
-        routing::{get, post, delete},
+        routing::{get, post, delete, put},
         Router,
     };
     use axum_test::TestServer;
@@ -26,14 +26,47 @@ mod api_integration_tests {
     use allowance_server::docs;
 
     /// Setup test server with full application state
-    async fn setup_test_server() -> TestServer {
-        // Load test configuration
-        let config = Config::from_env();
+    async fn setup_test_server() -> (TestServer, sqlx::PgPool) {
+        // Use a test database URL - assumes PostgreSQL is running locally
+        // In a real CI environment, you'd use testcontainers or a test database
+        let database_url = "postgres://postgres:password@localhost:5432/allowance";
+
+        // Create test config
+        let config = Config {
+            server_host: "127.0.0.1".to_string(),
+            server_port: 4040,
+            database_url: database_url.to_string(),
+            jwt_secret: "test-jwt-secret-min-32-chars-for-testing".to_string(),
+            jwt_expiration_hours: 24,
+            refresh_token_expiration_days: 7,
+            api_secret_key: "test-api-secret".to_string(),
+            stripe_api_key: "test-stripe-key".to_string(),
+            stripe_webhook_secret: "test-webhook-secret".to_string(),
+            stripe_test_mode: true,
+        };
 
         // Initialize test database
         let pool = db::init_pool(&config.database_url)
             .await
             .expect("Failed to initialize test database");
+
+        // Run migrations
+        let migrator = sqlx::migrate::Migrator::new(std::path::Path::new("../database/migrations"))
+            .await
+            .expect("Failed to create migrator");
+        
+        // Try to run migrations, but don't fail if they already exist
+        match migrator.run(&pool).await {
+            Ok(_) => println!("Migrations completed successfully"),
+            Err(e) => {
+                let error_msg = e.to_string();
+                if error_msg.contains("already exists") || error_msg.contains("42710") {
+                    println!("Migrations already applied, continuing...");
+                } else {
+                    panic!("Failed to run migrations: {}", e);
+                }
+            }
+        }
 
         // Initialize JWT manager
         let jwt = Arc::new(JwtManager::new(
@@ -60,7 +93,11 @@ mod api_integration_tests {
             stripe: stripe.clone(),
         });
 
-        let license_query_handler = Arc::new(handlers::licenses::LicenseQueryHandler {
+        let license_query_handler = Arc::new(handlers::licenses::LicenseHandler {
+            pool: Arc::new(pool.clone()),
+        });
+
+        let product_handler = Arc::new(handlers::product::ProductHandler {
             pool: Arc::new(pool.clone()),
         });
 
@@ -118,15 +155,18 @@ mod api_integration_tests {
             .with_state(payment_handler.clone());
 
         let license_routes = Router::new()
-            .route("/licenses/active", get(handlers::licenses::get_active_licenses))
-            .route("/licenses/expiring", get(handlers::licenses::get_expiring_licenses))
-            .route("/licenses/org", get(handlers::licenses::get_org_licenses))
-            .route("/licenses/summary", get(handlers::licenses::get_user_license_summary))
+            .route("/licenses/mine", get(handlers::licenses::get_user_licenses))
             .with_state(license_query_handler.clone());
+
+        let product_routes = Router::new()
+            .route("/products", get(handlers::product::list_products))
+            .route("/products/:upid", get(handlers::product::get_product_by_upid))
+            .with_state(product_handler.clone());
 
         let app = auth_routes
             .merge(payment_routes)
             .merge(license_routes)
+            .merge(product_routes)
             .layer(DefaultBodyLimit::max(5_242_880))
             .layer(cors.clone())
             .nest("/health",
@@ -138,11 +178,11 @@ mod api_integration_tests {
                     .with_state(pool.clone())
             );
 
-        TestServer::new(app).unwrap()
+        (TestServer::new(app).unwrap(), pool)
     }
 
     /// Helper function to register and activate a test user
-    async fn create_test_user(server: &TestServer, email: &str, password: &str) -> (i64, String) {
+    async fn create_test_user(server: &TestServer, pool: &sqlx::PgPool, email: &str, password: &str) -> (i64, String) {
         // Register user
         let register_response = server
             .post("/auth/register")
@@ -157,8 +197,14 @@ mod api_integration_tests {
         let register_data: serde_json::Value = register_response.json();
         let user_id = register_data["id"].as_i64().unwrap();
 
-        // For testing, we'll assume activation is handled separately
+        // For testing, directly activate the user in database
         // In a real scenario, you'd need to extract the activation token from email
+        // But for tests, we'll set the user as active directly
+        sqlx::query("UPDATE users SET status = 'active' WHERE id = $1")
+            .bind(user_id)
+            .execute(pool)
+            .await
+            .expect("Failed to activate test user");
 
         // Login to get token
         let login_response = server
@@ -169,16 +215,10 @@ mod api_integration_tests {
             }))
             .await;
 
-        // Note: Login might fail if user is not activated
-        // For now, we'll return empty token and handle in individual tests
-        let token = if login_response.status_code() == StatusCode::OK {
-            login_response.json::<serde_json::Value>()["token"]
-                .as_str()
-                .unwrap_or("")
-                .to_string()
-        } else {
-            String::new()
-        };
+        assert_eq!(login_response.status_code(), StatusCode::OK);
+
+        let login_data: serde_json::Value = login_response.json();
+        let token = login_data["token"].as_str().unwrap().to_string();
 
         (user_id, token)
     }
@@ -186,7 +226,7 @@ mod api_integration_tests {
     /// Test health check endpoints
     #[tokio::test]
     async fn test_health_endpoints() {
-        let server = setup_test_server().await;
+        let (server, _pool) = setup_test_server().await;
 
         // Basic health check
         let response = server.get("/health").await;
@@ -214,7 +254,7 @@ mod api_integration_tests {
     /// Test user registration
     #[tokio::test]
     async fn test_user_registration() {
-        let server = setup_test_server().await;
+        let (server, _pool) = setup_test_server().await;
 
         let response = server
             .post("/auth/register")
@@ -236,7 +276,7 @@ mod api_integration_tests {
     /// Test user registration validation
     #[tokio::test]
     async fn test_user_registration_validation() {
-        let server = setup_test_server().await;
+        let (server, _pool) = setup_test_server().await;
 
         // Test invalid email
         let response = server
@@ -274,7 +314,7 @@ mod api_integration_tests {
     /// Test duplicate user registration
     #[tokio::test]
     async fn test_duplicate_registration() {
-        let server = setup_test_server().await;
+        let (server, _pool) = setup_test_server().await;
 
         // First registration
         let response1 = server
@@ -302,10 +342,10 @@ mod api_integration_tests {
     /// Test organization creation and listing
     #[tokio::test]
     async fn test_organization_operations() {
-        let server = setup_test_server().await;
+        let (server, pool) = setup_test_server().await;
 
         // Create test user first
-        let (_user_id, token) = create_test_user(&server, "orgtest@example.com", "SecurePass123").await;
+        let (_user_id, token) = create_test_user(&server, &pool, "orgtest@example.com", "SecurePass123").await;
 
         // Create organization
         let response = server
@@ -339,10 +379,24 @@ mod api_integration_tests {
     /// Test team operations
     #[tokio::test]
     async fn test_team_operations() {
-        let server = setup_test_server().await;
+        let (server, pool) = setup_test_server().await;
 
         // Create test user
-        let (_user_id, token) = create_test_user(&server, "teamtest@example.com", "SecurePass123").await;
+        let (user_id, token) = create_test_user(&server, &pool, "teamtest@example.com", "SecurePass123").await;
+
+        // Create organization first
+        let org_response = server
+            .post("/org/create")
+            .add_header(header::AUTHORIZATION, format!("Bearer {}", token))
+            .json(&json!({
+                "name": "Test Organization",
+                "description": "A test organization"
+            }))
+            .await;
+
+        assert_eq!(org_response.status_code(), StatusCode::OK);
+        let org_data: serde_json::Value = org_response.json();
+        let org_id = org_data["id"].as_i64().unwrap();
 
         // Create team
         let response = server
@@ -350,29 +404,64 @@ mod api_integration_tests {
             .add_header(header::AUTHORIZATION, format!("Bearer {}", token))
             .json(&json!({
                 "name": "Test Team",
-                "description": "A test team"
+                "description": "A test team",
+                "organization_id": org_id
             }))
             .await;
 
-        if response.status_code() == StatusCode::OK {
-            let data: serde_json::Value = response.json();
-            assert!(data["id"].is_i64());
-            assert_eq!(data["name"], "Test Team");
+        assert_eq!(response.status_code(), StatusCode::OK);
+        let data: serde_json::Value = response.json();
+        assert!(data["id"].is_i64());
+        let team_id = data["id"].as_i64().unwrap();
+        assert_eq!(data["name"], "Test Team");
 
-            // List teams
-            let list_response = server
-                .get("/team/list")
-                .add_header(header::AUTHORIZATION, format!("Bearer {}", token))
-                .await;
+        // Test listing members (should be empty initially)
+        let members_response = server
+            .get(&format!("/team/{}/members", team_id))
+            .add_header(header::AUTHORIZATION, format!("Bearer {}", token))
+            .await;
 
-            assert_eq!(list_response.status_code(), StatusCode::OK);
-        }
+        assert_eq!(members_response.status_code(), StatusCode::OK);
+        let members_data: serde_json::Value = members_response.json();
+        assert!(members_data.is_array());
+        assert_eq!(members_data.as_array().unwrap().len(), 0);
+
+        // Add a member to the team
+        let add_member_response = server
+            .post(&format!("/team/{}/members", team_id))
+            .add_header(header::AUTHORIZATION, format!("Bearer {}", token))
+            .json(&json!({
+                "user_id": user_id,
+                "role": "member"
+            }))
+            .await;
+
+        assert_eq!(add_member_response.status_code(), StatusCode::OK);
+
+        // Now list members again (should have 1 member)
+        let members_response2 = server
+            .get(&format!("/team/{}/members", team_id))
+            .add_header(header::AUTHORIZATION, format!("Bearer {}", token))
+            .await;
+
+        assert_eq!(members_response2.status_code(), StatusCode::OK);
+        let members_data2: serde_json::Value = members_response2.json();
+        assert!(members_data2.is_array());
+        assert_eq!(members_data2.as_array().unwrap().len(), 1);
+
+        // List teams
+        let list_response = server
+            .get("/team/list")
+            .add_header(header::AUTHORIZATION, format!("Bearer {}", token))
+            .await;
+
+        assert_eq!(list_response.status_code(), StatusCode::OK);
     }
 
     /// Test admin endpoints (would require admin user)
     #[tokio::test]
     async fn test_admin_endpoints_structure() {
-        let server = setup_test_server().await;
+        let (server, _pool) = setup_test_server().await;
 
         // Test without authentication
         let response = server.get("/admin/users").await;
@@ -390,9 +479,9 @@ mod api_integration_tests {
     /// Test license endpoints
     #[tokio::test]
     async fn test_license_endpoints() {
-        let server = setup_test_server().await;
+        let (server, pool) = setup_test_server().await;
 
-        let (_user_id, token) = create_test_user(&server, "licensettest@example.com", "SecurePass123").await;
+        let (_user_id, token) = create_test_user(&server, &pool, "licensettest@example.com", "SecurePass123").await;
 
         // Test license summary (requires authentication)
         let response = server
@@ -407,7 +496,7 @@ mod api_integration_tests {
     /// Test API documentation access
     #[tokio::test]
     async fn test_api_documentation() {
-        let server = setup_test_server().await;
+        let (server, _pool) = setup_test_server().await;
 
         // Test OpenAPI JSON access
         let response = server.get("/api-docs/openapi.json").await;
@@ -428,7 +517,7 @@ mod api_integration_tests {
     /// Test request size limits
     #[tokio::test]
     async fn test_request_size_limits() {
-        let server = setup_test_server().await;
+        let (server, _pool) = setup_test_server().await;
 
         // Create a large payload (over 5MB limit)
         let large_data = "x".repeat(6_000_000); // 6MB
@@ -448,7 +537,7 @@ mod api_integration_tests {
     /// Test error response format
     #[tokio::test]
     async fn test_error_response_format() {
-        let server = setup_test_server().await;
+        let (server, _pool) = setup_test_server().await;
 
         // Test with invalid JSON
         let response = server
@@ -463,12 +552,64 @@ mod api_integration_tests {
         assert!(data["timestamp"].is_string());
     }
 
+    /// Test user profile operations
+    #[tokio::test]
+    async fn test_user_profile_operations() {
+        let (server, pool) = setup_test_server().await;
+
+        let (_user_id, token) = create_test_user(&server, &pool, "profiletest@example.com", "SecurePass123").await;
+
+        // Get profile
+        let get_response = server
+            .get("/user/profile")
+            .add_header(header::AUTHORIZATION, format!("Bearer {}", token))
+            .await;
+
+        assert_eq!(get_response.status_code(), StatusCode::OK);
+        let profile_data: serde_json::Value = get_response.json();
+        assert_eq!(profile_data["email"], "profiletest@example.com");
+
+        // Update profile
+        let update_response = server
+            .put("/user/profile")
+            .add_header(header::AUTHORIZATION, format!("Bearer {}", token))
+            .json(&json!({
+                "first_name": "Test",
+                "last_name": "User"
+            }))
+            .await;
+
+        assert_eq!(update_response.status_code(), StatusCode::OK);
+
+        // Get licenses (should be empty for new user)
+        let licenses_response = server
+            .get("/user/licenses")
+            .add_header(header::AUTHORIZATION, format!("Bearer {}", token))
+            .await;
+
+        assert_eq!(licenses_response.status_code(), StatusCode::OK);
+        let licenses_data: serde_json::Value = licenses_response.json();
+        assert!(licenses_data.is_array());
+    }
+
+    /// Test product endpoints
+    #[tokio::test]
+    async fn test_product_endpoints() {
+        let (server, _pool) = setup_test_server().await;
+
+        // List products
+        let list_response = server.get("/products").await;
+        assert_eq!(list_response.status_code(), StatusCode::OK);
+        let products_data: serde_json::Value = list_response.json();
+        assert!(products_data.is_array());
+    }
+
     /// Test pagination parameters
     #[tokio::test]
     async fn test_pagination_parameters() {
-        let server = setup_test_server().await;
+        let (server, pool) = setup_test_server().await;
 
-        let (_user_id, token) = create_test_user(&server, "pagetest@example.com", "SecurePass123").await;
+        let (_user_id, token) = create_test_user(&server, &pool, "pagetest@example.com", "SecurePass123").await;
 
         // Test with pagination parameters
         let response = server

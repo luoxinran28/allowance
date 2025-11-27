@@ -3,6 +3,14 @@ name = "allowance-server"
 version = "0.1.0"
 edition = "2021"
 
+[lib]
+name = "allowance_server"
+path = "src/lib.rs"
+
+[[bin]]
+name = "allowance-server"
+path = "src/main.rs"
+
 [dependencies]
 tokio = { version = "1.35", features = ["full"] }
 axum = "0.7"
@@ -57,7 +65,7 @@ utoipa-redoc = { version = "4.0", features = ["axum"] }
 [dev-dependencies]
 tokio-test = "0.4"
 sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "postgres", "json", "uuid", "chrono", "migrate"] }
-testcontainers = "0.15"
+testcontainers = { version = "0.15", features = ["experimental"] }
 testcontainers-modules = { version = "0.3", features = ["postgres"] }
 axum-test = "15.3"
 

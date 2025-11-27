@@ -1,11 +1,4 @@
-mod config;
-mod models;
-mod services;
-mod handlers;
-mod middleware;
-mod utils;
-mod db;
-mod docs;
+use allowance_server::*;
 
 use axum::{
     extract::DefaultBodyLimit,

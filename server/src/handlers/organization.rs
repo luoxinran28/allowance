@@ -55,7 +55,7 @@ pub async fn create_organization(
     State(state): State<Arc<AuthHandler>>,
     headers: HeaderMap,
     Json(req): Json<CreateOrganizationRequest>,
-) -> AppResult<Json<Organization>> {
+) -> AppResult<(axum::http::StatusCode, Json<Organization>)> {
     let user_id = extract_user_from_header(&state, &headers)?;
 
     let org = OrganizationService::create_organization(
@@ -66,7 +66,7 @@ pub async fn create_organization(
     )
     .await?;
 
-    Ok(Json(org))
+    Ok((axum::http::StatusCode::CREATED, Json(org)))
 }
 
 /// Get organization by ID with product licenses
