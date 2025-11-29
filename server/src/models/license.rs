@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
-use chrono::{DateTime, Utc};
+use chrono::NaiveDateTime;
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
 pub struct FreeUserLicense {
@@ -9,7 +9,7 @@ pub struct FreeUserLicense {
     pub product_id: i64,
     pub upid: String,
     pub license_key: String,
-    pub created_at: DateTime<Utc>,
+    pub created_at: NaiveDateTime,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
@@ -21,8 +21,8 @@ pub struct TeamProductQuota {
     pub upid: String,
     pub allocated_count: i32,
     pub used_count: i32,
-    pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
+    pub created_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
@@ -38,7 +38,7 @@ pub struct UserLicenseHistory {
     pub new_count: Option<i32>,
     pub reason: Option<String>,
     pub changed_by: Option<i64>,
-    pub changed_at: DateTime<Utc>,
+    pub changed_at: NaiveDateTime,
     pub metadata: Option<serde_json::Value>,
 }
 
