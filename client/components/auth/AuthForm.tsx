@@ -44,7 +44,9 @@ export function AuthForm({ mode }: AuthFormProps) {
 
     try {
       if (mode === 'register') {
-        await apiClient.register(email, password);
+        // Use UPID from meta tag or default
+        const sourceUpid = upid || process.env.NEXT_PUBLIC_PRODUCT_UPID || 'UALLOWANCE0001';
+        await apiClient.register(email, password, sourceUpid);
         setSuccess('Registration successful! Check your email to activate your account.');
         setTimeout(() => {
           router.push(`/auth/activate?email=${encodeURIComponent(email)}`);

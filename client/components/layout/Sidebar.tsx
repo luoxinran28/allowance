@@ -66,11 +66,6 @@ const licenseNavItems: NavItem[] = [
     icon: <Package className="h-4 w-4" />,
   },
   {
-    href: '/dashboard/licenses/request',
-    label: 'Request License',
-    icon: <FileText className="h-4 w-4" />,
-  },
-  {
     href: '/dashboard/licenses/assign',
     label: 'Assign Licenses',
     icon: <Users className="h-4 w-4" />,
@@ -110,10 +105,10 @@ const adminNavItems: NavItem[] = [
     requiredPermission: 'user:read',
   },
   {
-    href: '/admin/approvals',
-    label: 'Approvals',
+    href: '/admin/team-quotas',
+    label: 'Team Quotas',
     icon: <CheckCircle2 className="h-4 w-4" />,
-    requiredPermission: 'admin:approvals',
+    requiredPermission: 'admin:manage_users',
   },
 ];
 

@@ -94,8 +94,8 @@ class ApiClient {
 
   // ============= Auth Endpoints =============
 
-  async register(email: string, password: string) {
-    return this.client.post('/auth/register', { email, password });
+  async register(email: string, password: string, sourceUpid: string) {
+    return this.client.post('/auth/register', { email, password, source_upid: sourceUpid });
   }
 
   async login(email: string, password: string, upid?: string) {
@@ -188,25 +188,6 @@ class ApiClient {
     });
   }
 
-  /// Team leader gets pending license approval requests
-  async getPendingApprovals(teamId: number) {
-    return this.client.get(`/approvals?team_id=${teamId}`);
-  }
-
-  /// Team leader approves or rejects license request (requires Nonce)
-  async reviewLicenseRequest(approvalId: number, status: 'approved' | 'rejected', remarks?: string) {
-    const body = { status, remarks };
-    const { timestamp, nonce, sign } = await this.generateNonce(body);
-    
-    return this.client.post(`/approvals/${approvalId}/review`, body, {
-      headers: {
-        'X-Timestamp': timestamp,
-        'X-Nonce': nonce,
-        'X-Sign': sign,
-      }
-    });
-  }
-
   // ============= Team Endpoints =============
 
   async createTeam(name: string, description?: string) {
@@ -221,8 +202,12 @@ class ApiClient {
     return this.client.get(`/team/${teamId}`);
   }
 
-  async addTeamMember(teamId: number, userId: number) {
-    return this.client.post(`/team/${teamId}/members`, { user_id: userId });
+  async addTeamMember(teamId: number, userId: number, productUpids: string[], role?: string) {
+    return this.client.post(`/team/${teamId}/members`, { 
+      user_id: userId, 
+      product_upids: productUpids,
+      role: role || 'member'
+    });
   }
 
   async listTeamMembers(teamId: number) {
@@ -284,20 +269,21 @@ class ApiClient {
     return this.client.delete(`/admin/users/${userId}/role/${roleCode}`);
   }
 
-  async listApprovals(page?: number, pageSize?: number) {
-    return this.client.get('/admin/approvals', { params: { page, page_size: pageSize } });
+  // Team Quota Admin endpoints
+  async listTeamQuotas() {
+    return this.client.get('/admin/team-quotas');
   }
 
-  async getApproval(approvalId: number) {
-    return this.client.get(`/admin/approvals/${approvalId}`);
+  async allocateQuota(teamId: number, productUpid: string, quota: number) {
+    return this.client.post('/admin/team-quotas', { team_id: teamId, product_upid: productUpid, quota });
   }
 
-  async approveRequest(approvalId: number) {
-    return this.client.post(`/admin/approvals/${approvalId}/approve`);
+  async updateQuota(teamId: number, productUpid: string, quota: number) {
+    return this.client.put(`/admin/team-quotas/${teamId}/${productUpid}`, { quota });
   }
 
-  async rejectRequest(approvalId: number, reason: string) {
-    return this.client.post(`/admin/approvals/${approvalId}/reject`, { reason });
+  async getTeamQuotas(teamId: number) {
+    return this.client.get(`/admin/team-quotas/${teamId}`);
   }
 
   // Payment endpoints

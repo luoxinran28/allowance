@@ -109,7 +109,8 @@ export default function TeamDetailsPage() {
       setIsAdding(true);
       setError('');
       const userId = Number(selectedMemberId);
-      await apiClient.addTeamMember(teamId, userId);
+      // For now, pass empty array - full product selection will be added later
+      await apiClient.addTeamMember(teamId, userId, [], 'member');
       setSelectedMemberId('');
       setShowAddMember(false);
       await loadTeamData();
