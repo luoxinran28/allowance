@@ -34,12 +34,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             >
               Users
             </Link>
-            <Link
-              href="/admin/approvals"
-              className="block px-4 py-2 rounded hover:bg-blue-50 text-gray-700"
-            >
-              Approvals
-            </Link>
           </nav>
         </div>
       </div>

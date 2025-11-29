@@ -54,7 +54,7 @@ export default function AssignLicensesPage() {
     notes: '',
   });
 
-  // Fetch approved requests
+  // Fetch team members (three-tier: direct assignment, no approvals)
   useEffect(() => {
     if (!isAuthenticated || !hasPermission('license_assign')) {
       router.push('/dashboard');
@@ -66,19 +66,12 @@ export default function AssignLicensesPage() {
         setLoading(true);
         setError(null);
 
-        // In a real app, would fetch from /license-requests?status=approved
-        // For now, using admin approvals endpoint
-        const response = await (apiClient as any).client.get('/admin/approvals?take=50');
-        
-        // Filter to show only approved requests (this would be done server-side in real app)
-        const approved = response.data.approvals?.filter(
-          (a: any) => a.status === 'approved' && !a.assigned_at
-        ) || [];
-        
-        setApprovedRequests(approved);
+        // TODO: Replace with actual team member endpoint
+        // For now, return empty list since approval system is removed
+        setApprovedRequests([]);
       } catch (err: any) {
-        setError(err.response?.data?.error || 'Failed to load approved requests');
-        console.error('Error fetching requests:', err);
+        setError(err.response?.data?.error || 'Failed to load team members');
+        console.error('Error fetching team members:', err);
       } finally {
         setLoading(false);
       }
