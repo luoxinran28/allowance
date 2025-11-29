@@ -118,6 +118,7 @@ impl From<User> for UserResponse {
 pub struct RegisterRequest {
     pub email: String,
     pub password: String,
+    pub source_upid: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

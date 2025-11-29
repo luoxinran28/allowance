@@ -3,6 +3,7 @@ use chrono::Utc;
 use uuid::Uuid;
 
 use crate::models::{User, UserResponse, EmailToken, UserStatus};
+use crate::services::free_user_service::FreeUserService;
 use crate::utils::{
     crypto::{hash_password, verify_password, generate_token},
     errors::{AppError, AppResult},
@@ -17,6 +18,7 @@ impl AuthService {
         pool: &PgPool,
         email: &str,
         password: &str,
+        source_upid: &str,
     ) -> AppResult<UserResponse> {
         // Check if email already exists
         let existing = sqlx::query_as::<_, User>(
@@ -34,19 +36,29 @@ impl AuthService {
         let uid = format!("U{}", Uuid::new_v4().simple().to_string()[..15].to_uppercase());
         let password_hash = hash_password(password)?;
 
-        // Create user (starts as inactive)
+        // Create user (starts as inactive, tier=free)
         let user = sqlx::query_as::<_, User>(
             r#"
-            INSERT INTO users (uid, email, password_hash, status, tier)
-            VALUES ($1, $2, $3, 'inactive', 'free')
+            INSERT INTO users (uid, email, password_hash, status, tier, source_upid)
+            VALUES ($1, $2, $3, 'inactive', 'free', $4)
             RETURNING *
             "#
         )
             .bind(&uid)
             .bind(email)
             .bind(password_hash)
+            .bind(source_upid)
             .fetch_one(pool)
             .await?;
+
+        // Get product_id from upid
+        let product_id: i64 = sqlx::query_scalar("SELECT id FROM products WHERE upid = $1")
+            .bind(source_upid)
+            .fetch_one(pool)
+            .await?;
+
+        // Create free user license
+        FreeUserService::create_free_license(pool, user.id, product_id, source_upid).await?;
 
         Ok(UserResponse::from(user))
     }

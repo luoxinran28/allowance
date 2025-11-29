@@ -5,7 +5,7 @@ use axum::{
 };
 use serde::{Deserialize, Serialize};
 
-use crate::models::{UserResponse, User, ApprovalRequest, CreateProductAdminRequest, GenerateLicensesRequest, OrgProductLicenseResponse};
+use crate::models::{UserResponse, User, CreateProductAdminRequest, GenerateLicensesRequest, OrgProductLicenseResponse};
 use crate::services::{AuthService, RbacService, ProductService};
 use crate::utils::{AppResult, AppError};
 use crate::handlers::auth::AuthHandler;
@@ -221,111 +221,6 @@ pub async fn remove_role(
     Ok(Json(AdminResponse {
         success: true,
         message: format!("Role '{}' removed from user {}", role_code, user_id),
-    }))
-}
-
-/// List pending approval requests (admin only)
-pub async fn list_approvals(
-    State(state): State<Arc<AuthHandler>>,
-    headers: HeaderMap,
-) -> AppResult<Json<Vec<ApprovalRequest>>> {
-    let user_id = extract_user_from_header(&state, &headers)?;
-    check_admin_permission(&state, user_id).await?;
-
-    let approvals = sqlx::query_as::<_, ApprovalRequest>(
-        r#"
-        SELECT * FROM approval_requests
-        WHERE status = 'pending'
-        ORDER BY created_at ASC
-        "#
-    )
-        .fetch_all(&*state.pool)
-        .await?;
-
-    Ok(Json(approvals))
-}
-
-/// Get approval request details (admin only)
-pub async fn get_approval(
-    State(state): State<Arc<AuthHandler>>,
-    headers: HeaderMap,
-    Path(approval_id): Path<i64>,
-) -> AppResult<Json<ApprovalRequest>> {
-    let user_id = extract_user_from_header(&state, &headers)?;
-    check_admin_permission(&state, user_id).await?;
-
-    let approval = sqlx::query_as::<_, ApprovalRequest>(
-        "SELECT * FROM approval_requests WHERE id = $1"
-    )
-        .bind(approval_id)
-        .fetch_optional(&*state.pool)
-        .await?
-        .ok_or(AppError::NotFound("Approval request not found".to_string()))?;
-
-    Ok(Json(approval))
-}
-
-/// Approve request (admin only)
-pub async fn approve_request(
-    State(state): State<Arc<AuthHandler>>,
-    headers: HeaderMap,
-    Path(approval_id): Path<i64>,
-) -> AppResult<Json<AdminResponse>> {
-    let user_id = extract_user_from_header(&state, &headers)?;
-    check_admin_permission(&state, user_id).await?;
-
-    let result = sqlx::query(
-        r#"
-        UPDATE approval_requests
-        SET status = 'approved', approved_by = $1, updated_at = NOW()
-        WHERE id = $2
-        "#
-    )
-        .bind(user_id)
-        .bind(approval_id)
-        .execute(&*state.pool)
-        .await?;
-
-    if result.rows_affected() == 0 {
-        return Err(AppError::NotFound("Approval request not found".to_string()));
-    }
-
-    Ok(Json(AdminResponse {
-        success: true,
-        message: format!("Approval request {} approved", approval_id),
-    }))
-}
-
-/// Reject request (admin only)
-pub async fn reject_request(
-    State(state): State<Arc<AuthHandler>>,
-    headers: HeaderMap,
-    Path(approval_id): Path<i64>,
-    Json(req): Json<ApprovalActionRequest>,
-) -> AppResult<Json<AdminResponse>> {
-    let user_id = extract_user_from_header(&state, &headers)?;
-    check_admin_permission(&state, user_id).await?;
-
-    let result = sqlx::query(
-        r#"
-        UPDATE approval_requests
-        SET status = 'rejected', approved_by = $1, rejection_reason = $2, updated_at = NOW()
-        WHERE id = $3
-        "#
-    )
-        .bind(user_id)
-        .bind(req.reason.as_deref().unwrap_or("No reason provided"))
-        .bind(approval_id)
-        .execute(&*state.pool)
-        .await?;
-
-    if result.rows_affected() == 0 {
-        return Err(AppError::NotFound("Approval request not found".to_string()));
-    }
-
-    Ok(Json(AdminResponse {
-        success: true,
-        message: format!("Approval request {} rejected", approval_id),
     }))
 }
 

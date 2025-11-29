@@ -22,6 +22,7 @@ pub struct CreateTeamRequest {
 pub struct AddMemberRequest {
     pub user_id: i64,
     pub role: Option<String>,
+    pub product_upids: Vec<String>,
 }
 
 #[derive(serde::Deserialize)]
@@ -108,10 +109,10 @@ pub async fn add_member(
     Path(team_id): Path<i64>,
     Json(req): Json<AddMemberRequest>,
 ) -> AppResult<Json<serde_json::Value>> {
-    let _user_id = extract_user_from_header(&state, &headers)?;
+    let user_id = extract_user_from_header(&state, &headers)?;
 
     let role = req.role.as_deref().unwrap_or("member");
-    TeamService::add_member(&state.pool, req.user_id, team_id, role).await?;
+    TeamService::add_member(&state.pool, req.user_id, team_id, role, req.product_upids, user_id).await?;
 
     Ok(Json(serde_json::json!({
         "success": true,
@@ -161,9 +162,9 @@ pub async fn remove_member(
     headers: HeaderMap,
     Path((team_id, user_id)): Path<(i64, i64)>,
 ) -> AppResult<Json<serde_json::Value>> {
-    let _requester_id = extract_user_from_header(&state, &headers)?;
+    let requester_id = extract_user_from_header(&state, &headers)?;
 
-    TeamService::remove_member(&state.pool, user_id, team_id).await?;
+    TeamService::remove_member(&state.pool, user_id, team_id, requester_id).await?;
 
     Ok(Json(serde_json::json!({
         "success": true,

@@ -11,6 +11,7 @@ pub mod health;
 pub mod webhooks;
 pub mod batch_licenses;
 pub mod licenses;
+pub mod team_quota;
 
 use axum::{
     response::{IntoResponse, Response},

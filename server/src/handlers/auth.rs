@@ -21,7 +21,7 @@ pub async fn register(
     State(state): State<Arc<AuthHandler>>,
     Json(req): Json<RegisterRequest>,
 ) -> AppResult<(StatusCode, Json<UserResponse>)> {
-    let user = AuthService::register(&state.pool, &req.email, &req.password).await?;
+    let user = AuthService::register(&state.pool, &req.email, &req.password, &req.source_upid).await?;
     
     // Create activation token and send email
     let token = AuthService::create_activation_token(

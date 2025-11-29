@@ -2,6 +2,7 @@ use sqlx::PgPool;
 use chrono::Utc;
 
 use crate::models::{Group, UserGroup};
+use crate::services::user_group_service::UserGroupService;
 use crate::utils::{errors::{AppError, AppResult}, crypto::generate_token};
 
 /// Team/Group service
@@ -94,38 +95,14 @@ impl TeamService {
         user_id: i64,
         team_id: i64,
         role: &str,
+        product_upids: Vec<String>,
+        changed_by: i64,
     ) -> AppResult<()> {
         // Verify team exists
         let _team = Self::get_team(pool, team_id).await?;
 
-        // Check if user is already a member
-        let existing = sqlx::query(
-            "SELECT 1 FROM user_groups WHERE user_id = $1 AND group_id = $2"
-        )
-            .bind(user_id)
-            .bind(team_id)
-            .fetch_optional(pool)
-            .await?;
-
-        if existing.is_some() {
-            return Err(AppError::InvalidRequest("User is already a member of this team".to_string()));
-        }
-
-        let now = Utc::now().naive_utc();
-        sqlx::query(
-            r#"
-            INSERT INTO user_groups (user_id, group_id, role, created_at)
-            VALUES ($1, $2, $3, $4)
-            "#
-        )
-            .bind(user_id)
-            .bind(team_id)
-            .bind(role)
-            .bind(now)
-            .execute(pool)
-            .await?;
-
-        Ok(())
+        // Delegate to UserGroupService for business logic
+        UserGroupService::add_member(pool, team_id, user_id, product_upids, role, changed_by).await
     }
 
     /// List team members
@@ -152,20 +129,10 @@ impl TeamService {
         pool: &PgPool,
         user_id: i64,
         team_id: i64,
+        changed_by: i64,
     ) -> AppResult<()> {
-        let result = sqlx::query(
-            "DELETE FROM user_groups WHERE user_id = $1 AND group_id = $2"
-        )
-            .bind(user_id)
-            .bind(team_id)
-            .execute(pool)
-            .await?;
-
-        if result.rows_affected() == 0 {
-            return Err(AppError::NotFound("User not found in team".to_string()));
-        }
-
-        Ok(())
+        // Delegate to UserGroupService for business logic
+        UserGroupService::remove_member(pool, team_id, user_id, changed_by).await
     }
 
     /// Update member role
