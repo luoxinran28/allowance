@@ -10,48 +10,48 @@
 -- Admin user (full system access)
 -- Password hash for Pass888999 (Argon2id: m=19456, t=2, p=1)
 INSERT INTO users (
-    uid, email, password_hash, tier, status, profile_data, created_at, updated_at
+    uid, email, password_hash, tier, status, source_upid, profile_data, created_at, updated_at
 ) VALUES
-    ('UADMIN0001', 'admin@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$PHa9Z7qkDXpEggftF04cQQ$l+6pK2zQUge9eD9wXb2oJi7w7JFSpDAZ94I+sbavkgk', 'premium', 'active',
+    ('UADMIN0001', 'admin@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$PHa9Z7qkDXpEggftF04cQQ$l+6pK2zQUge9eD9wXb2oJi7w7JFSpDAZ94I+sbavkgk', 'premium', 'active', NULL,
      '{"first_name": "System", "last_name": "Admin", "role": "Administrator"}',
      CURRENT_TIMESTAMP - INTERVAL '90 days', CURRENT_TIMESTAMP)
 ON CONFLICT (email) DO NOTHING;
 
 -- Team Leader users (can manage teams and see team members)
 INSERT INTO users (
-    uid, email, password_hash, tier, status, profile_data, created_at, updated_at
+    uid, email, password_hash, tier, status, source_upid, profile_data, created_at, updated_at
 ) VALUES
-    ('ULEAD0001', 'leader1@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$PHa9Z7qkDXpEggftF04cQQ$l+6pK2zQUge9eD9wXb2oJi7w7JFSpDAZ94I+sbavkgk', 'standard', 'active',
+    ('ULEAD0001', 'leader1@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$PHa9Z7qkDXpEggftF04cQQ$l+6pK2zQUge9eD9wXb2oJi7w7JFSpDAZ94I+sbavkgk', 'standard', 'active', 'UALLOWANCE0001',
      '{"first_name": "Alice", "last_name": "Leader", "department": "Engineering"}',
      CURRENT_TIMESTAMP - INTERVAL '60 days', CURRENT_TIMESTAMP),
-    ('ULEAD0002', 'leader2@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$PHa9Z7qkDXpEggftF04cQQ$l+6pK2zQUge9eD9wXb2oJi7w7JFSpDAZ94I+sbavkgk', 'standard', 'active',
+    ('ULEAD0002', 'leader2@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$PHa9Z7qkDXpEggftF04cQQ$l+6pK2zQUge9eD9wXb2oJi7w7JFSpDAZ94I+sbavkgk', 'standard', 'active', 'UALLOWANCE0001',
      '{"first_name": "Bob", "last_name": "Manager", "department": "Sales"}',
      CURRENT_TIMESTAMP - INTERVAL '50 days', CURRENT_TIMESTAMP)
 ON CONFLICT (email) DO NOTHING;
 
 -- Regular team members (standard employees)
 INSERT INTO users (
-    uid, email, password_hash, tier, status, profile_data, created_at, updated_at
+    uid, email, password_hash, tier, status, source_upid, profile_data, created_at, updated_at
 ) VALUES
-    ('UMEM00001', 'member1@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$PHa9Z7qkDXpEggftF04cQQ$l+6pK2zQUge9eD9wXb2oJi7w7JFSpDAZ94I+sbavkgk', 'standard', 'active',
+    ('UMEM00001', 'member1@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$PHa9Z7qkDXpEggftF04cQQ$l+6pK2zQUge9eD9wXb2oJi7w7JFSpDAZ94I+sbavkgk', 'standard', 'active', 'UALLOWANCE0001',
      '{"first_name": "Charlie", "last_name": "Developer"}',
      CURRENT_TIMESTAMP - INTERVAL '40 days', CURRENT_TIMESTAMP),
-    ('UMEM00002', 'member2@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$PHa9Z7qkDXpEggftF04cQQ$l+6pK2zQUge9eD9wXb2oJi7w7JFSpDAZ94I+sbavkgk', 'standard', 'active',
+    ('UMEM00002', 'member2@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$PHa9Z7qkDXpEggftF04cQQ$l+6pK2zQUge9eD9wXb2oJi7w7JFSpDAZ94I+sbavkgk', 'standard', 'active', 'UPROD000001',
      '{"first_name": "Diana", "last_name": "Designer"}',
      CURRENT_TIMESTAMP - INTERVAL '35 days', CURRENT_TIMESTAMP),
-    ('UMEM00003', 'member3@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$PHa9Z7qkDXpEggftF04cQQ$l+6pK2zQUge9eD9wXb2oJi7w7JFSpDAZ94I+sbavkgk', 'standard', 'active',
+    ('UMEM00003', 'member3@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$PHa9Z7qkDXpEggftF04cQQ$l+6pK2zQUge9eD9wXb2oJi7w7JFSpDAZ94I+sbavkgk', 'standard', 'active', 'UPROD000002',
      '{"first_name": "Eve", "last_name": "Engineer"}',
      CURRENT_TIMESTAMP - INTERVAL '30 days', CURRENT_TIMESTAMP),
-    ('UMEM00004', 'member4@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$PHa9Z7qkDXpEggftF04cQQ$l+6pK2zQUge9eD9wXb2oJi7w7JFSpDAZ94I+sbavkgk', 'standard', 'active',
+    ('UMEM00004', 'member4@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$PHa9Z7qkDXpEggftF04cQQ$l+6pK2zQUge9eD9wXb2oJi7w7JFSpDAZ94I+sbavkgk', 'standard', 'active', 'UALLOWANCE0001',
      '{"first_name": "Frank", "last_name": "Analyst"}',
      CURRENT_TIMESTAMP - INTERVAL '25 days', CURRENT_TIMESTAMP)
 ON CONFLICT (email) DO NOTHING;
 
 -- Free tier user (limited access)
 INSERT INTO users (
-    uid, email, password_hash, tier, status, profile_data, created_at, updated_at
+    uid, email, password_hash, tier, status, source_upid, profile_data, created_at, updated_at
 ) VALUES
-    ('UFREE0001', 'free@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$PHa9Z7qkDXpEggftF04cQQ$l+6pK2zQUge9eD9wXb2oJi7w7JFSpDAZ94I+sbavkgk', 'free', 'active',
+    ('UFREE0001', 'free@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$PHa9Z7qkDXpEggftF04cQQ$l+6pK2zQUge9eD9wXb2oJi7w7JFSpDAZ94I+sbavkgk', 'free', 'active', 'UALLOWANCE0001',
      '{"first_name": "Grace", "last_name": "Trial"}',
      CURRENT_TIMESTAMP - INTERVAL '10 days', CURRENT_TIMESTAMP)
 ON CONFLICT (email) DO NOTHING;
@@ -281,7 +281,49 @@ WHERE o.org_id = 'STARTUP01' AND p.upid = 'UALLOWANCE0001'
 ON CONFLICT DO NOTHING;
 
 -- ============================================================
--- 9. ASSIGN INDIVIDUAL USER LICENSES
+-- 9. CREATE FREE USER LICENSES
+-- ============================================================
+
+INSERT INTO free_user_licenses (user_id, product_id, upid, license_key, created_at)
+SELECT 
+    u.id,
+    p.id,
+    p.upid,
+    CONCAT('free-', u.uid, '-', p.upid, '-', EXTRACT(epoch FROM CURRENT_TIMESTAMP)::text),
+    CURRENT_TIMESTAMP
+FROM users u
+CROSS JOIN products p
+WHERE u.tier = 'free'
+  AND u.status = 'active'
+  AND u.email LIKE '%@allowance.test%'
+  AND p.upid = u.source_upid
+ON CONFLICT (user_id, product_id) DO NOTHING;
+
+-- ============================================================
+-- 10. CREATE TEAM PRODUCT QUOTAS
+-- ============================================================
+
+INSERT INTO team_product_quotas (team_id, org_id, product_id, upid, allocated_count, used_count, created_at, updated_at)
+SELECT 
+    g.id,
+    g.organization_id,
+    p.id,
+    p.upid,
+    10,
+    0,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
+FROM groups g
+CROSS JOIN products p
+WHERE EXISTS (
+    SELECT 1 FROM org_product_licenses opl
+    WHERE opl.organization_id = g.organization_id
+    AND opl.product_id = p.id
+)
+ON CONFLICT (team_id, product_id) DO NOTHING;
+
+-- ============================================================
+-- 11. ASSIGN INDIVIDUAL USER LICENSES
 -- ============================================================
 
 -- Assign Allowance System licenses to users based on their tier
@@ -308,7 +350,7 @@ WHERE pv.product_id = (SELECT id FROM products WHERE upid = 'UALLOWANCE0001')
 ON CONFLICT (license_key) DO NOTHING;
 
 -- ============================================================
--- 10. CREATE SUBSCRIPTIONS FOR PAID USERS
+-- 12. CREATE SUBSCRIPTIONS FOR PAID USERS
 -- ============================================================
 
 INSERT INTO subscriptions (user_id, tier, status, current_period_start, current_period_end, auto_renew, created_at, updated_at)
