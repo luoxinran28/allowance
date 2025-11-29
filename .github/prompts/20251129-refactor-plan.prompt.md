@@ -5,6 +5,149 @@
 
 ---
 
+## 🚨 零、系统性风险分析与修复方案
+
+### 0.1 已识别的三大系统性风险
+
+#### **风险1: Migration 执行机制失效** 🔴 **[阻塞性]**
+
+**问题描述**:
+- Migration 011 文件已创建但从未执行
+- `setup_db_v2.sh` 脚本未包含 011
+- Rust 服务器启动时跳过所有迁移（"Skipping migrations"）
+- `_sqlx_migrations` 表为空，无版本追踪
+
+**影响**:
+- ❌ `approval_requests` 表仍存在（应被删除）
+- ❌ `free_user_licenses` 表不存在（应被创建）
+- ❌ `team_product_quotas` 表不存在（应被创建）
+- ❌ `user_license_history` 表不存在（应被创建）
+- ❌ 数据库与代码完全不同步
+
+**修复方案**: 
+- ✅ 删除 `setup_db_v2.sh`，改用 `sqlx::migrate!()` 自动管理
+- ✅ 完全重建数据库（DROP DATABASE + CREATE DATABASE）
+- ✅ 启用 sqlx migrations 自动追踪
+
+---
+
+#### **风险2: Schema 冗余与设计混乱** 🟠 **[严重]**
+
+**问题描述**:
+当前数据库有 24 个表，存在以下冗余：
+
+| 表名 | 状态 | 处理方案 |
+|------|------|---------|
+| `approval_requests` | 🗑️ 幽灵表（代码已删除） | **删除** |
+| `license_approvals` | 🗑️ 幽灵表（代码已删除） | **删除** |
+| `license_usage_history` | 🗑️ 与 `user_license_history` 重复 | **删除** |
+| `bulk_operations` | 🗑️ 需求未提及 | **删除** |
+| `license_batches` | 🗑️ 需求未提及 | **删除** |
+| `user_licenses` | 🗑️ 与 `team_member_license_assignments` 冲突 | **删除** |
+| `subscriptions` | 🗑️ 与 `users.tier` 重复 | **删除** |
+| `product_versions` | ✅ 产品版本管理需要 | **保留** |
+| `team_member_license_assignments` | ✅ 付费许可证（已有 group_id） | **保留** |
+
+**许可证表最终设计** (设计B):
+- ✅ `team_member_license_assignments` - 所有付费许可证（企业通过团队分配）
+- ✅ `free_user_licenses` - 免费用户许可证（新增）
+
+**修复方案**: 创建 Migration 012 清理冗余表
+
+---
+
+#### **风险3: 代码库冗余与AI扫描偏差** 🟡 **[中等]**
+
+**问题描述**:
+- 5 处死代码引用已删除的 approval 功能
+- 前端保留断链导航（`/admin/approvals`）
+- 注释误导（"For now, using admin approvals endpoint"）
+
+**影响**:
+- AI 可能认为需要创建 approval 功能
+- 用户点击导航会 404
+- 代码审查困难
+
+**修复方案**: 清理所有 approval 相关引用
+
+---
+
+### 0.2 修复实施计划
+
+#### **Phase 0: Migration 机制修复** ⚡ **[立即执行]**
+
+**任务清单**:
+1. ✅ 删除 `database/setup_db_v2.sh`
+2. ✅ 修改 `server/src/main.rs` 启用 `sqlx::migrate!()`
+3. ✅ 完全重建数据库
+4. ✅ 执行所有 migrations (001-011)
+5. ✅ 导入 `seed_data.sql`
+6. ✅ 验证表结构正确
+
+**验证标准**:
+```bash
+# 1. approval_requests 已删除
+psql -c "\d approval_requests"  # 应返回 "不存在"
+
+# 2. 新表已创建
+psql -c "\d free_user_licenses"
+psql -c "\d team_product_quotas"
+psql -c "\d user_license_history"
+
+# 3. migration 追踪生效
+psql -c "SELECT version FROM _sqlx_migrations ORDER BY version"
+# 应有 11 条记录
+```
+
+---
+
+#### **Phase 0.5: Schema 清理** 🧹 **[紧随其后]**
+
+**任务清单**:
+1. ✅ 创建 Migration 012: 删除冗余表
+   ```sql
+   DROP TABLE IF EXISTS license_usage_history CASCADE;
+   DROP TABLE IF EXISTS bulk_operations CASCADE;
+   DROP TABLE IF EXISTS license_batches CASCADE;
+   DROP TABLE IF EXISTS user_licenses CASCADE;
+   DROP TABLE IF EXISTS subscriptions CASCADE;
+   DROP TABLE IF EXISTS license_approvals CASCADE;  -- 如果 011 未删除
+   ```
+
+2. ✅ 验证最终表数量
+   ```bash
+   psql -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='public'"
+   # 应为 18-20 个表（24 - 7 = 17，加上新增的 3 个）
+   ```
+
+---
+
+#### **Phase 0.6: 代码清理** 🗑️ **[配合执行]**
+
+**任务清单**:
+1. ✅ 删除文件:
+   - `client/app/dashboard/licenses/assign/page.tsx`（或修复 API 调用）
+   
+2. ✅ 修改文件:
+   - `client/app/admin/layout.tsx:38` - 删除 "Approvals" 导航
+
+3. ✅ 全局搜索清理:
+   ```bash
+   grep -r "approval" client/ server/ --exclude-dir=node_modules --exclude-dir=target
+   # 逐一确认是否需要删除
+   ```
+
+---
+
+### 0.3 后续阶段（保持不变）
+
+Phase 1-3 按原计划执行：
+- Phase 1: 类型统一化（Subscription.tier 等）
+- Phase 2: 业务逻辑补充（组织许可证 UPSERT、团队创建绑定组织）
+- Phase 3: 数据一致性加固（CHECK 约束、悲观锁）
+
+---
+
 ## 📊 一、差异分析总结
 
 ### 关键差异对比
@@ -158,8 +301,9 @@ CREATE INDEX idx_org_licenses_assigned ON org_product_licenses(assigned_count);
 - `available_count` = `total_count - assigned_count`（自动计算）
 - 验证规则：所有团队配额总和 ≤ 组织总配额
 
-### 3.3 删除现有表
+### 3.3 删除现有表（Migration 011 + 012）
 
+**Migration 011 删除**:
 ```sql
 -- 删除审批相关表
 DROP TABLE IF EXISTS approval_requests CASCADE;
@@ -172,22 +316,48 @@ DELETE FROM role_permissions WHERE permission_id NOT IN (
 );
 ```
 
-### 3.4 数据迁移步骤
-
-#### Step 1: 删除现有脏数据
+**Migration 012 删除**（额外清理冗余表）:
 ```sql
--- 清空所有业务数据（保留系统配置）
-TRUNCATE TABLE user_licenses CASCADE;
-TRUNCATE TABLE user_groups CASCADE;
-TRUNCATE TABLE groups CASCADE;
-TRUNCATE TABLE organizations CASCADE;
-TRUNCATE TABLE org_product_licenses CASCADE;
-TRUNCATE TABLE subscriptions CASCADE;
-TRUNCATE TABLE users CASCADE;
-TRUNCATE TABLE user_roles CASCADE;
-
--- 保留 users、roles、permissions、products、product_versions 等系统配置
+-- 删除冗余/冲突表
+DROP TABLE IF EXISTS license_usage_history CASCADE;
+DROP TABLE IF EXISTS bulk_operations CASCADE;
+DROP TABLE IF EXISTS license_batches CASCADE;
+DROP TABLE IF EXISTS user_licenses CASCADE;
+DROP TABLE IF EXISTS subscriptions CASCADE;
 ```
+
+**最终保留的表** (预计 18-20 个):
+- ✅ users, roles, permissions, role_permissions, user_roles
+- ✅ organizations, groups, user_groups
+- ✅ products, product_versions
+- ✅ org_product_licenses, team_member_license_assignments
+- ✅ free_user_licenses *(新增)*
+- ✅ team_product_quotas *(新增)*
+- ✅ user_license_history *(新增)*
+- ✅ email_tokens, audit_logs
+- ✅ payment_intents, invoices, stripe_webhook_events
+
+### 3.4 数据迁移步骤（完全重建）
+
+#### Step 1: 完全重建数据库
+```bash
+# 停止服务
+docker-compose down
+
+# 删除并重建数据库
+docker-compose exec postgres psql -U postgres -c "DROP DATABASE IF EXISTS allowance;"
+docker-compose exec postgres psql -U postgres -c "CREATE DATABASE allowance;"
+
+# 启动服务（自动执行所有 migrations）
+docker-compose up -d
+
+# 或手动执行所有迁移（如果 sqlx::migrate! 未启用）
+for i in {001..012}; do
+  docker-compose exec -T postgres psql -U postgres -d allowance < database/migrations/${i}_*.sql
+done
+```
+
+**注意**: 不再保留任何旧数据，完全从 seed_data.sql 重新导入
 
 #### Step 2: 重新初始化组织和团队
 ```sql
@@ -894,16 +1064,22 @@ INSERT INTO team_product_quotas (team_id, org_id, product_id, upid, allocated_co
 SELECT g.id, o.id, p.id, p.upid, 10, 0
 FROM groups g
 CROSS JOIN organizations o ON g.organization_id = o.id
-CROSS JOIN products p
-```
-
----
-
-## 🚀 八、实施时间线
+## 🚀 八、实施时间线（已更新）
 
 | 阶段 | 任务 | 预计耗时 | 依赖 |
 |------|------|---------|------|
-| **1. 数据库** | 创建Migration 011、执行数据迁移、清空脏数据、导入seed_data | 2天 | - |
+| **0. Migration修复** | 删除setup_db_v2.sh、启用sqlx迁移、重建数据库 | **0.5天** | - |
+| **0.5. Schema清理** | 创建Migration 012、删除冗余表、验证 | **0.5天** | Phase 0 |
+| **0.6. 代码清理** | 删除死代码、修复断链、清理注释 | **0.5天** | - |
+| **1. 类型统一** | 修复tier/status类型不匹配 | **1天** | Phase 0.5 |
+| **2. 后端重构** | 删除审批代码、新建服务、重构处理器 | **2.5天** | Phase 1 |
+| **3. 前端重构** | 删除审批页面、新建配额页面、重构团队成员页面 | **3天** | Phase 2 |
+| **4. 集成测试** | 端到端测试、单元测试、性能验证 | **2天** | Phase 3 |
+| **5. 文档更新** | 更新API文档、README、部署说明 | **0.5天** | Phase 4 |
+| **总计** | | **10.5天** | |
+
+**关键路径**: Phase 0 → 0.5 → 1 → 2 → 3 → 4 → 5  
+**并行机会**: Phase 0.6 可与 Phase 0.5 同时进行on 011、执行数据迁移、清空脏数据、导入seed_data | 2天 | - |
 | **2. 后端** | 删除审批代码、新建服务、重构处理器、更新路由 | 3天 | 数据库完成 |
 | **3. 前端** | 删除审批页面、新建配额页面、重构团队成员页面 | 3天 | 后端API完成 |
 | **4. 集成测试** | 端到端测试、单元测试、性能验证 | 2天 | 前后端完成 |

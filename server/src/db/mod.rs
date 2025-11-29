@@ -15,7 +15,17 @@ pub async fn init_pool(database_url: &str) -> AppResult<PgPool> {
         })?;
 
     eprintln!("Database pool created successfully");
-    eprintln!("Skipping migrations - using pre-created schema");
+    
+    // Run migrations automatically
+    eprintln!("Running database migrations...");
+    sqlx::migrate!("./migrations")
+        .run(&pool)
+        .await
+        .map_err(|e| {
+            eprintln!("Migration failed: {:?}", e);
+            crate::utils::AppError::DatabaseError(e.into())
+        })?;
+    eprintln!("Migrations completed successfully");
     
     eprintln!("Database initialization complete");
     Ok(pool)

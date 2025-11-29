@@ -1,5 +1,17 @@
 #!/bin/bash
 
+# ⚠️ DEPRECATED: This script is no longer used.
+# Migration management has been moved to Rust sqlx::migrate!()
+# 
+# To rebuild the database:
+# 1. docker-compose down
+# 2. docker-compose exec postgres psql -U postgres -c "DROP DATABASE IF EXISTS allowance;"
+# 3. docker-compose exec postgres psql -U postgres -c "CREATE DATABASE allowance;"
+# 4. docker-compose up -d  # sqlx::migrate!() will run automatically
+# 5. docker-compose exec -T postgres psql -U postgres -d allowance < database/seed_data.sql
+
+exit 1  # Prevent accidental execution
+
 # Database Setup Script for Allowance Authorization System
 # This script applies all migrations and loads test data into PostgreSQL
 
