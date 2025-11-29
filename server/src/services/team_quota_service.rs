@@ -54,8 +54,17 @@ impl TeamQuotaService {
     }
 
     pub async fn consume_quota(pool: impl sqlx::Executor<'_, Database = sqlx::Postgres>, team_id: i64, product_id: i64) -> AppResult<()> {
+        // Use pessimistic locking to prevent race conditions
         let result = sqlx::query(
-            "UPDATE team_product_quotas SET used_count = used_count + 1, updated_at = NOW() WHERE team_id = $1 AND product_id = $2 AND used_count < allocated_count"
+            r#"
+            UPDATE team_product_quotas 
+            SET used_count = used_count + 1, updated_at = NOW() 
+            WHERE id = (
+                SELECT id FROM team_product_quotas 
+                WHERE team_id = $1 AND product_id = $2 
+                FOR UPDATE
+            ) AND used_count < allocated_count
+            "#
         )
         .bind(team_id)
         .bind(product_id)
@@ -63,15 +72,24 @@ impl TeamQuotaService {
         .await?;
 
         if result.rows_affected() == 0 {
-            return Err(AppError::BadRequest("Quota exceeded".to_string()));
+            return Err(AppError::BadRequest("Quota exceeded or not found".to_string()));
         }
 
         Ok(())
     }
 
     pub async fn release_quota(pool: impl sqlx::Executor<'_, Database = sqlx::Postgres>, team_id: i64, product_id: i64) -> AppResult<()> {
+        // Use pessimistic locking to prevent race conditions
         sqlx::query(
-            "UPDATE team_product_quotas SET used_count = used_count - 1, updated_at = NOW() WHERE team_id = $1 AND product_id = $2"
+            r#"
+            UPDATE team_product_quotas 
+            SET used_count = used_count - 1, updated_at = NOW() 
+            WHERE id = (
+                SELECT id FROM team_product_quotas 
+                WHERE team_id = $1 AND product_id = $2 
+                FOR UPDATE
+            )
+            "#
         )
         .bind(team_id)
         .bind(product_id)
