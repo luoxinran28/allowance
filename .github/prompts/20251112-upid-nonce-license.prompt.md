@@ -1,4 +1,26 @@
 
+**⚠️ 重要说明（2025年11月28日更新）**
+
+本文档部分内容已被新的需求方案替代，请参考 `20251128-milestone-detailed-requirement.prompt.md` 获取最新的完整需求。
+
+**已更新的关键变更：**
+1. **License架构变更**：从"单个授权码"模式改为"三级配额池"模式
+   - 旧：License直接绑定org_id和用户
+   - 新：org_product_licenses（组织池）→ team_product_quotas（团队配额）→ team_member_license_assignments（个人JWT）
+
+2. **审批流程取消**：团队领导直接分配产品，不需要员工申请-审批流程
+
+3. **团队配额机制**：新增team_product_quotas表，管理员为团队分配配额，受严格约束验证
+
+**仍然有效的内容：**
+- ✅ UPID格式定义（UPID-{slug}-{tier}）
+- ✅ Nonce防重放机制（timestamp + nonce + sign）
+- ✅ 用户注册时UPID自动获取（meta标签）
+- ✅ 免费用户注册流程
+- ✅ JWT token验证机制
+
+---
+
 2025年11月12日需求：
 需要一个产品的upid，用于表示某个产品的唯一标识符;
 
