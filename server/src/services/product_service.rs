@@ -131,7 +131,7 @@ impl ProductService {
 
     // ============= Organization Product Licenses =============
 
-    /// Generate licenses for an organization
+    /// Generate licenses for an organization (UPSERT for idempotency)
     pub async fn generate_org_licenses(
         pool: &PgPool,
         product_id: i64,
@@ -147,6 +147,16 @@ impl ProductService {
             INSERT INTO org_product_licenses 
             (organization_id, product_id, total_count, assigned_count, available_count, expires_at, created_by)
             VALUES ($1, $2, $3, 0, $3, $4, $5)
+            ON CONFLICT (organization_id, product_id)
+            DO UPDATE SET
+                total_count = org_product_licenses.total_count + EXCLUDED.total_count,
+                available_count = org_product_licenses.available_count + EXCLUDED.total_count,
+                expires_at = CASE 
+                    WHEN EXCLUDED.expires_at > org_product_licenses.expires_at 
+                    THEN EXCLUDED.expires_at 
+                    ELSE org_product_licenses.expires_at 
+                END,
+                updated_at = NOW()
             RETURNING *
             "#
         )

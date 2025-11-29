@@ -3,13 +3,14 @@ use chrono::Utc;
 
 use crate::models::{Group, UserGroup};
 use crate::services::user_group_service::UserGroupService;
+use crate::services::organization_service::OrganizationService;
 use crate::utils::{errors::{AppError, AppResult}, crypto::generate_token};
 
 /// Team/Group service
 pub struct TeamService;
 
 impl TeamService {
-    /// Create a new team (group)
+    /// Create a new team (group) with org_id validation
     pub async fn create_team(
         pool: &PgPool,
         user_id: i64,
@@ -17,6 +18,9 @@ impl TeamService {
         name: &str,
         description: Option<&str>,
     ) -> AppResult<Group> {
+        // Validate organization exists
+        OrganizationService::get_organization(pool, org_id).await?;
+        
         let group_id = generate_token(8);
         let now = Utc::now().naive_utc();
 
