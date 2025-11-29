@@ -59,6 +59,9 @@ pub enum AppError {
     #[error("Permission denied")]
     PermissionDenied,
 
+    #[error("Not implemented: {0}")]
+    NotImplemented(String),
+
     #[error("Email service error: {0}")]
     EmailServiceError(String),
 

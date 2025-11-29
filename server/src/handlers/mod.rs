@@ -70,6 +70,10 @@ impl IntoResponse for AppError {
                 StatusCode::INTERNAL_SERVER_ERROR,
                 format!("Email service error: {}", msg),
             ),
+            AppError::NotImplemented(msg) => (
+                StatusCode::NOT_IMPLEMENTED,
+                format!("Not implemented: {}", msg),
+            ),
             AppError::DatabaseError(e) => {
                 tracing::error!("Database error: {}", e);
                 (

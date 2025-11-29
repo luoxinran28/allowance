@@ -60,117 +60,63 @@ pub async fn create_payment_intent(
 }
 
 /// Confirm payment and create subscription
+/// DEPRECATED: Subscriptions table removed in three-tier refactor (Migration 012)
+/// TODO: Replace with org_product_licenses-based payment flow
 pub async fn confirm_payment(
-    State(state): State<Arc<PaymentHandler>>,
-    headers: HeaderMap,
-    Json(req): Json<ConfirmPaymentRequest>,
+    State(_state): State<Arc<PaymentHandler>>,
+    _headers: HeaderMap,
+    Json(_req): Json<ConfirmPaymentRequest>,
 ) -> AppResult<Json<serde_json::Value>> {
-    let user_id = extract_user_from_header(&state, &headers)?;
-
-    // Confirm payment intent
-    let payment = PaymentService::confirm_payment(
-        &state.pool,
-        &state.stripe,
-        &req.intent_id,
-        None, // payment_method
-    )
-    .await?;
-
-    // Create subscription
-    let subscription = PaymentService::create_subscription(
-        &state.pool,
-        user_id,
-        &payment.product_tier,
-        payment.billing_period_months,
-    )
-    .await?;
-
-    // Update user tier
-    sqlx::query("UPDATE users SET tier = $1 WHERE id = $2")
-        .bind(&payment.product_tier)
-        .bind(user_id)
-        .execute(&*state.pool)
-        .await?;
-
-    Ok(Json(json!({
-        "success": true,
-        "subscription": SubscriptionResponse::from(subscription)
-    })))
+    // Subscriptions table was deleted - return error
+    Err(AppError::NotImplemented("Payment subscription system deprecated. Use org-level license purchases instead.".to_string()))
 }
 
 /// Get current subscription
+/// DEPRECATED: Subscriptions table removed in three-tier refactor (Migration 012)
 pub async fn get_subscription(
-    State(state): State<Arc<PaymentHandler>>,
-    headers: HeaderMap,
+    State(_state): State<Arc<PaymentHandler>>,
+    _headers: HeaderMap,
 ) -> AppResult<Json<serde_json::Value>> {
-    let user_id = extract_user_from_header(&state, &headers)?;
-
-    match PaymentService::get_active_subscription(&state.pool, user_id).await? {
-        Some(sub) => Ok(Json(json!({
-            "subscription": SubscriptionResponse::from(sub)
-        }))),
-        None => Ok(Json(json!({
-            "subscription": null
-        }))),
-    }
+    Err(AppError::NotImplemented("Subscription system deprecated".to_string()))
 }
 
 /// Upgrade subscription tier
+/// DEPRECATED: Subscriptions table removed in three-tier refactor (Migration 012)
 pub async fn upgrade_tier(
-    State(state): State<Arc<PaymentHandler>>,
-    headers: HeaderMap,
-    Json(req): Json<UpgradeTierRequest>,
+    State(_state): State<Arc<PaymentHandler>>,
+    _headers: HeaderMap,
+    Json(_req): Json<UpgradeTierRequest>,
 ) -> AppResult<Json<SubscriptionResponse>> {
-    let user_id = extract_user_from_header(&state, &headers)?;
-
-    let subscription = PaymentService::upgrade_tier(&state.pool, user_id, &req.new_tier).await?;
-
-    Ok(Json(subscription.into()))
+    Err(AppError::NotImplemented("Subscription system deprecated".to_string()))
 }
 
 /// Downgrade subscription tier
+/// DEPRECATED: Subscriptions table removed in three-tier refactor (Migration 012)
 pub async fn downgrade_tier(
-    State(state): State<Arc<PaymentHandler>>,
-    headers: HeaderMap,
-    Json(req): Json<UpgradeTierRequest>,
+    State(_state): State<Arc<PaymentHandler>>,
+    _headers: HeaderMap,
+    Json(_req): Json<UpgradeTierRequest>,
 ) -> AppResult<Json<SubscriptionResponse>> {
-    let user_id = extract_user_from_header(&state, &headers)?;
-
-    let subscription = PaymentService::downgrade_tier(&state.pool, user_id, &req.new_tier).await?;
-
-    Ok(Json(subscription.into()))
+    Err(AppError::NotImplemented("Subscription system deprecated".to_string()))
 }
 
 /// Cancel subscription
+/// DEPRECATED: Subscriptions table removed in three-tier refactor (Migration 012)
 pub async fn cancel_subscription(
-    State(state): State<Arc<PaymentHandler>>,
-    headers: HeaderMap,
+    State(_state): State<Arc<PaymentHandler>>,
+    _headers: HeaderMap,
 ) -> AppResult<Json<serde_json::Value>> {
-    let user_id = extract_user_from_header(&state, &headers)?;
-
-    PaymentService::cancel_subscription(&state.pool, user_id).await?;
-
-    Ok(Json(json!({"success": true})))
+    Err(AppError::NotImplemented("Subscription system deprecated".to_string()))
 }
 
 /// Toggle auto-renewal
+/// DEPRECATED: Subscriptions table removed in three-tier refactor (Migration 012)
 pub async fn toggle_auto_renew(
-    State(state): State<Arc<PaymentHandler>>,
-    headers: HeaderMap,
-    Json(req): Json<ToggleAutoRenewRequest>,
+    State(_state): State<Arc<PaymentHandler>>,
+    _headers: HeaderMap,
+    Json(_req): Json<ToggleAutoRenewRequest>,
 ) -> AppResult<Json<serde_json::Value>> {
-    let user_id = extract_user_from_header(&state, &headers)?;
-
-    sqlx::query(
-        "UPDATE subscriptions SET auto_renew = $1 WHERE user_id = $2 AND status = $3"
-    )
-    .bind(req.auto_renew)
-    .bind(user_id)
-    .bind("active")
-    .execute(&*state.pool)
-    .await?;
-
-    Ok(Json(json!({"success": true})))
+    Err(AppError::NotImplemented("Subscription system deprecated".to_string()))
 }
 
 /// Get pricing information
