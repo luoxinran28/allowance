@@ -83,13 +83,7 @@ ADD COLUMN IF NOT EXISTS available_count INT GENERATED ALWAYS AS (total_count - 
 CREATE INDEX IF NOT EXISTS idx_org_licenses_assigned ON org_product_licenses(assigned_count);
 
 -- ============================================================
--- Step 6: Delete approval-related tables
--- ============================================================
-DROP TABLE IF EXISTS approval_requests CASCADE;
-DROP TABLE IF EXISTS license_approvals CASCADE;
-
--- ============================================================
--- Step 7: Clean up deprecated permissions
+-- Step 6: Clean up deprecated permissions
 -- ============================================================
 DELETE FROM role_permissions WHERE permission_id IN (
     SELECT id FROM permissions WHERE code = 'admin:approval_process'

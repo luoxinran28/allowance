@@ -220,65 +220,62 @@ ON CONFLICT (product_id, version_name) DO NOTHING;
 -- 8. GENERATE ORG PRODUCT LICENSES (LICENSE POOLS)
 -- ============================================================
 
--- ACME Corp gets Allowance System licenses (50 total, 50 available)
+-- ACME Corp gets Allowance System licenses (50 total)
 INSERT INTO org_product_licenses (
-    organization_id, product_id, total_count, available_count, assigned_count, 
-    starts_at, expires_at, created_by, created_at, updated_at
+    organization_id, product_id, total_count, assigned_count, 
+    expires_at, created_by, created_at, updated_at
 )
 SELECT 
     o.id,
     p.id,
     50,
-    50,
     0,
-    CURRENT_TIMESTAMP,
     CURRENT_TIMESTAMP + INTERVAL '1 year',
     (SELECT id FROM users WHERE email = 'admin@allowance.test'),
     CURRENT_TIMESTAMP,
     CURRENT_TIMESTAMP
 FROM organizations o, products p
 WHERE o.org_id = 'ACME001' AND p.upid = 'UALLOWANCE0001'
-ON CONFLICT DO NOTHING;
+ON CONFLICT (organization_id, product_id) DO UPDATE 
+SET total_count = EXCLUDED.total_count;
 
--- ACME Corp gets Analytics Pro licenses (30 total, 30 available)
+-- ACME Corp gets Analytics Pro licenses (30 total)
 INSERT INTO org_product_licenses (
-    organization_id, product_id, total_count, available_count, assigned_count,
-    starts_at, expires_at, created_by, created_at, updated_at
+    organization_id, product_id, total_count, assigned_count,
+    expires_at, created_by, created_at, updated_at
 )
 SELECT 
     o.id,
     p.id,
     30,
-    30,
     0,
-    CURRENT_TIMESTAMP,
     CURRENT_TIMESTAMP + INTERVAL '1 year',
     (SELECT id FROM users WHERE email = 'admin@allowance.test'),
     CURRENT_TIMESTAMP,
     CURRENT_TIMESTAMP
 FROM organizations o, products p
 WHERE o.org_id = 'ACME001' AND p.upid = 'UPROD000001'
-ON CONFLICT DO NOTHING;
+ON CONFLICT (organization_id, product_id) DO UPDATE 
+SET total_count = EXCLUDED.total_count;
 
--- StartupX gets Allowance System licenses (10 total, 10 available)
+-- StartupX gets Allowance System licenses (10 total)
 INSERT INTO org_product_licenses (
-    organization_id, product_id, total_count, available_count, assigned_count,
-    starts_at, expires_at, created_by, created_at, updated_at
+    organization_id, product_id, total_count, assigned_count,
+    expires_at, created_by, created_at, updated_at
 )
 SELECT 
     o.id,
     p.id,
     10,
-    10,
     0,
-    CURRENT_TIMESTAMP,
     CURRENT_TIMESTAMP + INTERVAL '6 months',
     (SELECT id FROM users WHERE email = 'admin@allowance.test'),
     CURRENT_TIMESTAMP,
     CURRENT_TIMESTAMP
 FROM organizations o, products p
 WHERE o.org_id = 'STARTUP01' AND p.upid = 'UALLOWANCE0001'
-ON CONFLICT DO NOTHING;
+ON CONFLICT (organization_id, product_id) DO UPDATE 
+SET total_count = EXCLUDED.total_count;
 
 -- ============================================================
 -- 9. CREATE FREE USER LICENSES
@@ -321,53 +318,6 @@ WHERE EXISTS (
     AND opl.product_id = p.id
 )
 ON CONFLICT (team_id, product_id) DO NOTHING;
-
--- ============================================================
--- 11. ASSIGN INDIVIDUAL USER LICENSES
--- ============================================================
-
--- Assign Allowance System licenses to users based on their tier
-INSERT INTO user_licenses (user_id, product_version_id, license_key, starts_at, expires_at, daily_usage, monthly_usage, metadata)
-SELECT
-    u.id,
-    pv.id,
-    CONCAT('allowance-', u.uid, '-', pv.version_name, '-', EXTRACT(epoch FROM CURRENT_TIMESTAMP)::text),
-    CURRENT_TIMESTAMP,
-    CURRENT_TIMESTAMP + INTERVAL '1 year',
-    0,
-    0,
-    jsonb_build_object(
-        'tier_matched', true,
-        'auto_assigned', true,
-        'product_upid', 'UALLOWANCE0001'
-    )
-FROM users u
-CROSS JOIN product_versions pv
-WHERE pv.product_id = (SELECT id FROM products WHERE upid = 'UALLOWANCE0001')
-  AND u.tier::text = pv.tier_required::text
-  AND u.status = 'active'
-  AND u.email LIKE '%@allowance.test%'
-ON CONFLICT (license_key) DO NOTHING;
-
--- ============================================================
--- 12. CREATE SUBSCRIPTIONS FOR PAID USERS
--- ============================================================
-
-INSERT INTO subscriptions (user_id, tier, status, current_period_start, current_period_end, auto_renew, created_at, updated_at)
-SELECT
-    u.id,
-    u.tier,
-    'active',
-    CURRENT_TIMESTAMP - INTERVAL '30 days',
-    CURRENT_TIMESTAMP + INTERVAL '335 days',
-    true,
-    CURRENT_TIMESTAMP,
-    CURRENT_TIMESTAMP
-FROM users u
-WHERE u.tier IN ('standard', 'premium')
-  AND u.status = 'active'
-  AND u.email LIKE '%@allowance.test%'
-ON CONFLICT (user_id) DO NOTHING;
 
 -- ============================================================
 -- SUMMARY: DISPLAY TEST DATA SETUP
@@ -421,8 +371,8 @@ SELECT
     o.name as organization,
     p.name as product,
     opl.total_count,
-    opl.available_count,
-    opl.assigned_count
+    opl.assigned_count,
+    opl.total_count - opl.assigned_count as available_count
 FROM org_product_licenses opl
 JOIN organizations o ON opl.organization_id = o.id
 JOIN products p ON opl.product_id = p.id
@@ -447,9 +397,9 @@ SELECT 'Product Versions', COUNT(*) FROM product_versions
 UNION ALL
 SELECT 'Org License Pools', COUNT(*) FROM org_product_licenses
 UNION ALL
-SELECT 'User Licenses', COUNT(*) FROM user_licenses
+SELECT 'Free User Licenses', COUNT(*) FROM free_user_licenses
 UNION ALL
-SELECT 'Subscriptions', COUNT(*) FROM subscriptions;
+SELECT 'Team Quotas', COUNT(*) FROM team_product_quotas;
 
 \echo ''
 \echo '=========================================='

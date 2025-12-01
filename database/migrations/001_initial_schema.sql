@@ -125,25 +125,6 @@ CREATE TABLE user_groups (
 CREATE INDEX idx_user_groups_user_id ON user_groups(user_id);
 CREATE INDEX idx_user_groups_group_id ON user_groups(group_id);
 
--- Approval requests table
-CREATE TABLE approval_requests (
-    id BIGSERIAL PRIMARY KEY,
-    request_type VARCHAR(50) NOT NULL,  -- 'org_binding', 'team_join', 'template_approval', etc.
-    requester_id BIGINT NOT NULL REFERENCES users(id),
-    target_id BIGINT,  -- organization/group/etc. ID
-    target_data JSONB DEFAULT '{}',  -- Additional request data
-    status approval_status NOT NULL DEFAULT 'pending',
-    approved_by BIGINT REFERENCES users(id),
-    rejection_reason TEXT,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    expires_at TIMESTAMP
-);
-
-CREATE INDEX idx_approval_requests_requester_id ON approval_requests(requester_id);
-CREATE INDEX idx_approval_requests_status ON approval_requests(status);
-CREATE INDEX idx_approval_requests_created_at ON approval_requests(created_at);
-
 -- Audit logs table (lightweight logging)
 CREATE TABLE audit_logs (
     id BIGSERIAL PRIMARY KEY,

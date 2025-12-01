@@ -33,40 +33,6 @@ CREATE TABLE product_versions (
 
 CREATE INDEX idx_product_versions_product_id ON product_versions(product_id);
 
--- User licenses
-CREATE TABLE user_licenses (
-    id BIGSERIAL PRIMARY KEY,
-    user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    product_version_id BIGINT NOT NULL REFERENCES product_versions(id) ON DELETE CASCADE,
-    license_key VARCHAR(500) UNIQUE NOT NULL,
-    starts_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    expires_at TIMESTAMP NOT NULL,
-    daily_usage INT DEFAULT 0,
-    monthly_usage INT DEFAULT 0,
-    last_used_at TIMESTAMP,
-    revoked_at TIMESTAMP,
-    metadata JSONB DEFAULT '{}',
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE INDEX idx_user_licenses_user_id ON user_licenses(user_id);
-CREATE INDEX idx_user_licenses_license_key ON user_licenses(license_key);
-CREATE INDEX idx_user_licenses_expires_at ON user_licenses(expires_at);
-
--- License usage history
-CREATE TABLE license_usage_history (
-    id BIGSERIAL PRIMARY KEY,
-    license_id BIGINT NOT NULL REFERENCES user_licenses(id) ON DELETE CASCADE,
-    action VARCHAR(50) NOT NULL,
-    usage_count INT,
-    metadata JSONB DEFAULT '{}',
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE INDEX idx_license_usage_history_license_id ON license_usage_history(license_id);
-CREATE INDEX idx_license_usage_history_created_at ON license_usage_history(created_at);
-
 -- Insert Allowance product with three versions
 INSERT INTO products (upid, product_slug, name, description) VALUES
     ('UALLOWANCE0001', 'allowance', 'Allowance System', 'Core allowance authorization management system')

@@ -1,5 +1,6 @@
--- Migration: 006_optimize_queries.sql
--- Add indexes for common query patterns to improve performance
+-- Migration 006: Query Optimization
+-- Adds indexes for common query patterns to improve performance
+-- Status: Performance (optional but recommended)
 
 -- User queries optimization
 CREATE INDEX IF NOT EXISTS idx_users_uid ON users(uid);
@@ -24,11 +25,3 @@ CREATE INDEX IF NOT EXISTS idx_invoices_user_id_status ON invoices(user_id, stat
 -- RBAC optimization
 CREATE INDEX IF NOT EXISTS idx_user_roles_user_role ON user_roles(user_id, role_id);
 CREATE INDEX IF NOT EXISTS idx_role_permissions_role_permission ON role_permissions(role_id, permission_id);
-
--- Team optimization
--- CREATE INDEX IF NOT EXISTS idx_team_members_user_id ON team_members(user_id);
--- CREATE INDEX IF NOT EXISTS idx_team_members_team_id_status ON team_members(team_id, status);
-
--- Organization optimization
--- CREATE INDEX IF NOT EXISTS idx_organization_members_org_id ON organization_members(org_id);
--- CREATE INDEX IF NOT EXISTS idx_organization_members_user_id ON organization_members(user_id);

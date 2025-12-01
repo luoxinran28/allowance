@@ -1,5 +1,6 @@
--- Migration: 003_add_payment_tables.sql
--- Add payment and subscription tables for Phase 3 integration
+-- Migration 003: Payment and Subscription Tables
+-- Adds payment intents, subscriptions, and invoices for Phase 3 integration
+-- Status: Payments (required for payment processing)
 
 -- Payment intents table
 CREATE TABLE IF NOT EXISTS payment_intents (
@@ -16,23 +17,6 @@ CREATE TABLE IF NOT EXISTS payment_intents (
 
 CREATE INDEX idx_payment_intents_user_id ON payment_intents(user_id);
 CREATE INDEX idx_payment_intents_status ON payment_intents(status);
-
--- Subscriptions table
-CREATE TABLE IF NOT EXISTS subscriptions (
-    id BIGSERIAL PRIMARY KEY,
-    user_id BIGINT NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
-    tier VARCHAR(50) NOT NULL,  -- free, pro, enterprise
-    status VARCHAR(20) NOT NULL,  -- active, canceled, suspended
-    current_period_start TIMESTAMP WITH TIME ZONE NOT NULL,
-    current_period_end TIMESTAMP WITH TIME ZONE NOT NULL,
-    auto_renew BOOLEAN NOT NULL DEFAULT true,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL,
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL
-);
-
-CREATE INDEX idx_subscriptions_user_id ON subscriptions(user_id);
-CREATE INDEX idx_subscriptions_status ON subscriptions(status);
-CREATE INDEX idx_subscriptions_current_period_end ON subscriptions(current_period_end);
 
 -- Invoices table
 CREATE TABLE IF NOT EXISTS invoices (

@@ -1,6 +1,6 @@
--- Migration 007: Add UPID columns to products and licenses
--- This migration adds UPID (Unique Product ID) support for the authorization system
--- UPID format: U + 15 uppercase alphanumeric characters
+-- Migration 007: UPID (Unique Product ID) Support
+-- Adds UPID columns to products and licenses for enhanced product identification
+-- Status: UPID Support (required for advanced product management)
 
 -- Add UPID column to products table (only if it doesn't exist)
 DO $$ BEGIN
