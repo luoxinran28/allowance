@@ -17,11 +17,26 @@ async fn setup_test_db() -> PgPool {
     PgPool::connect(&database_url).await.unwrap()
 }
 
+// Helper: Create test user (needed for foreign keys)
+async fn create_test_user(pool: &PgPool, unique_id: u32) -> AppResult<i64> {
+    let uid = format!("U{:015X}", unique_id);
+    let email = format!("test{}@example.com", unique_id);
+    let result = sqlx::query!(
+        "INSERT INTO users (uid, email, password_hash, tier, status) VALUES ($1, $2, $3, 'free', 'active') RETURNING id",
+        uid,
+        email,
+        "$argon2id$v=19$m=4096,t=3,p=1$fakesalt$fakehash"
+    )
+    .fetch_one(pool)
+    .await?;
+    Ok(result.id)
+}
+
 // Helper: Create test org with unique ID
-async fn create_test_org(pool: &PgPool, unique_id: u32) -> AppResult<i64> {
+async fn create_test_org(pool: &PgPool, user_id: i64, unique_id: u32) -> AppResult<i64> {
     let org = OrganizationService::create_organization(
         pool,
-        1,
+        user_id,
         &format!("TestOrg{}", unique_id),
         None,
     ).await?;
@@ -29,22 +44,22 @@ async fn create_test_org(pool: &PgPool, unique_id: u32) -> AppResult<i64> {
 }
 
 // Helper: Create test product with unique ID
-async fn create_test_product(pool: &PgPool, unique_id: u32) -> AppResult<(i64, String)> {
+async fn create_test_product(pool: &PgPool, user_id: i64, unique_id: u32) -> AppResult<(i64, String)> {
     let product = ProductService::create_product_admin(
         pool,
         &format!("TestProduct{}", unique_id),
         &format!("{}", unique_id), // Short slug for UPID constraint
         None,
-        1,
+        user_id,
     ).await?;
     Ok((product.id, product.upid))
 }
 
 // Helper: Create test team
-async fn create_test_team(pool: &PgPool, org_id: i64, unique_id: u32) -> AppResult<i64> {
+async fn create_test_team(pool: &PgPool, user_id: i64, org_id: i64, unique_id: u32) -> AppResult<i64> {
     let team = TeamService::create_team(
         pool,
-        1,
+        user_id,
         org_id,
         &format!("TestTeam{}", unique_id),
         None,
@@ -59,15 +74,16 @@ async fn test_org_license_allocation() -> AppResult<()> {
     use rand::Rng;
     let uid = rand::thread_rng().gen_range(10000..99999);
 
-    let org_id = create_test_org(&pool, uid).await?;
-    let (product_id, _upid) = create_test_product(&pool, uid).await?;
+    let user_id = create_test_user(&pool, uid).await?;
+    let org_id = create_test_org(&pool, user_id, uid).await?;
+    let (product_id, _upid) = create_test_product(&pool, user_id, uid).await?;
 
     // Initial allocation
-    let license = ProductService::generate_org_licenses(&pool, product_id, org_id, 100, 365, 1).await?;
+    let license = ProductService::generate_org_licenses(&pool, product_id, org_id, 100, 365, user_id).await?;
     assert_eq!(license.total_count, 100);
 
     // UPSERT: Add more licenses
-    let updated = ProductService::generate_org_licenses(&pool, product_id, org_id, 50, 365, 1).await?;
+    let updated = ProductService::generate_org_licenses(&pool, product_id, org_id, 50, 365, user_id).await?;
     assert_eq!(updated.total_count, 150);
     assert_eq!(updated.id, license.id); // Same record
 
@@ -75,6 +91,7 @@ async fn test_org_license_allocation() -> AppResult<()> {
     sqlx::query("DELETE FROM org_product_licenses WHERE id = $1").bind(license.id).execute(&pool).await?;
     sqlx::query("DELETE FROM products WHERE id = $1").bind(product_id).execute(&pool).await?;
     sqlx::query("DELETE FROM organizations WHERE id = $1").bind(org_id).execute(&pool).await?;
+    sqlx::query("DELETE FROM users WHERE id = $1").bind(user_id).execute(&pool).await?;
 
     Ok(())
 }
@@ -86,9 +103,10 @@ async fn test_team_quota_allocation() -> AppResult<()> {
     use rand::Rng;
     let uid = rand::thread_rng().gen_range(10000..99999);
 
-    let org_id = create_test_org(&pool, uid).await?;
-    let (product_id, upid) = create_test_product(&pool, uid).await?;
-    let team_id = create_test_team(&pool, org_id, uid).await?;
+    let user_id = create_test_user(&pool, uid).await?;
+    let org_id = create_test_org(&pool, user_id, uid).await?;
+    let (product_id, upid) = create_test_product(&pool, user_id, uid).await?;
+    let team_id = create_test_team(&pool, user_id, org_id, uid).await?;
 
     // Allocate quota to team
     let quota = TeamQuotaService::allocate_quota(&pool, team_id, product_id, &upid, 10).await?;
@@ -100,6 +118,7 @@ async fn test_team_quota_allocation() -> AppResult<()> {
     sqlx::query("DELETE FROM groups WHERE id = $1").bind(team_id).execute(&pool).await?;
     sqlx::query("DELETE FROM products WHERE id = $1").bind(product_id).execute(&pool).await?;
     sqlx::query("DELETE FROM organizations WHERE id = $1").bind(org_id).execute(&pool).await?;
+    sqlx::query("DELETE FROM users WHERE id = $1").bind(user_id).execute(&pool).await?;
 
     Ok(())
 }
@@ -111,9 +130,10 @@ async fn test_quota_consume_release() -> AppResult<()> {
     use rand::Rng;
     let uid = rand::thread_rng().gen_range(10000..99999);
 
-    let org_id = create_test_org(&pool, uid).await?;
-    let (product_id, upid) = create_test_product(&pool, uid).await?;
-    let team_id = create_test_team(&pool, org_id, uid).await?;
+    let user_id = create_test_user(&pool, uid).await?;
+    let org_id = create_test_org(&pool, user_id, uid).await?;
+    let (product_id, upid) = create_test_product(&pool, user_id, uid).await?;
+    let team_id = create_test_team(&pool, user_id, org_id, uid).await?;
 
     TeamQuotaService::allocate_quota(&pool, team_id, product_id, &upid, 5).await?;
 
@@ -150,6 +170,7 @@ async fn test_quota_consume_release() -> AppResult<()> {
     sqlx::query("DELETE FROM groups WHERE id = $1").bind(team_id).execute(&pool).await?;
     sqlx::query("DELETE FROM products WHERE id = $1").bind(product_id).execute(&pool).await?;
     sqlx::query("DELETE FROM organizations WHERE id = $1").bind(org_id).execute(&pool).await?;
+    sqlx::query("DELETE FROM users WHERE id = $1").bind(user_id).execute(&pool).await?;
 
     Ok(())
 }

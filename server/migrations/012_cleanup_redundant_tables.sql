@@ -1,8 +1,0 @@
--- Migration 012: Cleanup Redundant Tables
--- NOTE: Tables already removed from earlier migrations (001, 002, 003, 005).
--- This migration is kept for reference but no longer contains DROP statements.
--- Final three-tier architecture uses:
---   - org_product_licenses (organization license pools)
---   - team_product_quotas (team quota allocation)
---   - free_user_licenses (free tier licenses)
---   - user_license_history (audit trail)

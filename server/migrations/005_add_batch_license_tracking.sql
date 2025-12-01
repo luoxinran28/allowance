@@ -1,4 +1,0 @@
--- Migration 005: Batch License Tracking
--- NOTE: This migration is kept for historical reference but tables are no longer used.
--- Tables removed in Migration 012 (cleanup_redundant_tables.sql)
--- Three-tier architecture uses org_product_licenses + team_product_quotas instead.
