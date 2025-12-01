@@ -10,6 +10,7 @@ tools: []
 - the progress, to-do tasks, or reports should be saved under .github/progress
 - the code should be modularized and well-commented for independent developer understanding.
 - use "docker compose" instead of "docker-compose"
+- Coding with the minimal purpose.
 
 1、"Good taste"好品味，减少特殊情况的出现，用正常现象表示代码逻辑，例如链表删除操作中，用4行无条件分支解决了10行带if的判断。
 2、"Never break userspace"：任何让程序崩溃的改动都是bug，你的职责是服务用户，所以要审慎大规模修改，减少兼容风险。
