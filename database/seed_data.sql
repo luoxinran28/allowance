@@ -1,18 +1,17 @@
 -- Seed Data: Complete Test Data for Allowance System
 -- Includes users with different roles, organizations, teams, products, and licenses
 -- All test users use the same hashed password (for security, plain text is not stored)
--- Password hash is Argon2id with version 19, 19456 memory, 2 time cost, 1 parallelism
+-- Password: Pass88899 (Argon2id hash: m=19456, t=2, p=1)
 
 -- ============================================================
 -- 1. CREATE TEST USERS WITH DIFFERENT ROLES
 -- ============================================================
 
 -- Admin user (full system access)
--- Password hash for Pass888999 (Argon2id: m=19456, t=2, p=1)
 INSERT INTO users (
     uid, email, password_hash, tier, status, source_upid, profile_data, created_at, updated_at
 ) VALUES
-    ('UADMIN0001', 'admin@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$PHa9Z7qkDXpEggftF04cQQ$l+6pK2zQUge9eD9wXb2oJi7w7JFSpDAZ94I+sbavkgk', 'premium', 'active', NULL,
+    ('UADMIN0001', 'admin@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$F20jUfqy4qy4/6z6tOLBhg$Gl8U55p400Q0AXdl2TAWiYGcEWgGs5+4DqvagDNvJrc', 'premium', 'active', NULL,
      '{"first_name": "System", "last_name": "Admin", "role": "Administrator"}',
      CURRENT_TIMESTAMP - INTERVAL '90 days', CURRENT_TIMESTAMP)
 ON CONFLICT (email) DO NOTHING;
@@ -21,10 +20,10 @@ ON CONFLICT (email) DO NOTHING;
 INSERT INTO users (
     uid, email, password_hash, tier, status, source_upid, profile_data, created_at, updated_at
 ) VALUES
-    ('ULEAD0001', 'leader1@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$PHa9Z7qkDXpEggftF04cQQ$l+6pK2zQUge9eD9wXb2oJi7w7JFSpDAZ94I+sbavkgk', 'standard', 'active', 'UALLOWANCE0001',
+    ('ULEAD0001', 'leader1@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$F20jUfqy4qy4/6z6tOLBhg$Gl8U55p400Q0AXdl2TAWiYGcEWgGs5+4DqvagDNvJrc', 'standard', 'active', 'UALLOWANCE0001',
      '{"first_name": "Alice", "last_name": "Leader", "department": "Engineering"}',
      CURRENT_TIMESTAMP - INTERVAL '60 days', CURRENT_TIMESTAMP),
-    ('ULEAD0002', 'leader2@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$PHa9Z7qkDXpEggftF04cQQ$l+6pK2zQUge9eD9wXb2oJi7w7JFSpDAZ94I+sbavkgk', 'standard', 'active', 'UALLOWANCE0001',
+    ('ULEAD0002', 'leader2@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$F20jUfqy4qy4/6z6tOLBhg$Gl8U55p400Q0AXdl2TAWiYGcEWgGs5+4DqvagDNvJrc', 'standard', 'active', 'UALLOWANCE0001',
      '{"first_name": "Bob", "last_name": "Manager", "department": "Sales"}',
      CURRENT_TIMESTAMP - INTERVAL '50 days', CURRENT_TIMESTAMP)
 ON CONFLICT (email) DO NOTHING;
@@ -33,16 +32,16 @@ ON CONFLICT (email) DO NOTHING;
 INSERT INTO users (
     uid, email, password_hash, tier, status, source_upid, profile_data, created_at, updated_at
 ) VALUES
-    ('UMEM00001', 'member1@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$PHa9Z7qkDXpEggftF04cQQ$l+6pK2zQUge9eD9wXb2oJi7w7JFSpDAZ94I+sbavkgk', 'standard', 'active', 'UALLOWANCE0001',
+    ('UMEM00001', 'member1@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$F20jUfqy4qy4/6z6tOLBhg$Gl8U55p400Q0AXdl2TAWiYGcEWgGs5+4DqvagDNvJrc', 'standard', 'active', 'UALLOWANCE0001',
      '{"first_name": "Charlie", "last_name": "Developer"}',
      CURRENT_TIMESTAMP - INTERVAL '40 days', CURRENT_TIMESTAMP),
-    ('UMEM00002', 'member2@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$PHa9Z7qkDXpEggftF04cQQ$l+6pK2zQUge9eD9wXb2oJi7w7JFSpDAZ94I+sbavkgk', 'standard', 'active', 'UPROD000001',
+    ('UMEM00002', 'member2@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$F20jUfqy4qy4/6z6tOLBhg$Gl8U55p400Q0AXdl2TAWiYGcEWgGs5+4DqvagDNvJrc', 'standard', 'active', 'UPROD000001',
      '{"first_name": "Diana", "last_name": "Designer"}',
      CURRENT_TIMESTAMP - INTERVAL '35 days', CURRENT_TIMESTAMP),
-    ('UMEM00003', 'member3@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$PHa9Z7qkDXpEggftF04cQQ$l+6pK2zQUge9eD9wXb2oJi7w7JFSpDAZ94I+sbavkgk', 'standard', 'active', 'UPROD000002',
+    ('UMEM00003', 'member3@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$F20jUfqy4qy4/6z6tOLBhg$Gl8U55p400Q0AXdl2TAWiYGcEWgGs5+4DqvagDNvJrc', 'standard', 'active', 'UPROD000002',
      '{"first_name": "Eve", "last_name": "Engineer"}',
      CURRENT_TIMESTAMP - INTERVAL '30 days', CURRENT_TIMESTAMP),
-    ('UMEM00004', 'member4@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$PHa9Z7qkDXpEggftF04cQQ$l+6pK2zQUge9eD9wXb2oJi7w7JFSpDAZ94I+sbavkgk', 'standard', 'active', 'UALLOWANCE0001',
+    ('UMEM00004', 'member4@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$F20jUfqy4qy4/6z6tOLBhg$Gl8U55p400Q0AXdl2TAWiYGcEWgGs5+4DqvagDNvJrc', 'standard', 'active', 'UALLOWANCE0001',
      '{"first_name": "Frank", "last_name": "Analyst"}',
      CURRENT_TIMESTAMP - INTERVAL '25 days', CURRENT_TIMESTAMP)
 ON CONFLICT (email) DO NOTHING;
@@ -51,7 +50,7 @@ ON CONFLICT (email) DO NOTHING;
 INSERT INTO users (
     uid, email, password_hash, tier, status, source_upid, profile_data, created_at, updated_at
 ) VALUES
-    ('UFREE0001', 'free@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$PHa9Z7qkDXpEggftF04cQQ$l+6pK2zQUge9eD9wXb2oJi7w7JFSpDAZ94I+sbavkgk', 'free', 'active', 'UALLOWANCE0001',
+    ('UFREE0001', 'free@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$F20jUfqy4qy4/6z6tOLBhg$Gl8U55p400Q0AXdl2TAWiYGcEWgGs5+4DqvagDNvJrc', 'free', 'active', 'UALLOWANCE0001',
      '{"first_name": "Grace", "last_name": "Trial"}',
      CURRENT_TIMESTAMP - INTERVAL '10 days', CURRENT_TIMESTAMP)
 ON CONFLICT (email) DO NOTHING;
@@ -90,9 +89,9 @@ ON CONFLICT (user_id, role_id) DO NOTHING;
 -- ============================================================
 
 INSERT INTO organizations (org_id, name, description, created_by) VALUES
-    ('ACME001', 'ACME Corporation', 'Main test organization for Allowance System', 
+    ('ACME01', 'ACME Corporation', 'Main test organization for Allowance System', 
      (SELECT id FROM users WHERE email = 'admin@allowance.test')),
-    ('STARTUP01', 'StartupX', 'Second test organization',
+    ('STRTUP1', 'StartupX', 'Second test organization',
      (SELECT id FROM users WHERE email = 'admin@allowance.test'))
 ON CONFLICT (org_id) DO NOTHING;
 
@@ -101,13 +100,13 @@ ON CONFLICT (org_id) DO NOTHING;
 -- ============================================================
 
 INSERT INTO groups (group_id, organization_id, name, description, created_by) VALUES
-    ('ENGTEAM', (SELECT id FROM organizations WHERE org_id = 'ACME001'), 
+    ('ENGTEAM', (SELECT id FROM organizations WHERE org_id = 'ACME01'), 
      'Engineering Team', 'Main engineering team', 
      (SELECT id FROM users WHERE email = 'leader1@allowance.test')),
-    ('SALES', (SELECT id FROM organizations WHERE org_id = 'ACME001'), 
+    ('SALES', (SELECT id FROM organizations WHERE org_id = 'ACME01'), 
      'Sales Team', 'Sales and marketing team',
      (SELECT id FROM users WHERE email = 'leader2@allowance.test')),
-    ('STARTUP-DEV', (SELECT id FROM organizations WHERE org_id = 'STARTUP01'),
+    ('STARTUP-DEV', (SELECT id FROM organizations WHERE org_id = 'STRTUP1'),
      'Development Team', 'StartupX development team',
      (SELECT id FROM users WHERE email = 'admin@allowance.test'))
 ON CONFLICT (group_id) DO NOTHING;
@@ -235,7 +234,7 @@ SELECT
     CURRENT_TIMESTAMP,
     CURRENT_TIMESTAMP
 FROM organizations o, products p
-WHERE o.org_id = 'ACME001' AND p.upid = 'UALLOWANCE0001'
+WHERE o.org_id = 'ACME01' AND p.upid = 'UALLOWANCE0001'
 ON CONFLICT (organization_id, product_id) DO UPDATE 
 SET total_count = EXCLUDED.total_count;
 
@@ -254,7 +253,7 @@ SELECT
     CURRENT_TIMESTAMP,
     CURRENT_TIMESTAMP
 FROM organizations o, products p
-WHERE o.org_id = 'ACME001' AND p.upid = 'UPROD000001'
+WHERE o.org_id = 'ACME01' AND p.upid = 'UPROD000001'
 ON CONFLICT (organization_id, product_id) DO UPDATE 
 SET total_count = EXCLUDED.total_count;
 
@@ -273,7 +272,7 @@ SELECT
     CURRENT_TIMESTAMP,
     CURRENT_TIMESTAMP
 FROM organizations o, products p
-WHERE o.org_id = 'STARTUP01' AND p.upid = 'UALLOWANCE0001'
+WHERE o.org_id = 'STRTUP1' AND p.upid = 'UALLOWANCE0001'
 ON CONFLICT (organization_id, product_id) DO UPDATE 
 SET total_count = EXCLUDED.total_count;
 

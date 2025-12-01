@@ -944,12 +944,12 @@ echo "=== E2E Test: Three-Tier Authorization Flow ==="
 # 获取测试token
 ADMIN_TOKEN=$(curl -s -X POST http://localhost:4040/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"admin@allowance.test","password":"Pass888999"}' \
+  -d '{"email":"admin@allowance.test","password":""}' \
   | jq -r '.token')
 
 LEADER_TOKEN=$(curl -s -X POST http://localhost:4040/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"leader1@allowance.test","password":"Pass888999"}' \
+  -H "Content-Type: application/json" \    
+，   -d '{"email":"leader1@allowance.test","password":""}' \
   | jq -r '.token')
 
 echo "✓ Admin token acquired"

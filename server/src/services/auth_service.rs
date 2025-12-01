@@ -109,14 +109,17 @@ impl AuthService {
         // First, perform regular authentication
         let user = Self::login(pool, email, password).await?;
 
-        // Validate UPID access - check if user has license for this product
+        // Premium users have access to all products
+        if user.tier == crate::models::UserTier::Premium {
+            return Ok(user);
+        }
+
+        // For other tiers, validate UPID access - check if user has free license for this product
         let license_count = sqlx::query_scalar::<_, i64>(
             r#"
-            SELECT COUNT(*) FROM user_licenses ul
-            JOIN product_versions pv ON ul.product_version_id = pv.id
-            JOIN products p ON pv.product_id = p.id
-            WHERE ul.user_id = $1 AND p.upid = $2 AND ul.revoked_at IS NULL
-            AND (ul.expires_at IS NULL OR ul.expires_at > NOW())
+            SELECT COUNT(*) FROM free_user_licenses ful
+            JOIN products p ON ful.product_id = p.id
+            WHERE ful.user_id = $1 AND p.upid = $2
             "#
         )
         .bind(user.id)
