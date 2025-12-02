@@ -1,0 +1,177 @@
+name: E2E Tests
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'client/**'
+      - 'server/**'
+      - '.github/workflows/e2e-tests.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'client/**'
+      - 'server/**'
+      - '.github/workflows/e2e-tests.yml'
+
+jobs:
+  e2e:
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: allowance
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      - name: Cache Rust build
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: server
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: 'client/package-lock.json'
+
+      - name: Install Playwright browsers
+        run: cd client && npx playwright install --with-deps
+
+      - name: Build backend
+        working-directory: server
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/allowance
+          JWT_SECRET: test-secret-key-32-chars-min
+          JWT_EXPIRATION_HOURS: 24
+          REFRESH_TOKEN_EXPIRATION_DAYS: 7
+          FRONTEND_URL: http://localhost:3030
+          REDIS_URL: redis://localhost:6379
+          RUST_LOG: info
+        run: cargo build --release
+
+      - name: Run database migrations
+        working-directory: server
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/allowance
+        run: |
+          cargo install sqlx-cli --no-default-features --features postgres --locked
+          sqlx migrate run
+
+      - name: Seed test data
+        working-directory: server
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/allowance
+        run: |
+          psql -h localhost -U postgres -d allowance < ../database/seed_data.sql
+
+      - name: Start backend server
+        working-directory: server
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/allowance
+          JWT_SECRET: test-secret-key-32-chars-min
+          JWT_EXPIRATION_HOURS: 24
+          REFRESH_TOKEN_EXPIRATION_DAYS: 7
+          FRONTEND_URL: http://localhost:3030
+          REDIS_URL: redis://localhost:6379
+          RUST_LOG: info
+          SERVER_HOST: 127.0.0.1
+          SERVER_PORT: 4040
+        run: ./target/release/allowance &
+        timeout-minutes: 5
+
+      - name: Wait for backend
+        run: |
+          timeout 30 bash -c 'until curl -f http://localhost:4040/health; do sleep 1; done'
+
+      - name: Install client dependencies
+        working-directory: client
+        run: npm ci
+
+      - name: Run E2E tests
+        working-directory: client
+        env:
+          CI: true
+          PLAYWRIGHT_JUNIT_OUTPUT_NAME: junit-results.xml
+        run: npm run test:e2e
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: client/playwright-report/
+          retention-days: 30
+
+      - name: Upload JUnit results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-results
+          path: client/junit-results.xml
+
+      - name: Publish test results
+        if: always()
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        with:
+          files: client/junit-results.xml
+          check_name: E2E Test Results
+
+      - name: Comment PR with test results
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const junit = fs.readFileSync('client/junit-results.xml', 'utf8');
+            
+            // Extract test counts from junit XML
+            const testMatch = junit.match(/tests="(\d+)"/);
+            const failureMatch = junit.match(/failures="(\d+)"/);
+            
+            const tests = testMatch ? testMatch[1] : 'unknown';
+            const failures = failureMatch ? failureMatch[1] : '0';
+            
+            const status = failures === '0' ? '✅ PASSED' : '❌ FAILED';
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## E2E Test Results
+            
+${status}
+- Tests: ${tests}
+- Failures: ${failures}
+
+[📊 View detailed report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})`
+            });
