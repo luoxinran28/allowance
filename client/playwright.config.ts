@@ -42,10 +42,12 @@ export default defineConfig({
     },
   ],
 
-  webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:3030',
-    reuseExistingServer: !process.env.CI,
-    timeout: 120000,
-  },
+  // Web server is already running (Docker or manual startup)
+  // Uncomment below only if you want Playwright to start it
+  // webServer: {
+  //   command: 'npm run dev',
+  //   url: 'http://localhost:3030',
+  //   reuseExistingServer: !process.env.CI,
+  //   timeout: 120000,
+  // },
 });

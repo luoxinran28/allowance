@@ -1,0 +1,56 @@
+<testsuites id="" name="" tests="21" failures="0" skipped="0" errors="0" time="50.367881999999994">
+<testsuite name="01-auth.spec.ts" timestamp="2025-12-02T16:25:29.610Z" hostname="chromium" tests="13" failures="0" skipped="0" time="17.014" errors="0">
+<testcase name="Authentication › should display login page with form" classname="01-auth.spec.ts" time="0.558">
+</testcase>
+<testcase name="Authentication › should show error on invalid credentials" classname="01-auth.spec.ts" time="2.53">
+</testcase>
+<testcase name="Authentication › should login with valid credentials" classname="01-auth.spec.ts" time="0.652">
+</testcase>
+<testcase name="Authentication › should persist token in localStorage after login" classname="01-auth.spec.ts" time="0.778">
+</testcase>
+<testcase name="Authentication › should allow navigation when authenticated" classname="01-auth.spec.ts" time="1.666">
+</testcase>
+<testcase name="Authentication › should redirect to login when accessing protected page without auth" classname="01-auth.spec.ts" time="2.532">
+</testcase>
+<testcase name="Authentication › should show password reset option on login page" classname="01-auth.spec.ts" time="0.572">
+</testcase>
+<testcase name="Authentication › should allow access to password reset page" classname="01-auth.spec.ts" time="0.611">
+</testcase>
+<testcase name="Authentication › should handle password reset with non-existent email" classname="01-auth.spec.ts" time="2.441">
+</testcase>
+<testcase name="Authentication › should handle password reset with valid email" classname="01-auth.spec.ts" time="2.241">
+</testcase>
+<testcase name="Authentication › should have email activation page" classname="01-auth.spec.ts" time="0.574">
+</testcase>
+<testcase name="Authentication › should show registration option on login page" classname="01-auth.spec.ts" time="0.643">
+</testcase>
+<testcase name="Logout › should logout and clear token" classname="01-auth.spec.ts" time="1.216">
+</testcase>
+</testsuite>
+<testsuite name="02-dashboard.spec.ts" timestamp="2025-12-02T16:25:29.610Z" hostname="chromium" tests="2" failures="0" skipped="0" time="7.205" errors="0">
+<testcase name="Dashboard › should display dashboard" classname="02-dashboard.spec.ts" time="2.913">
+</testcase>
+<testcase name="Dashboard › should navigate dashboard pages" classname="02-dashboard.spec.ts" time="4.292">
+</testcase>
+</testsuite>
+<testsuite name="03-admin.spec.ts" timestamp="2025-12-02T16:25:29.610Z" hostname="chromium" tests="2" failures="0" skipped="0" time="8.488" errors="0">
+<testcase name="Admin Pages › should allow admin access" classname="03-admin.spec.ts" time="3.645">
+</testcase>
+<testcase name="Admin Pages › should access admin panel" classname="03-admin.spec.ts" time="4.843">
+</testcase>
+</testsuite>
+<testsuite name="04-batch-operations.spec.ts" timestamp="2025-12-02T16:25:29.610Z" hostname="chromium" tests="1" failures="0" skipped="0" time="2.926" errors="0">
+<testcase name="Batch Operations › should complete auth and stay authenticated" classname="04-batch-operations.spec.ts" time="2.926">
+</testcase>
+</testsuite>
+<testsuite name="05-billing.spec.ts" timestamp="2025-12-02T16:25:29.610Z" hostname="chromium" tests="1" failures="0" skipped="0" time="2.88" errors="0">
+<testcase name="Billing › should authenticate user" classname="05-billing.spec.ts" time="2.88">
+</testcase>
+</testsuite>
+<testsuite name="06-workflows.spec.ts" timestamp="2025-12-02T16:25:29.610Z" hostname="chromium" tests="2" failures="0" skipped="0" time="9.743" errors="0">
+<testcase name="Workflows › should complete auth workflow" classname="06-workflows.spec.ts" time="2.76">
+</testcase>
+<testcase name="Workflows › should support multiple roles" classname="06-workflows.spec.ts" time="6.983">
+</testcase>
+</testsuite>
+</testsuites>

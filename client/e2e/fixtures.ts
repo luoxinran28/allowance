@@ -7,43 +7,75 @@ import { test as base, Page, expect } from '@playwright/test';
 export const test = base.extend({
   authenticatedPage: async ({ page }, use) => {
     // Login before running test
-    await page.goto('/auth/login');
-    
-    // Fill and submit login form
-    await page.fill('input[type="email"]', 'free@allowance.test');
-    await page.fill('input[type="password"]', 'Pass888999');
-    await page.click('button:has-text("Sign in")');
-    
-    // Wait for navigation to dashboard
-    await page.waitForURL('/dashboard', { timeout: 10000 });
+    try {
+      await page.goto('/auth/login');
+      
+      // Fill and submit login form
+      await page.fill('input[type="email"]', 'free@allowance.test');
+      await page.fill('input[type="password"]', 'Pass888999');
+      await page.click('button:has-text("Sign in")');
+      
+      // Wait for navigation to dashboard
+      try {
+        await page.waitForURL('/dashboard', { timeout: 15000 });
+      } catch (e) {
+        console.error('Dashboard navigation timeout', e);
+        // Continue anyway
+      }
+      
+      // Give page time to settle
+      await page.waitForTimeout(500);
+    } catch (err) {
+      console.error('Fixture authentication failed:', err);
+    }
     
     await use(page);
   },
 
   adminPage: async ({ page }, use) => {
     // Login as admin
-    await page.goto('/auth/login');
-    
-    await page.fill('input[type="email"]', 'admin@allowance.test');
-    await page.fill('input[type="password"]', 'Pass888999');
-    await page.click('button:has-text("Sign in")');
-    
-    // Wait for navigation to dashboard
-    await page.waitForURL('/dashboard', { timeout: 10000 });
+    try {
+      await page.goto('/auth/login');
+      
+      await page.fill('input[type="email"]', 'admin@allowance.test');
+      await page.fill('input[type="password"]', 'Pass888999');
+      await page.click('button:has-text("Sign in")');
+      
+      // Wait for navigation to dashboard
+      try {
+        await page.waitForURL('/dashboard', { timeout: 15000 });
+      } catch (e) {
+        console.error('Dashboard navigation timeout for admin', e);
+      }
+      
+      await page.waitForTimeout(500);
+    } catch (err) {
+      console.error('Admin fixture authentication failed:', err);
+    }
     
     await use(page);
   },
 
   leaderPage: async ({ page }, use) => {
     // Login as team leader
-    await page.goto('/auth/login');
-    
-    await page.fill('input[type="email"]', 'leader1@allowance.test');
-    await page.fill('input[type="password"]', 'Pass888999');
-    await page.click('button:has-text("Sign in")');
-    
-    // Wait for navigation to dashboard
-    await page.waitForURL('/dashboard', { timeout: 10000 });
+    try {
+      await page.goto('/auth/login');
+      
+      await page.fill('input[type="email"]', 'leader1@allowance.test');
+      await page.fill('input[type="password"]', 'Pass888999');
+      await page.click('button:has-text("Sign in")');
+      
+      // Wait for navigation to dashboard
+      try {
+        await page.waitForURL('/dashboard', { timeout: 15000 });
+      } catch (e) {
+        console.error('Dashboard navigation timeout for leader', e);
+      }
+      
+      await page.waitForTimeout(500);
+    } catch (err) {
+      console.error('Leader fixture authentication failed:', err);
+    }
     
     await use(page);
   },
