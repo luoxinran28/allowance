@@ -73,11 +73,56 @@ pub async fn confirm_payment(
 
 /// Get current subscription
 /// DEPRECATED: Subscriptions table removed in three-tier refactor (Migration 012)
+/// Now returns user tier and license status instead
 pub async fn get_subscription(
-    State(_state): State<Arc<PaymentHandler>>,
-    _headers: HeaderMap,
+    State(state): State<Arc<PaymentHandler>>,
+    headers: HeaderMap,
 ) -> AppResult<Json<serde_json::Value>> {
-    Err(AppError::NotImplemented("Subscription system deprecated".to_string()))
+    let user_id = extract_user_from_header(&state, &headers)?;
+    
+    // Get user tier and license information
+    let user_row = sqlx::query!(
+        r#"
+        SELECT 
+            u.tier as "tier: String",
+            u.status as "status: String",
+            COUNT(ful.id) as free_license_count,
+            COUNT(ug.group_id) as team_count
+        FROM users u
+        LEFT JOIN free_user_licenses ful ON u.id = ful.user_id
+        LEFT JOIN user_groups ug ON u.id = ug.user_id
+        WHERE u.id = $1
+        GROUP BY u.id, u.tier, u.status
+        "#,
+        user_id
+    )
+    .fetch_one(&*state.pool)
+    .await?;
+    
+    // Check if user has active org licenses through teams
+    let has_org_licenses = sqlx::query_scalar::<_, bool>(
+        r#"
+        SELECT EXISTS(
+            SELECT 1 FROM user_groups ug
+            JOIN groups g ON ug.group_id = g.id
+            JOIN org_product_licenses opl ON g.organization_id = opl.organization_id
+            WHERE ug.user_id = $1 AND opl.expires_at > NOW()
+        )
+        "#,
+    )
+    .bind(user_id)
+    .fetch_one(&*state.pool)
+    .await?;
+    
+    Ok(Json(json!({
+        "tier": user_row.tier,
+        "status": user_row.status,
+        "has_free_licenses": user_row.free_license_count.unwrap_or(0) > 0,
+        "has_org_licenses": has_org_licenses,
+        "team_count": user_row.team_count.unwrap_or(0),
+        "subscription_type": "tier_based",  // Indicate this is not a traditional subscription
+        "message": "Subscription system replaced with three-tier license architecture"
+    })))
 }
 
 /// Upgrade subscription tier

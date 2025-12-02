@@ -62,15 +62,34 @@ impl ProductService {
 
     // ============= User License Management =============
 
-    /// Get user licenses (only active ones)
+    /// Get user licenses (free user licenses in the new three-tier architecture)
     pub async fn get_user_licenses(pool: &PgPool, user_id: i64) -> AppResult<Vec<License>> {
         eprintln!("[ProductService::get_user_licenses] Fetching licenses for user_id: {}", user_id);
+        
+        // Query free user licenses and join with product versions to get limits
         let licenses = sqlx::query_as::<_, License>(
             r#"
-            SELECT * FROM user_licenses
-            WHERE user_id = $1 AND revoked_at IS NULL AND expires_at > NOW()
-            ORDER BY created_at DESC
-            "#
+            SELECT 
+                ful.id,
+                ful.user_id,
+                pv.id as product_version_id,
+                ful.license_key,
+                ful.created_at as starts_at,
+                ful.created_at + INTERVAL '1 year' as expires_at,
+                COALESCE(pv.daily_limit, 0) as daily_usage,
+                COALESCE(pv.monthly_limit, 0) as monthly_usage,
+                NULL as last_used_at,
+                NULL as revoked_at,
+                NULL as metadata,
+                ful.created_at,
+                ful.created_at as updated_at,
+                ful.upid
+            FROM free_user_licenses ful
+            JOIN products p ON ful.product_id = p.id
+            JOIN product_versions pv ON p.id = pv.product_id AND pv.version_name = 'basic'
+            WHERE ful.user_id = $1
+            ORDER BY ful.created_at DESC
+            "#,
         )
             .bind(user_id)
             .fetch_all(pool)
@@ -82,20 +101,70 @@ impl ProductService {
 
     /// Get license by ID
     pub async fn get_license_by_id(pool: &PgPool, id: i64) -> AppResult<License> {
-        sqlx::query_as::<_, License>("SELECT * FROM user_licenses WHERE id = $1")
+        // For now, only check free user licenses
+        let license = sqlx::query_as::<_, License>(
+            r#"
+            SELECT 
+                ful.id,
+                ful.user_id,
+                pv.id as product_version_id,
+                ful.license_key,
+                ful.created_at as starts_at,
+                ful.created_at + INTERVAL '1 year' as expires_at,
+                COALESCE(pv.daily_limit, 0) as daily_usage,
+                COALESCE(pv.monthly_limit, 0) as monthly_usage,
+                NULL as last_used_at,
+                NULL as revoked_at,
+                NULL as metadata,
+                ful.created_at,
+                ful.created_at as updated_at,
+                ful.upid
+            FROM free_user_licenses ful
+            JOIN products p ON ful.product_id = p.id
+            JOIN product_versions pv ON p.id = pv.product_id AND pv.version_name = 'basic'
+            WHERE ful.id = $1
+            "#,
+        )
             .bind(id)
             .fetch_optional(pool)
             .await?
-            .ok_or(AppError::NotFound("License not found".to_string()))
+            .ok_or(AppError::NotFound("License not found".to_string()))?;
+        
+        Ok(license)
     }
 
     /// Get license by key
     pub async fn get_license_by_key(pool: &PgPool, license_key: &str) -> AppResult<License> {
-        sqlx::query_as::<_, License>("SELECT * FROM user_licenses WHERE license_key = $1")
+        // For now, only check free user licenses
+        let license = sqlx::query_as::<_, License>(
+            r#"
+            SELECT 
+                ful.id,
+                ful.user_id,
+                pv.id as product_version_id,
+                ful.license_key,
+                ful.created_at as starts_at,
+                ful.created_at + INTERVAL '1 year' as expires_at,
+                COALESCE(pv.daily_limit, 0) as daily_usage,
+                COALESCE(pv.monthly_limit, 0) as monthly_usage,
+                NULL as last_used_at,
+                NULL as revoked_at,
+                NULL as metadata,
+                ful.created_at,
+                ful.created_at as updated_at,
+                ful.upid
+            FROM free_user_licenses ful
+            JOIN products p ON ful.product_id = p.id
+            JOIN product_versions pv ON p.id = pv.product_id AND pv.version_name = 'basic'
+            WHERE ful.license_key = $1
+            "#,
+        )
             .bind(license_key)
             .fetch_optional(pool)
             .await?
-            .ok_or(AppError::NotFound("License not found".to_string()))
+            .ok_or(AppError::NotFound("License not found".to_string()))?;
+        
+        Ok(license)
     }
 
     // ============= Admin Product Creation =============

@@ -34,7 +34,7 @@ agent: Plan
 	每个产品有唯一UPID标识（格式：UPID-{slug}-{tier}，如UPID-allowance-pro）;
 	产品分为不同tier：free（免费版）、standard（标准版）、premium（高级版）;
 	授权码采用JWT格式，包含：用户ID、产品ID、tier、有效期、使用限制等;
-	免费用户只能获得free tier授权（每日3次限制）;
+	免费用户只能获得free tier授权（无时间限制）;
 	付费用户获得standard或premium tier授权（无限制）;
 	授权码由后端自动生成，用户可在前端复制JWT字符串粘贴到产品配置文件中。
 小组Team管理:

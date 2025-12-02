@@ -97,7 +97,6 @@ CREATE INDEX idx_free_user_licenses_user ON free_user_licenses(user_id);
 
 **业务规则：**
 - 免费用户每天使用次数限制 (daily_limit=3)
-- 每日0点重置 daily_usage (需定时任务)
 - 用户升级为付费后，此记录自动删除
 
 #### 3. org_product_licenses (组织产品许可证池) - 已存在
@@ -1167,18 +1166,6 @@ CREATE INDEX idx_license_usage_logs_date ON license_usage_logs(usage_date);
 
 COMMENT ON TABLE license_usage_logs IS '许可证使用日志（用于统计和限流）';
 
--- 6. 创建每日重置免费用户使用次数的函数
-CREATE OR REPLACE FUNCTION reset_daily_usage()
-RETURNS void AS $$
-BEGIN
-    UPDATE free_user_licenses
-    SET daily_usage = 0
-    WHERE daily_usage > 0;
-END;
-$$ LANGUAGE plpgsql;
-
-COMMENT ON FUNCTION reset_daily_usage() IS '每日0点重置免费用户使用次数（需配置定时任务）';
-
 -- 7. 创建触发器：自动更新 updated_at
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
@@ -1261,28 +1248,6 @@ COMMIT;
 
 ## 📚 补充说明
 
-### 定时任务配置
-
-需要配置定时任务每日0点重置免费用户使用次数：
-
-**Linux Cron:**
-```bash
-0 0 * * * psql -U postgres -d allowance -c "SELECT reset_daily_usage();"
-```
-
-**Docker Compose 集成:**
-```yaml
-services:
-  cron:
-    image: postgres:15
-    command: >
-      bash -c "while true; do
-        sleep 86400;
-        psql -h postgres -U postgres -d allowance -c 'SELECT reset_daily_usage();'
-      done"
-    depends_on:
-      - postgres
-```
 
 ### 监控指标
 
@@ -1290,7 +1255,6 @@ services:
 - 配额使用率 (used_count / allocated_count)
 - 免费用户转付费用户转化率
 - 配额不足导致的添加失败次数
-- 降级用户数量 (每日统计)
 - 许可证过期预警 (提前30天)
 
 ---
@@ -2054,24 +2018,6 @@ RESET_TIMEZONE=Asia/Shanghai
 ```
 
 ### 数据库维护
-
-**每日定时任务:**
-```bash
-# 重置免费用户使用次数（每日0点）
-0 0 * * * psql -U postgres -d allowance -c "SELECT reset_daily_usage();"
-
-# 清理过期许可证日志（保留90天）
-0 2 * * * psql -U postgres -d allowance -c "DELETE FROM license_usage_logs WHERE created_at < NOW() - INTERVAL '90 days';"
-```
-
-**备份策略:**
-```bash
-# 每日全量备份
-0 3 * * * pg_dump -U postgres allowance > /backup/allowance_$(date +\%Y\%m\%d).sql
-
-# 每周备份关键表
-0 4 * * 0 pg_dump -U postgres -t org_product_licenses -t team_product_quotas allowance > /backup/quota_$(date +\%Y\%m\%d).sql
-```
 
 ### 监控告警
 

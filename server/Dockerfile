@@ -13,6 +13,9 @@ COPY src ./src
 # Copy the migrations directory
 COPY migrations ./migrations
 
+# Copy the SQLx query cache
+COPY .sqlx ./.sqlx
+
 # Build the application
 RUN cargo build --release
 

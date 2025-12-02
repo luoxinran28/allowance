@@ -161,6 +161,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // License query routes with separate state
     let license_routes = Router::new()
         .route("/licenses/mine", get(handlers::licenses::get_user_licenses))
+        .route("/licenses", get(handlers::licenses::list_licenses))
         .with_state(license_handler.clone());
 
     // Product routes with product handler state
