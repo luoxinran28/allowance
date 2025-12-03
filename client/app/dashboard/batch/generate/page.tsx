@@ -102,14 +102,24 @@ export default function BatchGeneratePage() {
         expirationDays
       );
 
-      if (response.status === 201) {
-        setResult(response.data);
+      console.log('Batch generation response:', response);
+
+      // Accept both 200 and 201 status codes as success
+      if (response.status === 201 || response.status === 200) {
+        if (response.data && response.data.licenses) {
+          setResult(response.data);
+        } else {
+          console.warn('Response data missing licenses array:', response.data);
+          throw new Error('Invalid response format: missing licenses');
+        }
       } else {
-        throw new Error('Failed to generate licenses');
+        throw new Error(`Unexpected status code: ${response.status}`);
       }
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to generate batch licenses. Please try again.');
-      console.error('Batch generation error:', err);
+      console.error('Batch generation error details:', err);
+      const errorMsg = err.response?.data?.error || err.message || 'Failed to generate batch licenses. Please try again.';
+      setError(errorMsg);
+
     } finally {
       setGenerating(false);
     }

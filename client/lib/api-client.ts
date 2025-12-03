@@ -190,8 +190,8 @@ class ApiClient {
 
   // ============= Team Endpoints =============
 
-  async createTeam(name: string, description?: string) {
-    return this.client.post('/team/create', { name, description });
+  async createTeam(name: string, description?: string, organizationId?: number) {
+    return this.client.post('/team/create', { name, description, organization_id: organizationId });
   }
 
   async listTeams() {

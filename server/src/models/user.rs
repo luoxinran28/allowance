@@ -99,6 +99,7 @@ pub struct UserResponse {
     pub tier: UserTier,
     pub status: UserStatus,
     pub created_at: NaiveDateTime,
+    pub roles: Option<Vec<String>>,
 }
 
 impl From<User> for UserResponse {
@@ -110,6 +111,7 @@ impl From<User> for UserResponse {
             tier: user.tier,
             status: user.status,
             created_at: user.created_at,
+            roles: None,
         }
     }
 }

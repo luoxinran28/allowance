@@ -7,16 +7,24 @@ import { apiClient } from '@/lib/api-client';
 interface Team {
   id: number;
   name: string;
+  organization_id?: number;
+  organization_name?: string;
   created_at: string;
   [key: string]: any;
 }
 
+interface Organization {
+  id: number;
+  name: string;
+}
+
 export default function TeamsListPage() {
   const [teams, setTeams] = useState<Team[]>([]);
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [formData, setFormData] = useState({ name: '', description: '' });
+  const [formData, setFormData] = useState({ name: '', description: '', organization_id: '' });
   const [isCreating, setIsCreating] = useState(false);
 
   useEffect(() => {
@@ -26,8 +34,18 @@ export default function TeamsListPage() {
   const loadTeams = async () => {
     try {
       setLoading(true);
-      const response = await apiClient.listTeams();
-      setTeams(Array.isArray(response.data) ? response.data : []);
+      const [teamsRes, orgsRes] = await Promise.all([
+        apiClient.listTeams(),
+        apiClient.getUserOrganizations(1, 1000)
+      ]);
+      setTeams(Array.isArray(teamsRes.data) ? teamsRes.data : []);
+      
+      const orgsList = Array.isArray(orgsRes.data?.data)
+        ? orgsRes.data.data
+        : Array.isArray(orgsRes.data)
+        ? orgsRes.data
+        : [];
+      setOrganizations(orgsList);
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to load teams');
     } finally {
@@ -41,11 +59,15 @@ export default function TeamsListPage() {
       setError('Team name is required');
       return;
     }
+    if (!formData.organization_id) {
+      setError('Organization is required');
+      return;
+    }
 
     try {
       setIsCreating(true);
-      await apiClient.createTeam(formData.name, formData.description);
-      setFormData({ name: '', description: '' });
+      await apiClient.createTeam(formData.name, formData.description, Number(formData.organization_id));
+      setFormData({ name: '', description: '', organization_id: '' });
       setShowCreateForm(false);
       await loadTeams();
     } catch (err: any) {
@@ -80,6 +102,25 @@ export default function TeamsListPage() {
         <div className="bg-white rounded-lg shadow p-6 mb-8">
           <h2 className="text-xl font-bold mb-4">Create New Team</h2>
           <form onSubmit={handleCreateTeam} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Organization *
+              </label>
+              <select
+                value={formData.organization_id}
+                onChange={(e) => setFormData({ ...formData, organization_id: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              >
+                <option value="">-- Select Organization --</option>
+                {organizations.map((org) => (
+                  <option key={org.id} value={org.id}>
+                    {org.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Team Name
@@ -144,27 +185,33 @@ export default function TeamsListPage() {
         </div>
       ) : (
         <div className="grid gap-6">
-          {teams.map((team) => (
-            <div
-              key={team.id}
-              className="bg-white rounded-lg shadow hover:shadow-lg transition p-6"
-            >
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="text-xl font-bold text-gray-900">{team.name}</h3>
-                  <p className="text-gray-600 text-sm mt-1">
-                    Created {new Date(team.created_at).toLocaleDateString()}
-                  </p>
+          {teams.map((team) => {
+            const org = organizations.find((o) => o.id === team.organization_id);
+            return (
+              <div
+                key={team.id}
+                className="bg-white rounded-lg shadow hover:shadow-lg transition p-6"
+              >
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <h3 className="text-xl font-bold text-gray-900">{team.name}</h3>
+                    <p className="text-gray-600 text-sm mt-1">
+                      Organization: <span className="font-medium">{org?.name || `Org #${team.organization_id}`}</span>
+                    </p>
+                    <p className="text-gray-600 text-sm">
+                      Created {new Date(team.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <Link
+                    href={`/dashboard/teams/${team.id}`}
+                    className="bg-blue-100 text-blue-700 px-4 py-2 rounded hover:bg-blue-200 text-sm font-medium whitespace-nowrap ml-4"
+                  >
+                    View Details
+                  </Link>
                 </div>
-                <Link
-                  href={`/dashboard/teams/${team.id}`}
-                  className="bg-blue-100 text-blue-700 px-4 py-2 rounded hover:bg-blue-200 text-sm font-medium"
-                >
-                  View Details
-                </Link>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

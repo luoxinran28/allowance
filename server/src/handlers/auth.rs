@@ -50,11 +50,20 @@ pub async fn login(
         AuthService::login(&state.pool, &req.email, &req.password).await?
     };
 
+    // Fetch user roles and extract role codes
+    let roles = crate::services::RbacService::get_user_roles(&state.pool, user.id)
+        .await
+        .ok()
+        .map(|role_list| role_list.iter().map(|r| r.code.clone()).collect());
+
     let token = state.jwt.generate_token(user.id, user.email.clone())?;
     let refresh_token = state.jwt.generate_refresh_token(user.id)?;
 
+    let mut user_response = UserResponse::from(user);
+    user_response.roles = roles;
+
     Ok(Json(AuthResponse {
-        user: UserResponse::from(user),
+        user: user_response,
         token,
         refresh_token,
     }))
