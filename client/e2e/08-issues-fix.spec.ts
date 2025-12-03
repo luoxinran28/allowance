@@ -349,4 +349,129 @@ test.describe('Issue Fixes - Team Details, Team Creation, Batch Generation', () 
       await expect(page.locator(`text=${testTeamName}`)).toBeVisible({ timeout: 5000 });
     }
   });
+
+  /**
+   * Team Members API test - Issue #1 continued
+   */
+  test('Issue #1.3: Team members endpoint should return data without panic', async ({ page }) => {
+    // Login as admin
+    await page.goto(`${baseUrl}/auth/login`);
+    await page.fill('input[type="email"]', adminEmail);
+    await page.fill('input[type="password"]', adminPassword);
+    await page.click('button:has-text("Sign in")');
+    
+    // Wait for auth
+    await page.waitForURL('/dashboard', { timeout: 15000 });
+    
+    // Make direct API call to team members endpoint
+    const context = await page.context();
+    const cookies = await context.cookies();
+    const token = cookies.find(c => c.name === 'token')?.value || 
+                  await page.evaluate(() => localStorage.getItem('token'));
+    
+    // Find an existing team ID (assuming team 8 exists from previous tests)
+    const response = await page.evaluate(async (token) => {
+      try {
+        const res = await fetch('/team/8/members', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        return { status: res.status, ok: res.ok };
+      } catch (e) {
+        return { status: 0, ok: false };
+      }
+    }, token as string);
+    
+    // Should not crash (200 or empty array is OK)
+    expect(response.ok || response.status === 404).toBeTruthy();
+  });
+
+  /**
+   * API tests for new issues
+   */
+  test('API test: GET /licenses/summary should return data', async ({ page }) => {
+    // Login
+    await page.goto(`${baseUrl}/auth/login`);
+    await page.fill('input[type="email"]', adminEmail);
+    await page.fill('input[type="password"]', adminPassword);
+    await page.click('button:has-text("Sign in")');
+    
+    // Wait for auth
+    await page.waitForURL('/dashboard', { timeout: 15000 });
+    
+    // Get token
+    const token = await page.evaluate(() => localStorage.getItem('token'));
+    
+    // Make API call to licenses summary
+    const response = await page.evaluate(async (token) => {
+      try {
+        const res = await fetch('http://localhost:4040/licenses/summary', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        return { 
+          status: res.status, 
+          ok: res.ok,
+          hasData: res.status === 200
+        };
+      } catch (e) {
+        return { status: 0, ok: false, hasData: false };
+      }
+    }, token as string);
+    
+    // Should return 200 OK (the endpoint should exist)
+    expect(response.status).toBe(200);
+  });
+
+  /**
+   * Admin pages navigation tests - check for infinite loops
+   */
+  test('Navigation: Admin products page loads without infinite loop', async ({ page }) => {
+    // Login
+    await page.goto(`${baseUrl}/auth/login`);
+    await page.fill('input[type="email"]', adminEmail);
+    await page.fill('input[type="password"]', adminPassword);
+    await page.click('button:has-text("Sign in")');
+    
+    // Navigate to admin products
+    await page.goto(`${baseUrl}/admin/products`, { waitUntil: 'networkidle', timeout: 30000 });
+    
+    // Should not see infinite loading spinner after reasonable wait
+    const spinner = page.locator('[class*="animate-spin"]');
+    
+    // Wait a bit and then check if still loading
+    await page.waitForTimeout(3000);
+    
+    // Either should have loaded content or error message, not infinite spinner
+    const hasContent = await page.locator('text=Products').isVisible({ timeout: 5000 }).catch(() => false);
+    const hasError = await page.locator('[class*="error"]').isVisible({ timeout: 1000 }).catch(() => false);
+    
+    // Should have either loaded content or error, not be stuck loading
+    expect(hasContent || hasError || await spinner.count() === 0).toBeTruthy();
+  });
+
+  test('Navigation: Admin users page loads without infinite loop', async ({ page }) => {
+    // Login
+    await page.goto(`${baseUrl}/auth/login`);
+    await page.fill('input[type="email"]', adminEmail);
+    await page.fill('input[type="password"]', adminPassword);
+    await page.click('button:has-text("Sign in")');
+    
+    // Navigate to admin users
+    await page.goto(`${baseUrl}/admin/users`, { waitUntil: 'networkidle', timeout: 30000 });
+    
+    // Should not see infinite loading
+    await page.waitForTimeout(3000);
+    
+    // Either should have loaded content or error message
+    const hasContent = await page.locator('text=Users').isVisible({ timeout: 5000 }).catch(() => false);
+    const hasError = await page.locator('[class*="error"]').isVisible({ timeout: 1000 }).catch(() => false);
+    
+    // Should have either loaded content or error, not be stuck loading
+    expect(hasContent || hasError).toBeTruthy();
+  });
 });

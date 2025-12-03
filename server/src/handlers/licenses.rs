@@ -85,3 +85,35 @@ pub async fn list_licenses(
         "page_size": page_size
     })))
 }
+
+/// Get summary of user's licenses
+pub async fn get_licenses_summary(
+    State(state): State<Arc<LicenseHandler>>,
+    AuthClaims(claims): AuthClaims,
+) -> AppResult<Json<serde_json::Value>> {
+    let now = chrono::Utc::now().naive_utc();
+    let thirty_days_from_now = now + chrono::Duration::days(30);
+
+    // Get user's licenses with counts
+    let licenses = ProductService::get_user_licenses(&state.pool, claims.user_id).await?;
+    
+    let total_licenses = licenses.len();
+    let active_count = licenses.iter().filter(|l| {
+        l.expires_at > now
+    }).count();
+    
+    let expiring_soon_count = licenses.iter().filter(|l| {
+        l.expires_at > now && l.expires_at <= thirty_days_from_now
+    }).count();
+    
+    let expired_count = licenses.iter().filter(|l| {
+        l.expires_at <= now
+    }).count();
+
+    Ok(Json(serde_json::json!({
+        "total_licenses": total_licenses,
+        "active_count": active_count,
+        "expiring_soon_count": expiring_soon_count,
+        "expired_count": expired_count
+    })))
+}

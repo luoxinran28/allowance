@@ -56,12 +56,14 @@ pub struct TeamQuotaResponse {
     pub available_count: i32,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, FromRow)]
 pub struct TeamMemberResponse {
     pub user_id: i64,
     pub uid: String,
     pub email: String,
     pub tier: String,
     pub role: String,
+    #[sqlx(skip)]
     pub products: Vec<String>,
 }
+

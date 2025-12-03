@@ -60,7 +60,7 @@ export default function AdminProductsPage() {
       return;
     }
     loadData();
-  }, [page, isAdmin]);
+  }, [page]); // Only load data when page changes
 
   const loadData = async () => {
     try {

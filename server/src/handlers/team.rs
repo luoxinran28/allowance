@@ -3,11 +3,10 @@ use axum::{
     extract::{State, Json, Path},
     http::{HeaderMap, StatusCode},
 };
-use sqlx::Row;
 use serde::Serialize;
 
 use crate::models::{Group, UserGroup, AssignLicenseToTeamRequest};
-use crate::services::{TeamService, ProductService};
+use crate::services::{TeamService, ProductService, UserGroupService};
 use crate::utils::{AppResult, AppError};
 use crate::handlers::auth::AuthHandler;
 
@@ -124,36 +123,9 @@ pub async fn add_member(
 pub async fn list_members(
     State(state): State<Arc<AuthHandler>>,
     Path(team_id): Path<i64>,
-) -> AppResult<Json<serde_json::Value>> {
-    let members = sqlx::query(
-        r#"
-        SELECT ug.id, ug.user_id, ug.group_id, ug.role, ug.created_at, u.email, u.uid
-        FROM user_groups ug
-        INNER JOIN users u ON ug.user_id = u.id
-        WHERE ug.group_id = $1
-        ORDER BY ug.created_at DESC
-        "#
-    )
-        .bind(team_id)
-        .fetch_all(&*state.pool)
-        .await?;
-
-    let members_json: Vec<serde_json::Value> = members
-        .iter()
-        .map(|row| {
-            serde_json::json!({
-                "id": row.get::<i64, _>("id"),
-                "user_id": row.get::<i64, _>("user_id"),
-                "group_id": row.get::<i64, _>("group_id"),
-                "role": row.get::<String, _>("role"),
-                "created_at": row.get::<chrono::NaiveDateTime, _>("created_at").to_string(),
-                "email": row.get::<String, _>("email"),
-                "uid": row.get::<String, _>("uid"),
-            })
-        })
-        .collect();
-
-    Ok(Json(serde_json::json!(members_json)))
+) -> AppResult<Json<Vec<crate::models::TeamMemberResponse>>> {
+    let members = UserGroupService::list_team_members(&state.pool, team_id).await?;
+    Ok(Json(members))
 }
 
 /// Remove member from team

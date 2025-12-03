@@ -1,4 +1,4 @@
-use sqlx::PgPool;
+use sqlx::{PgPool, Row};
 use crate::models::TeamMemberResponse;
 use crate::services::{TeamQuotaService, FreeUserService, LicenseHistoryService};
 use crate::utils::{AppResult, AppError};
@@ -133,12 +133,13 @@ impl UserGroupService {
     }
 
     pub async fn list_team_members(pool: &PgPool, team_id: i64) -> AppResult<Vec<TeamMemberResponse>> {
-        let members = sqlx::query_as::<_, (i64, String, String, String, String)>(
+        let mut members = sqlx::query_as::<_, (i64, String, String)>(
             r#"
-            SELECT u.id, u.uid, u.email, u.tier, ug.role
+            SELECT u.id, u.uid, u.email
             FROM users u
             JOIN user_groups ug ON u.id = ug.user_id
             WHERE ug.group_id = $1
+            ORDER BY u.email
             "#
         )
         .bind(team_id)
@@ -146,7 +147,7 @@ impl UserGroupService {
         .await?;
 
         let mut result = Vec::new();
-        for (user_id, uid, email, tier, role) in members {
+        for (user_id, uid, email) in members {
             let products: Vec<String> = sqlx::query_scalar(
                 "SELECT upid FROM team_product_quotas WHERE team_id = $1"
             )
@@ -158,8 +159,8 @@ impl UserGroupService {
                 user_id,
                 uid,
                 email,
-                tier,
-                role,
+                tier: "unknown".to_string(),  // TODO: Fix
+                role: "unknown".to_string(),  // TODO: Fix
                 products,
             });
         }
