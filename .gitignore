@@ -71,6 +71,9 @@ uploads/
 
 # Testing
 coverage/
+*.webm
+test-results/
+playwright-report/
 
 # Build artifacts
 *.tsbuildinfo
