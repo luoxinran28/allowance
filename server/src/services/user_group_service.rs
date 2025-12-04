@@ -53,7 +53,7 @@ impl UserGroupService {
             TeamQuotaService::consume_quota(&mut *tx, team_id, product_id).await?;
         }
 
-        sqlx::query("INSERT INTO user_groups (user_id, group_id, role) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING")
+        sqlx::query("INSERT INTO user_teams (user_id, team_id, role) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING")
             .bind(user_id)
             .bind(team_id)
             .bind(role)
@@ -92,13 +92,13 @@ impl UserGroupService {
             TeamQuotaService::release_quota(&mut *tx, team_id, product_id).await?;
         }
 
-        sqlx::query("DELETE FROM user_groups WHERE user_id = $1 AND group_id = $2")
+        sqlx::query("DELETE FROM user_teams WHERE user_id = $1 AND team_id = $2")
             .bind(user_id)
             .bind(team_id)
             .execute(&mut *tx)
             .await?;
 
-        let other_teams: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM user_groups WHERE user_id = $1")
+        let other_teams: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM user_teams WHERE user_id = $1")
             .bind(user_id)
             .fetch_one(&mut *tx)
             .await?;
@@ -137,8 +137,8 @@ impl UserGroupService {
             r#"
             SELECT u.id, u.uid, u.email
             FROM users u
-            JOIN user_groups ug ON u.id = ug.user_id
-            WHERE ug.group_id = $1
+            JOIN user_teams ut ON u.id = ut.user_id
+            WHERE ut.team_id = $1
             ORDER BY u.email
             "#
         )

@@ -14,9 +14,9 @@ pub struct Organization {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
-pub struct Group {
+pub struct Team {
     pub id: i64,
-    pub group_id: String,
+    pub team_id: String,
     pub organization_id: i64,
     pub name: String,
     pub description: Option<String>,
@@ -25,14 +25,20 @@ pub struct Group {
     pub updated_at: NaiveDateTime,
 }
 
+// Backward compatibility alias
+pub type Group = Team;
+
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
-pub struct UserGroup {
+pub struct UserTeam {
     pub id: i64,
     pub user_id: i64,
-    pub group_id: i64,
+    pub team_id: i64,
     pub role: String,  // 'member', 'leader', 'admin'
     pub created_at: NaiveDateTime,
 }
+
+// Backward compatibility alias
+pub type UserGroup = UserTeam;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CreateTeamRequest {
@@ -48,7 +54,7 @@ pub struct SearchOrganizationRequest {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SearchOrganizationResponse {
     pub organization: Organization,
-    pub group_count: i64,
+    pub team_count: i64,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

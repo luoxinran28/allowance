@@ -152,7 +152,7 @@ pub struct OrgProductLicense {
 pub struct TeamMemberLicenseAssignment {
     pub id: i64,
     pub org_license_id: i64,
-    pub group_id: i64,
+    pub team_id: i64,
     pub user_id: i64,
     pub license_key: String,
     pub assigned_at: NaiveDateTime,

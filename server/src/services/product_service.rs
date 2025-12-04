@@ -270,7 +270,7 @@ impl ProductService {
     pub async fn assign_license_to_team_member(
         pool: &PgPool,
         org_license_id: i64,
-        group_id: i64,
+        team_id: i64,
         user_id: i64,
     ) -> AppResult<TeamMemberLicenseAssignment> {
         let mut tx = pool.begin().await?;
@@ -294,13 +294,13 @@ impl ProductService {
         let assignment = sqlx::query_as::<_, TeamMemberLicenseAssignment>(
             r#"
             INSERT INTO team_member_license_assignments 
-            (org_license_id, group_id, user_id, license_key)
+            (org_license_id, team_id, user_id, license_key)
             VALUES ($1, $2, $3, $4)
             RETURNING *
             "#
         )
             .bind(org_license_id)
-            .bind(group_id)
+            .bind(team_id)
             .bind(user_id)
             .bind(&license_key)
             .fetch_one(&mut *tx)
@@ -324,16 +324,16 @@ impl ProductService {
         Ok(assignment)
     }
 
-    /// Get team member license assignments for a group
-    pub async fn get_team_member_licenses(pool: &PgPool, group_id: i64) -> AppResult<Vec<TeamMemberLicenseAssignment>> {
+    /// Get team member license assignments for a team
+    pub async fn get_team_member_licenses(pool: &PgPool, team_id: i64) -> AppResult<Vec<TeamMemberLicenseAssignment>> {
         let assignments = sqlx::query_as::<_, TeamMemberLicenseAssignment>(
             r#"
             SELECT * FROM team_member_license_assignments
-            WHERE group_id = $1 AND revoked_at IS NULL
+            WHERE team_id = $1 AND revoked_at IS NULL
             ORDER BY assigned_at DESC
             "#
         )
-            .bind(group_id)
+            .bind(team_id)
             .fetch_all(pool)
             .await?;
 

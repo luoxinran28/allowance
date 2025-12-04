@@ -1,7 +1,7 @@
 use sqlx::PgPool;
 use chrono::Utc;
 
-use crate::models::{Group, UserGroup};
+use crate::models::{Team, UserTeam};
 use crate::services::user_group_service::UserGroupService;
 use crate::services::organization_service::OrganizationService;
 use crate::utils::{errors::{AppError, AppResult}, crypto::generate_token};
@@ -17,21 +17,21 @@ impl TeamService {
         org_id: i64,
         name: &str,
         description: Option<&str>,
-    ) -> AppResult<Group> {
+    ) -> AppResult<Team> {
         // Validate organization exists
         OrganizationService::get_organization(pool, org_id).await?;
         
-        let group_id = generate_token(8);
+        let team_id = generate_token(8);
         let now = Utc::now().naive_utc();
 
-        let group = sqlx::query_as::<_, Group>(
+        let team = sqlx::query_as::<_, Team>(
             r#"
-            INSERT INTO groups (group_id, organization_id, name, description, created_by, created_at, updated_at)
+            INSERT INTO teams (team_id, organization_id, name, description, created_by, created_at, updated_at)
             VALUES ($1, $2, $3, $4, $5, $6, $7)
             RETURNING *
             "#
         )
-            .bind(&group_id)
+            .bind(&team_id)
             .bind(org_id)
             .bind(name)
             .bind(description)
@@ -44,30 +44,30 @@ impl TeamService {
         // Add creator as team admin
         sqlx::query(
             r#"
-            INSERT INTO user_groups (user_id, group_id, role, created_at)
+            INSERT INTO user_teams (user_id, team_id, role, created_at)
             VALUES ($1, $2, 'admin', $3)
             "#
         )
             .bind(user_id)
-            .bind(group.id)
+            .bind(team.id)
             .bind(now)
             .execute(pool)
             .await?;
 
-        Ok(group)
+        Ok(team)
     }
 
     /// List teams for a user
     pub async fn list_user_teams(
         pool: &PgPool,
         user_id: i64,
-    ) -> AppResult<Vec<Group>> {
-        let teams = sqlx::query_as::<_, Group>(
+    ) -> AppResult<Vec<Team>> {
+        let teams = sqlx::query_as::<_, Team>(
             r#"
-            SELECT g.* FROM groups g
-            JOIN user_groups ug ON g.id = ug.group_id
-            WHERE ug.user_id = $1
-            ORDER BY g.created_at DESC
+            SELECT t.* FROM teams t
+            JOIN user_teams ut ON t.id = ut.team_id
+            WHERE ut.user_id = $1
+            ORDER BY t.created_at DESC
             "#
         )
             .bind(user_id)
@@ -81,9 +81,9 @@ impl TeamService {
     pub async fn get_team(
         pool: &PgPool,
         team_id: i64,
-    ) -> AppResult<Group> {
-        let team = sqlx::query_as::<_, Group>(
-            "SELECT * FROM groups WHERE id = $1"
+    ) -> AppResult<Team> {
+        let team = sqlx::query_as::<_, Team>(
+            "SELECT * FROM teams WHERE id = $1"
         )
             .bind(team_id)
             .fetch_optional(pool)
@@ -113,11 +113,11 @@ impl TeamService {
     pub async fn list_team_members(
         pool: &PgPool,
         team_id: i64,
-    ) -> AppResult<Vec<UserGroup>> {
-        let members = sqlx::query_as::<_, UserGroup>(
+    ) -> AppResult<Vec<UserTeam>> {
+        let members = sqlx::query_as::<_, UserTeam>(
             r#"
-            SELECT id, user_id, group_id, role::text as role, created_at FROM user_groups
-            WHERE group_id = $1
+            SELECT id, user_id, team_id, role::text as role, created_at FROM user_teams
+            WHERE team_id = $1
             ORDER BY created_at ASC
             "#
         )
@@ -147,7 +147,7 @@ impl TeamService {
         new_role: &str,
     ) -> AppResult<()> {
         let result = sqlx::query(
-            "UPDATE user_groups SET role = $1 WHERE user_id = $2 AND group_id = $3"
+            "UPDATE user_teams SET role = $1 WHERE user_id = $2 AND team_id = $3"
         )
             .bind(new_role)
             .bind(user_id)

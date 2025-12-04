@@ -5,7 +5,7 @@ use axum::{
 };
 use serde::Serialize;
 
-use crate::models::{Group, UserGroup, AssignLicenseToTeamRequest};
+use crate::models::{Team, UserTeam, AssignLicenseToTeamRequest};
 use crate::services::{TeamService, ProductService, UserGroupService};
 use crate::utils::{AppResult, AppError};
 use crate::handlers::auth::AuthHandler;
@@ -50,7 +50,7 @@ pub async fn create_team(
     State(state): State<Arc<AuthHandler>>,
     headers: HeaderMap,
     Json(req): Json<CreateTeamRequest>,
-) -> AppResult<(StatusCode, Json<Group>)> {
+) -> AppResult<(StatusCode, Json<Team>)> {
     let user_id = extract_user_from_header(&state, &headers)?;
 
     // If organization_id not provided, create a default organization for the user
@@ -85,7 +85,7 @@ pub async fn create_team(
 pub async fn list_teams(
     State(state): State<Arc<AuthHandler>>,
     headers: HeaderMap,
-) -> AppResult<Json<Vec<Group>>> {
+) -> AppResult<Json<Vec<Team>>> {
     let user_id = extract_user_from_header(&state, &headers)?;
 
     let teams = TeamService::list_user_teams(&state.pool, user_id).await?;
@@ -96,7 +96,7 @@ pub async fn list_teams(
 pub async fn get_team(
     State(state): State<Arc<AuthHandler>>,
     Path(team_id): Path<i64>,
-) -> AppResult<Json<Group>> {
+) -> AppResult<Json<Team>> {
     let team = TeamService::get_team(&state.pool, team_id).await?;
     Ok(Json(team))
 }
@@ -182,7 +182,7 @@ pub async fn get_team_licenses(
 
     // Check if user is team lead
     let is_lead: bool = sqlx::query_scalar(
-        "SELECT COUNT(*) > 0 FROM user_groups WHERE group_id = $1 AND user_id = $2 AND role IN ('leader', 'admin')"
+        "SELECT COUNT(*) > 0 FROM user_teams WHERE team_id = $1 AND user_id = $2 AND role IN ('leader', 'admin')"
     )
         .bind(team_id)
         .bind(user_id)
@@ -198,8 +198,8 @@ pub async fn get_team_licenses(
         r#"
         SELECT opl.id, opl.organization_id, opl.product_id, opl.total_count, opl.assigned_count, opl.available_count
         FROM org_product_licenses opl
-        JOIN groups g ON g.organization_id = opl.organization_id
-        WHERE g.id = $1 AND opl.expires_at > NOW()
+        JOIN teams t ON t.organization_id = opl.organization_id
+        WHERE t.id = $1 AND opl.expires_at > NOW()
         "#
     )
         .bind(team_id)
@@ -243,7 +243,7 @@ pub async fn assign_license_to_member(
 
     // Check if user is team lead
     let is_lead: bool = sqlx::query_scalar(
-        "SELECT COUNT(*) > 0 FROM user_groups WHERE group_id = $1 AND user_id = $2 AND role IN ('leader', 'admin')"
+        "SELECT COUNT(*) > 0 FROM user_teams WHERE team_id = $1 AND user_id = $2 AND role IN ('leader', 'admin')"
     )
         .bind(team_id)
         .bind(user_id)
@@ -280,7 +280,7 @@ pub async fn revoke_license_from_member(
 
     // Check if user is team lead
     let is_lead: bool = sqlx::query_scalar(
-        "SELECT COUNT(*) > 0 FROM user_groups WHERE group_id = $1 AND user_id = $2 AND role IN ('leader', 'admin')"
+        "SELECT COUNT(*) > 0 FROM user_teams WHERE team_id = $1 AND user_id = $2 AND role IN ('leader', 'admin')"
     )
         .bind(team_id)
         .bind(user_id)
@@ -310,7 +310,7 @@ pub async fn promote_member_to_lead(
 
     // Check if requester is team admin
     let is_admin: bool = sqlx::query_scalar(
-        "SELECT COUNT(*) > 0 FROM user_groups WHERE group_id = $1 AND user_id = $2 AND role = 'admin'"
+        "SELECT COUNT(*) > 0 FROM user_teams WHERE team_id = $1 AND user_id = $2 AND role = 'admin'"
     )
         .bind(team_id)
         .bind(requester_id)
@@ -323,7 +323,7 @@ pub async fn promote_member_to_lead(
 
     // Check if user is already in team
     let exists: bool = sqlx::query_scalar(
-        "SELECT COUNT(*) > 0 FROM user_groups WHERE group_id = $1 AND user_id = $2"
+        "SELECT COUNT(*) > 0 FROM user_teams WHERE team_id = $1 AND user_id = $2"
     )
         .bind(team_id)
         .bind(user_id)
@@ -335,7 +335,7 @@ pub async fn promote_member_to_lead(
     }
 
     // Update user role to leader
-    sqlx::query("UPDATE user_groups SET role = 'leader' WHERE group_id = $1 AND user_id = $2")
+    sqlx::query("UPDATE user_teams SET role = 'leader' WHERE team_id = $1 AND user_id = $2")
         .bind(team_id)
         .bind(user_id)
         .execute(state.pool.as_ref())
@@ -357,7 +357,7 @@ pub async fn demote_lead_to_member(
 
     // Check if requester is team admin
     let is_admin: bool = sqlx::query_scalar(
-        "SELECT COUNT(*) > 0 FROM user_groups WHERE group_id = $1 AND user_id = $2 AND role = 'admin'"
+        "SELECT COUNT(*) > 0 FROM user_teams WHERE team_id = $1 AND user_id = $2 AND role = 'admin'"
     )
         .bind(team_id)
         .bind(requester_id)
@@ -370,7 +370,7 @@ pub async fn demote_lead_to_member(
 
     // Check if user is a lead
     let is_lead: bool = sqlx::query_scalar(
-        "SELECT COUNT(*) > 0 FROM user_groups WHERE group_id = $1 AND user_id = $2 AND role = 'leader'"
+        "SELECT COUNT(*) > 0 FROM user_teams WHERE team_id = $1 AND user_id = $2 AND role = 'leader'"
     )
         .bind(team_id)
         .bind(user_id)
@@ -382,7 +382,7 @@ pub async fn demote_lead_to_member(
     }
 
     // Update user role to member
-    sqlx::query("UPDATE user_groups SET role = 'member' WHERE group_id = $1 AND user_id = $2")
+    sqlx::query("UPDATE user_teams SET role = 'member' WHERE team_id = $1 AND user_id = $2")
         .bind(team_id)
         .bind(user_id)
         .execute(state.pool.as_ref())

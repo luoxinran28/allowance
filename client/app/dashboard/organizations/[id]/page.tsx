@@ -11,6 +11,7 @@ interface License {
   product_id: number;
   upid: string;
   product_name: string;
+  license_key?: string;
   total_count: number;
   available_count: number;
   assigned_count: number;
@@ -19,6 +20,7 @@ interface License {
 
 interface Organization {
   id: string;
+  org_id: string;
   name: string;
   created_at: string;
   licenses?: License[];
@@ -129,7 +131,7 @@ export default function OrgDetailsPage() {
         </div>
       )}
 
-      <div className="bg-white rounded-lg shadow p-6 max-w-2xl">
+      <div className="bg-white rounded-lg shadow p-6 max-w-2xl mb-8">
         {isEditing ? (
           <form onSubmit={handleSave} className="space-y-6">
             <h2 className="text-xl font-bold">Edit Organization</h2>
@@ -190,6 +192,10 @@ export default function OrgDetailsPage() {
 
             <div className="space-y-4 pb-6 border-b">
               <div>
+                <p className="text-sm text-gray-600">Organization ID</p>
+                <p className="text-lg font-mono font-semibold text-gray-900">{org.org_id}</p>
+              </div>
+              <div>
                 <p className="text-sm text-gray-600">Organization Name</p>
                 <p className="text-lg font-semibold">{org.name}</p>
               </div>
@@ -231,6 +237,7 @@ export default function OrgDetailsPage() {
                     Product
                   </th>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">UPID</th>
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">License Key</th>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Total</th>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
                     Available
@@ -250,6 +257,9 @@ export default function OrgDetailsPage() {
                       {license.product_name}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600">{license.upid}</td>
+                    <td className="px-6 py-4 text-sm font-mono text-gray-600">
+                      {license.license_key ? license.license_key.substring(0, 20) + '...' : '-'}
+                    </td>
                     <td className="px-6 py-4 text-sm text-gray-900 font-semibold">
                       {license.total_count}
                     </td>

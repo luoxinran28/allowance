@@ -6,30 +6,34 @@ import { test as base, Page, expect } from '@playwright/test';
 
 export const test = base.extend({
   authenticatedPage: async ({ page }, use) => {
-    // Login before running test
-    try {
-      await page.goto('/auth/login');
-      
-      // Fill and submit login form
-      await page.fill('input[type="email"]', 'free@allowance.test');
-      await page.fill('input[type="password"]', 'Pass888999');
-      await page.click('button:has-text("Sign in")');
-      
-      // Wait for navigation to dashboard
+    // Return a function that can login any user
+    const loginAs = async (email: string): Promise<Page> => {
       try {
-        await page.waitForURL('/dashboard', { timeout: 15000 });
-      } catch (e) {
-        console.error('Dashboard navigation timeout', e);
-        // Continue anyway
+        await page.goto('/auth/login');
+        
+        // Fill and submit login form
+        await page.fill('input[type="email"]', email);
+        await page.fill('input[type="password"]', 'Pass888999');
+        await page.click('button:has-text("Sign in")');
+        
+        // Wait for navigation to dashboard
+        try {
+          await page.waitForURL('/dashboard', { timeout: 15000 });
+        } catch (e) {
+          console.error('Dashboard navigation timeout', e);
+          // Continue anyway
+        }
+        
+        // Give page time to settle
+        await page.waitForTimeout(500);
+      } catch (err) {
+        console.error('Fixture authentication failed:', err);
       }
       
-      // Give page time to settle
-      await page.waitForTimeout(500);
-    } catch (err) {
-      console.error('Fixture authentication failed:', err);
-    }
+      return page;
+    };
     
-    await use(page);
+    await use(loginAs);
   },
 
   adminPage: async ({ page }, use) => {

@@ -12,7 +12,7 @@ impl TeamQuotaService {
         upid: &str,
         allocated_count: i32,
     ) -> AppResult<TeamProductQuota> {
-        let org_id: i64 = sqlx::query_scalar("SELECT organization_id FROM groups WHERE id = $1")
+        let org_id: i64 = sqlx::query_scalar("SELECT organization_id FROM teams WHERE id = $1")
             .bind(team_id)
             .fetch_one(pool)
             .await?;
@@ -102,10 +102,10 @@ impl TeamQuotaService {
     pub async fn get_all_team_quotas(pool: &PgPool) -> AppResult<Vec<TeamQuotaResponse>> {
         let quotas = sqlx::query_as::<_, (i64, i64, String, i64, i64, String, String, i32, i32)>(
             r#"
-            SELECT tpq.id, tpq.team_id, g.name as team_name, tpq.org_id, tpq.product_id, p.name as product_name, 
+            SELECT tpq.id, tpq.team_id, t.name as team_name, tpq.org_id, tpq.product_id, p.name as product_name, 
                    tpq.upid, tpq.allocated_count, tpq.used_count
             FROM team_product_quotas tpq
-            JOIN groups g ON tpq.team_id = g.id
+            JOIN teams t ON tpq.team_id = t.id
             JOIN products p ON tpq.product_id = p.id
             ORDER BY tpq.team_id, p.name
             "#
@@ -132,10 +132,10 @@ impl TeamQuotaService {
     pub async fn get_team_quota_summary(pool: &PgPool, team_id: i64) -> AppResult<Vec<TeamQuotaResponse>> {
         let quotas = sqlx::query_as::<_, (i64, i64, String, i64, i64, String, String, i32, i32)>(
             r#"
-            SELECT tpq.id, tpq.team_id, g.name as team_name, tpq.org_id, tpq.product_id, p.name as product_name, 
+            SELECT tpq.id, tpq.team_id, t.name as team_name, tpq.org_id, tpq.product_id, p.name as product_name, 
                    tpq.upid, tpq.allocated_count, tpq.used_count
             FROM team_product_quotas tpq
-            JOIN groups g ON tpq.team_id = g.id
+            JOIN teams t ON tpq.team_id = t.id
             JOIN products p ON tpq.product_id = p.id
             WHERE tpq.team_id = $1
             "#

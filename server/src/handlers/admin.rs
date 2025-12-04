@@ -92,7 +92,7 @@ pub async fn list_users(
     let is_team_leader = sqlx::query_scalar::<_, bool>(
         r#"
         SELECT EXISTS(
-            SELECT 1 FROM user_groups
+            SELECT 1 FROM user_teams
             WHERE user_id = $1 AND role IN ('leader', 'admin')
         )
         "#
@@ -130,10 +130,10 @@ pub async fn list_users(
         let users = sqlx::query_as::<_, User>(
             r#"
             SELECT DISTINCT u.* FROM users u
-            INNER JOIN user_groups ug_member ON u.id = ug_member.user_id
-            INNER JOIN groups g ON ug_member.group_id = g.id
-            WHERE g.id IN (
-                SELECT group_id FROM user_groups
+            INNER JOIN user_teams ut_member ON u.id = ut_member.user_id
+            INNER JOIN teams t ON ut_member.team_id = t.id
+            WHERE t.id IN (
+                SELECT team_id FROM user_teams
                 WHERE user_id = $1 AND role IN ('leader', 'admin')
             )
             ORDER BY u.created_at DESC
@@ -149,10 +149,10 @@ pub async fn list_users(
         let total: i64 = sqlx::query_scalar(
             r#"
             SELECT COUNT(DISTINCT u.id) FROM users u
-            INNER JOIN user_groups ug_member ON u.id = ug_member.user_id
-            INNER JOIN groups g ON ug_member.group_id = g.id
-            WHERE g.id IN (
-                SELECT group_id FROM user_groups
+            INNER JOIN user_teams ut_member ON u.id = ut_member.user_id
+            INNER JOIN teams t ON ut_member.team_id = t.id
+            WHERE t.id IN (
+                SELECT team_id FROM user_teams
                 WHERE user_id = $1 AND role IN ('leader', 'admin')
             )
             "#

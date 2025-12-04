@@ -24,6 +24,7 @@ export interface UserLicense {
 export interface Product {
   id: number;
   product_id: string;
+  upid: string;
   name: string;
   description?: string;
 }
@@ -36,7 +37,7 @@ export interface AuthResponse {
 
 export interface Team {
   id: number;
-  group_id: string;
+  team_id: string;
   name: string;
   description?: string;
   created_by: number;
@@ -46,7 +47,7 @@ export interface Team {
 export interface TeamMember {
   id: number;
   user_id: number;
-  group_id: string;
+  team_id: string;
   role: 'admin' | 'leader' | 'member';
   joined_at: string;
 }

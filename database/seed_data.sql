@@ -96,10 +96,10 @@ INSERT INTO organizations (org_id, name, description, created_by) VALUES
 ON CONFLICT (org_id) DO NOTHING;
 
 -- ============================================================
--- 4. CREATE TEAMS (GROUPS)
+-- 4. CREATE TEAMS (replacing groups)
 -- ============================================================
 
-INSERT INTO groups (group_id, organization_id, name, description, created_by) VALUES
+INSERT INTO teams (team_id, organization_id, name, description, created_by) VALUES
     ('ENGTEAM', (SELECT id FROM organizations WHERE org_id = 'ACME01'), 
      'Engineering Team', 'Main engineering team', 
      (SELECT id FROM users WHERE email = 'leader1@allowance.test')),
@@ -109,39 +109,39 @@ INSERT INTO groups (group_id, organization_id, name, description, created_by) VA
     ('STARTUP-DEV', (SELECT id FROM organizations WHERE org_id = 'STRTUP1'),
      'Development Team', 'StartupX development team',
      (SELECT id FROM users WHERE email = 'admin@allowance.test'))
-ON CONFLICT (group_id) DO NOTHING;
+ON CONFLICT (team_id) DO NOTHING;
 
 -- ============================================================
 -- 5. ASSIGN USERS TO TEAMS
 -- ============================================================
 
 -- Engineering Team: leader1 as leader, member1, member2, member3 as members
-INSERT INTO user_groups (user_id, group_id, role) VALUES
+INSERT INTO user_teams (user_id, team_id, role) VALUES
     ((SELECT id FROM users WHERE email = 'leader1@allowance.test'), 
-     (SELECT id FROM groups WHERE group_id = 'ENGTEAM'), 'leader'),
+     (SELECT id FROM teams WHERE team_id = 'ENGTEAM'), 'leader'),
     ((SELECT id FROM users WHERE email = 'member1@allowance.test'), 
-     (SELECT id FROM groups WHERE group_id = 'ENGTEAM'), 'member'),
+     (SELECT id FROM teams WHERE team_id = 'ENGTEAM'), 'member'),
     ((SELECT id FROM users WHERE email = 'member2@allowance.test'), 
-     (SELECT id FROM groups WHERE group_id = 'ENGTEAM'), 'member'),
+     (SELECT id FROM teams WHERE team_id = 'ENGTEAM'), 'member'),
     ((SELECT id FROM users WHERE email = 'member3@allowance.test'), 
-     (SELECT id FROM groups WHERE group_id = 'ENGTEAM'), 'member')
-ON CONFLICT (user_id, group_id) DO NOTHING;
+     (SELECT id FROM teams WHERE team_id = 'ENGTEAM'), 'member')
+ON CONFLICT (user_id, team_id) DO NOTHING;
 
 -- Sales Team: leader2 as leader, member4 as member
-INSERT INTO user_groups (user_id, group_id, role) VALUES
+INSERT INTO user_teams (user_id, team_id, role) VALUES
     ((SELECT id FROM users WHERE email = 'leader2@allowance.test'), 
-     (SELECT id FROM groups WHERE group_id = 'SALES'), 'leader'),
+     (SELECT id FROM teams WHERE team_id = 'SALES'), 'leader'),
     ((SELECT id FROM users WHERE email = 'member4@allowance.test'), 
-     (SELECT id FROM groups WHERE group_id = 'SALES'), 'member')
-ON CONFLICT (user_id, group_id) DO NOTHING;
+     (SELECT id FROM teams WHERE team_id = 'SALES'), 'member')
+ON CONFLICT (user_id, team_id) DO NOTHING;
 
 -- StartupX Team: admin as leader, free user as member (for testing mixed tiers)
-INSERT INTO user_groups (user_id, group_id, role) VALUES
+INSERT INTO user_teams (user_id, team_id, role) VALUES
     ((SELECT id FROM users WHERE email = 'admin@allowance.test'), 
-     (SELECT id FROM groups WHERE group_id = 'STARTUP-DEV'), 'leader'),
+     (SELECT id FROM teams WHERE team_id = 'STARTUP-DEV'), 'leader'),
     ((SELECT id FROM users WHERE email = 'free@allowance.test'), 
-     (SELECT id FROM groups WHERE group_id = 'STARTUP-DEV'), 'member')
-ON CONFLICT (user_id, group_id) DO NOTHING;
+     (SELECT id FROM teams WHERE team_id = 'STARTUP-DEV'), 'member')
+ON CONFLICT (user_id, team_id) DO NOTHING;
 
 -- ============================================================
 -- 6. CREATE PRODUCTS (INCLUDING ALLOWANCE SYSTEM)
@@ -301,19 +301,19 @@ ON CONFLICT (user_id, product_id) DO NOTHING;
 
 INSERT INTO team_product_quotas (team_id, org_id, product_id, upid, allocated_count, used_count, created_at, updated_at)
 SELECT 
-    g.id,
-    g.organization_id,
+    t.id,
+    t.organization_id,
     p.id,
     p.upid,
     10,
     0,
     CURRENT_TIMESTAMP,
     CURRENT_TIMESTAMP
-FROM groups g
+FROM teams t
 CROSS JOIN products p
 WHERE EXISTS (
     SELECT 1 FROM org_product_licenses opl
-    WHERE opl.organization_id = g.organization_id
+    WHERE opl.organization_id = t.organization_id
     AND opl.product_id = p.id
 )
 ON CONFLICT (team_id, product_id) DO NOTHING;
@@ -356,11 +356,11 @@ ORDER BY
 
 SELECT 
     o.name as organization,
-    g.name as team,
-    (SELECT COUNT(*) FROM user_groups ug WHERE ug.group_id = g.id) as member_count
+    t.name as team,
+    (SELECT COUNT(*) FROM user_teams ut WHERE ut.team_id = t.id) as member_count
 FROM organizations o
-JOIN groups g ON o.id = g.organization_id
-ORDER BY o.name, g.name;
+JOIN teams t ON o.id = t.organization_id
+ORDER BY o.name, t.name;
 
 \echo ''
 \echo 'PRODUCT LICENSE POOLS (ORG LICENSES)'

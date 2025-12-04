@@ -77,10 +77,10 @@ pub async fn get_user_associations(
     // Get user's teams
     let teams = sqlx::query_as::<_, (i64, String)>(
         r#"
-        SELECT g.id, g.name FROM groups g
-        JOIN user_groups ug ON g.id = ug.group_id
-        WHERE ug.user_id = $1
-        ORDER BY g.name ASC
+        SELECT t.id, t.name FROM teams t
+        JOIN user_teams ut ON t.id = ut.team_id
+        WHERE ut.user_id = $1
+        ORDER BY t.name ASC
         "#
     )
         .bind(user_id)
@@ -94,9 +94,9 @@ pub async fn get_user_associations(
     let organizations = sqlx::query_as::<_, (i64, String)>(
         r#"
         SELECT DISTINCT o.id, o.name FROM organizations o
-        JOIN groups g ON o.id = g.organization_id
-        JOIN user_groups ug ON g.id = ug.group_id
-        WHERE ug.user_id = $1
+        JOIN teams t ON o.id = t.organization_id
+        JOIN user_teams ut ON t.id = ut.team_id
+        WHERE ut.user_id = $1
         ORDER BY o.name ASC
         "#
     )

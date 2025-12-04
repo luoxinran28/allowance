@@ -112,7 +112,7 @@ CREATE INDEX idx_organizations_org_id ON organizations(org_id);
 -- Groups/Teams table
 CREATE TABLE groups (
     id BIGSERIAL PRIMARY KEY,
-    group_id VARCHAR(8) UNIQUE NOT NULL,
+    group_id VARCHAR(20) UNIQUE NOT NULL,
     organization_id BIGINT NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL,
     description TEXT,
