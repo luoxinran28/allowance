@@ -5,6 +5,7 @@ pub mod license;
 pub mod email;
 pub mod logging;
 pub mod nonce;
+pub mod tier_helper;
 
 pub use errors::*;
 pub use jwt::*;

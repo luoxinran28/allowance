@@ -9,7 +9,7 @@
 -- Create new teams table (replacing groups)
 CREATE TABLE teams (
     id BIGSERIAL PRIMARY KEY,
-    team_id VARCHAR(20) UNIQUE NOT NULL,
+    team_id VARCHAR(8) UNIQUE NOT NULL,
     organization_id BIGINT NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL,
     description TEXT,
@@ -49,44 +49,28 @@ FROM user_groups
 ON CONFLICT (id) DO NOTHING;
 
 -- ============================================================
--- Step 3: Update team_product_quotas to reference new teams table
+-- Step 3: Update foreign keys and constraints
 -- ============================================================
 
--- Rename column in team_product_quotas from team_id to team_id (it stays the same but references new table)
--- The constraint will be updated in step 4
-
--- ============================================================
--- Step 4: Drop old constraints and tables
--- ============================================================
-
--- Drop foreign keys from team_product_quotas that reference old groups table
-ALTER TABLE team_product_quotas 
+-- First, remove FK constraints that reference the old tables
+-- Do this BEFORE dropping the old tables
+ALTER TABLE IF EXISTS team_product_quotas 
     DROP CONSTRAINT IF EXISTS team_product_quotas_team_id_fkey;
 
--- Drop foreign keys from user_groups that reference old groups table
-ALTER TABLE user_groups 
-    DROP CONSTRAINT IF EXISTS user_groups_group_id_fkey;
-
--- Drop old user_groups table
-DROP TABLE IF EXISTS user_groups CASCADE;
-
--- Drop old groups table
-DROP TABLE IF EXISTS groups CASCADE;
-
--- ============================================================
--- Step 5: Re-add foreign key constraints to new tables
--- ============================================================
-
+-- Update team_product_quotas to use new teams table
 ALTER TABLE team_product_quotas
     ADD CONSTRAINT team_product_quotas_team_id_fkey
     FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE CASCADE;
 
 -- ============================================================
--- Step 6: Update user_license_history to reference new teams table if needed
+-- Step 4: Drop old tables
 -- ============================================================
 
--- Update team_id references in user_license_history
--- (if team_id column exists and referenced old groups table)
+-- Drop old user_groups table first (it references groups)
+DROP TABLE IF EXISTS user_groups CASCADE;
+
+-- Drop old groups table
+DROP TABLE IF EXISTS groups CASCADE;
 
 -- ============================================================
 -- Step 7: Verify data integrity

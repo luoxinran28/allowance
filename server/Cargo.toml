@@ -71,14 +71,11 @@ axum-test = "15.3"
 
 # Development optimizations
 [profile.dev]
-# Enable debug info but optimize for compile time
-opt-level = 0
-debug = true
-# Faster linking
-lto = false
-codegen-units = 16
-# Better incremental compilation
-incremental = true
+debug = 1
+
+[profile.test]
+# Minimal debug info
+debug = 1
 
 [profile.release]
 # Keep release optimized for production

@@ -4,10 +4,12 @@ use axum::{
     http::{HeaderMap, StatusCode},
 };
 use serde::Serialize;
+use sqlx;
 
 use crate::models::{Team, UserTeam, AssignLicenseToTeamRequest};
-use crate::services::{TeamService, ProductService, UserGroupService};
+use crate::services::{TeamService, ProductService, UserGroupService, UserService};
 use crate::utils::{AppResult, AppError};
+use crate::utils::tier_helper::get_team_ids;
 use crate::handlers::auth::AuthHandler;
 
 #[derive(serde::Deserialize)]
@@ -52,6 +54,22 @@ pub async fn create_team(
     Json(req): Json<CreateTeamRequest>,
 ) -> AppResult<(StatusCode, Json<Team>)> {
     let user_id = extract_user_from_header(&state, &headers)?;
+
+    // Get user to check tier and permissions
+    let user = UserService::get_user(&state.pool, user_id).await?;
+
+    // Check permission: only Premium (org_boss) and Allstar (admin) can create teams
+    let team_ids = get_team_ids(user.team_ids.as_ref());
+    let ctx = crate::services::PermissionContext::new(
+        user_id,
+        user.tier.clone(),
+        user.organization_id,
+        team_ids,
+    );
+    
+    if !crate::services::PermissionService::can_create_team(&ctx) {
+        return Err(AppError::PermissionDenied);
+    }
 
     // If organization_id not provided, create a default organization for the user
     let org_id = if let Some(org_id) = req.organization_id {

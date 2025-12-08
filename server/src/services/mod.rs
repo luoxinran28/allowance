@@ -15,6 +15,8 @@ pub mod team_quota_service;
 pub mod free_user_service;
 pub mod license_history_service;
 pub mod user_group_service;
+pub mod permission_service;
+pub mod user_service;
 
 pub use auth_service::AuthService;
 pub use rbac_service::RbacService;
@@ -27,4 +29,5 @@ pub use team_quota_service::TeamQuotaService;
 pub use free_user_service::FreeUserService;
 pub use license_history_service::LicenseHistoryService;
 pub use user_group_service::UserGroupService;
-
+pub use permission_service::{PermissionService, PermissionContext};
+pub use user_service::UserService;

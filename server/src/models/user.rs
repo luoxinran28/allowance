@@ -51,6 +51,9 @@ pub enum UserTier {
     #[serde(rename = "premium")]
     #[sqlx(rename = "premium")]
     Premium,
+    #[serde(rename = "allstar")]
+    #[sqlx(rename = "allstar")]
+    Allstar,
 }
 
 impl std::str::FromStr for UserTier {
@@ -61,6 +64,7 @@ impl std::str::FromStr for UserTier {
             "free" => Ok(UserTier::Free),
             "standard" => Ok(UserTier::Standard),
             "premium" => Ok(UserTier::Premium),
+            "allstar" => Ok(UserTier::Allstar),
             _ => Err(format!("Unknown user tier: {}", s)),
         }
     }
@@ -72,6 +76,7 @@ impl std::fmt::Display for UserTier {
             UserTier::Free => write!(f, "free"),
             UserTier::Standard => write!(f, "standard"),
             UserTier::Premium => write!(f, "premium"),
+            UserTier::Allstar => write!(f, "allstar"),
         }
     }
 }
@@ -85,6 +90,10 @@ pub struct User {
     pub password_hash: String,
     pub tier: UserTier,
     pub status: UserStatus,
+    pub organization_id: Option<i64>,
+    pub team_ids: Option<serde_json::Value>,  // JSON array: [1, 2, 3]
+    pub license_status: Option<String>,       // valid, expired, not_assigned
+    pub source_upid: Option<String>,
     pub profile_data: Option<serde_json::Value>,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
