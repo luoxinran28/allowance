@@ -120,9 +120,7 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
   const { 
     hasPermission, 
     isAdmin, 
-    canManageOrganization,
-    isPremium,
-    isStandard
+    canManageOrganization
   } = usePermission();
 
   const isActive = (href: string): boolean => {

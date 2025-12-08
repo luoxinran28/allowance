@@ -1,22 +1,27 @@
 'use client';
 
-import { useAuthStore } from '@/lib/auth-store';
+import { usePermission } from '@/lib/hooks/usePermission';
 import Link from 'next/link';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Users, Package, Zap, AlertCircle } from 'lucide-react';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const { user } = useAuthStore();
+  const { isAdmin } = usePermission();
 
-  // In a real app, check admin permissions from API
-  const isAdmin = true; // TODO: implement permission checking
-
-  if (!isAdmin && user) {
+  if (!isAdmin()) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-        <p className="text-red-700 font-medium">Access Denied</p>
-        <p className="text-red-600 text-sm mt-2">You don&apos;t have permission to access the admin panel</p>
-        <Link href="/dashboard" className="text-blue-600 hover:underline mt-4 inline-block">
-          Back to Dashboard
-        </Link>
+      <div className="space-y-6">
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            <strong>Access Denied</strong> - You don't have permission to access the admin panel. Only administrators can access this area.
+          </AlertDescription>
+        </Alert>
+        <Button asChild>
+          <Link href="/dashboard">Back to Dashboard</Link>
+        </Button>
       </div>
     );
   }
@@ -25,17 +30,46 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
       {/* Sidebar */}
       <div className="lg:col-span-1">
-        <div className="bg-white rounded-lg shadow p-6 sticky top-4">
-          <h2 className="text-lg font-bold mb-4">Admin Menu</h2>
-          <nav className="space-y-2">
-            <Link
-              href="/admin/users"
-              className="block px-4 py-2 rounded hover:bg-blue-50 text-blue-600 font-medium"
-            >
-              Users
-            </Link>
-          </nav>
-        </div>
+        <Card className="sticky top-4">
+          <CardHeader>
+            <CardTitle className="text-lg">Administration</CardTitle>
+            <CardDescription>System management tools</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <nav className="space-y-2">
+              <Button
+                variant="ghost"
+                className="w-full justify-start gap-2"
+                asChild
+              >
+                <Link href="/admin/users">
+                  <Users className="h-4 w-4" />
+                  Users
+                </Link>
+              </Button>
+              <Button
+                variant="ghost"
+                className="w-full justify-start gap-2"
+                asChild
+              >
+                <Link href="/admin/products">
+                  <Package className="h-4 w-4" />
+                  Products
+                </Link>
+              </Button>
+              <Button
+                variant="ghost"
+                className="w-full justify-start gap-2"
+                asChild
+              >
+                <Link href="/admin/team-quotas">
+                  <Zap className="h-4 w-4" />
+                  Team Quotas
+                </Link>
+              </Button>
+            </nav>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Main Content */}

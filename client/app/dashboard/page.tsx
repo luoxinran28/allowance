@@ -3,12 +3,13 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { apiClient } from '@/lib/api-client';
+import { usePermission } from '@/lib/hooks/usePermission';
 import { User, UserLicense } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { Loader2, AlertCircle, Lock, Zap, Star } from 'lucide-react';
 
 interface DashboardData {
   user: User | null;
@@ -26,6 +27,7 @@ export default function DashboardPage() {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const { canManageOrganization, isPremium, isAdmin } = usePermission();
 
   useEffect(() => {
     const loadDashboardData = async () => {
@@ -85,6 +87,9 @@ export default function DashboardPage() {
 
   const activeLicenses = data.licenses.filter(l => !l.revoked_at && new Date(l.expires_at) > new Date()).length;
 
+  // Determine if user should see upgrade suggestions
+  const showPremiumUpgrade = data.user?.tier === 'free' || data.user?.tier === 'standard';
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -92,6 +97,19 @@ export default function DashboardPage() {
         <h1 className="text-3xl font-bold tracking-tight">Welcome back, {data.user?.email?.split('@')[0]}!</h1>
         <p className="text-muted-foreground mt-2">Here's an overview of your account</p>
       </div>
+
+      {/* Permission Alerts */}
+      {showPremiumUpgrade && canManageOrganization() === false && (
+        <Alert>
+          <Zap className="h-4 w-4" />
+          <AlertDescription>
+            <strong>Unlock Premium Features:</strong> Upgrade to Premium to access batch operations, team management, and organization control.{' '}
+            <Button variant="link" className="h-auto p-0 ml-1" asChild>
+              <Link href="/dashboard/billing">View plans →</Link>
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -168,9 +186,16 @@ export default function DashboardPage() {
             <CardDescription>Collaborate with team members on licenses</CardDescription>
           </CardHeader>
           <CardContent>
-            <Button asChild>
-              <Link href="/dashboard/teams">Create Team</Link>
-            </Button>
+            {data.user?.tier === 'free' ? (
+              <Button disabled variant="outline" className="w-full">
+                <Lock className="h-4 w-4 mr-2" />
+                Premium feature
+              </Button>
+            ) : (
+              <Button asChild>
+                <Link href="/dashboard/teams">Create Team</Link>
+              </Button>
+            )}
           </CardContent>
         </Card>
 
@@ -198,6 +223,57 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Premium & Admin Features */}
+      {isPremium() && (
+        <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950 dark:border-blue-800">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Zap className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              Premium Features
+            </CardTitle>
+            <CardDescription>You have access to advanced license management tools</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Button variant="outline" asChild className="justify-start">
+                <Link href="/dashboard/batch/generate">Generate Batch Licenses</Link>
+              </Button>
+              <Button variant="outline" asChild className="justify-start">
+                <Link href="/dashboard/batch/revoke">Revoke Licenses</Link>
+              </Button>
+              <Button variant="outline" asChild className="justify-start">
+                <Link href="/dashboard/batch/export">Export Licenses</Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {isAdmin() && (
+        <Card className="border-amber-200 bg-amber-50 dark:bg-amber-950 dark:border-amber-800">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Star className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+              Administrator Panel
+            </CardTitle>
+            <CardDescription>You have full system administration access</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Button variant="outline" asChild className="justify-start">
+                <Link href="/admin/users">Manage Users</Link>
+              </Button>
+              <Button variant="outline" asChild className="justify-start">
+                <Link href="/admin/products">Manage Products</Link>
+              </Button>
+              <Button variant="outline" asChild className="justify-start">
+                <Link href="/admin/team-quotas">Team Quotas</Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Recent Licenses */}
       {data.licenses.length > 0 && (

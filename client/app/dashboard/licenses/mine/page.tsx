@@ -4,7 +4,13 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiClient } from '@/lib/api-client';
 import { useAuth } from '@/lib/hooks/useAuth';
-import { StatusBadge } from '@/components/common/StatusBadge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Copy, Download, AlertCircle } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
 interface License {
   id: number;
@@ -47,7 +53,6 @@ export default function MyLicensesPage() {
   const [summary, setSummary] = useState<LicenseSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedTab, setSelectedTab] = useState<'all' | 'active' | 'expiring' | 'expired'>('all');
 
   // Fetch licenses
   useEffect(() => {
@@ -80,10 +85,10 @@ export default function MyLicensesPage() {
   }, [isAuthenticated, router]);
 
   // Filter licenses based on tab
-  const getFilteredLicenses = () => {
+  const getFilteredLicenses = (tab: 'all' | 'active' | 'expiring' | 'expired') => {
     const now = new Date();
 
-    switch (selectedTab) {
+    switch (tab) {
       case 'active':
         return licenses.filter((l) => l.status === 'active');
       case 'expiring':
@@ -97,13 +102,6 @@ export default function MyLicensesPage() {
       default:
         return licenses;
     }
-  };
-
-  const filteredLicenses = getFilteredLicenses();
-
-  const handleCopyToClipboard = (upid: string) => {
-    navigator.clipboard.writeText(upid);
-    alert('Product UPID copied to clipboard!');
   };
 
   const handleDownloadCertificate = (license: License) => {
@@ -127,166 +125,197 @@ ${license.monthly_limit ? `Monthly Limit: ${license.monthly_limit}` : 'Monthly L
   };
 
   if (!isAuthenticated) {
-    return <div className="text-center py-8">Loading...</div>;
+    return (
+      <div className="flex justify-center items-center h-96">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
   }
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold">My Licenses</h1>
-        <p className="text-gray-600 mt-1">View and manage your assigned product licenses</p>
+        <h1 className="text-3xl font-bold tracking-tight">My Licenses</h1>
+        <p className="text-muted-foreground mt-2">View and manage your assigned product licenses</p>
       </div>
 
       {/* Summary Cards */}
       {summary && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-white p-4 rounded shadow">
-            <div className="text-sm text-gray-600">Total Licenses</div>
-            <div className="text-3xl font-bold text-gray-900">{summary.total_licenses}</div>
-          </div>
-          <div className="bg-white p-4 rounded shadow">
-            <div className="text-sm text-gray-600">Active</div>
-            <div className="text-3xl font-bold text-green-600">{summary.active_count}</div>
-          </div>
-          <div className="bg-white p-4 rounded shadow">
-            <div className="text-sm text-gray-600">Expiring Soon</div>
-            <div className="text-3xl font-bold text-yellow-600">{summary.expiring_soon_count}</div>
-          </div>
-          <div className="bg-white p-4 rounded shadow">
-            <div className="text-sm text-gray-600">Expired</div>
-            <div className="text-3xl font-bold text-gray-600">{summary.expired_count}</div>
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Total Licenses</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{summary.total_licenses}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-green-600">Active</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{summary.active_count}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-yellow-600">Expiring Soon</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{summary.expiring_soon_count}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Expired</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{summary.expired_count}</div>
+            </CardContent>
+          </Card>
         </div>
       )}
 
       {/* Error Alert */}
       {error && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded text-red-700">
-          {error}
-        </div>
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       )}
 
       {/* Tabs */}
-      <div className="bg-white border-b">
-        <div className="flex gap-8 px-6">
-          {(['all', 'active', 'expiring', 'expired'] as const).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setSelectedTab(tab)}
-              className={`py-4 font-medium text-sm border-b-2 ${
-                selectedTab === tab
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
-            </button>
-          ))}
-        </div>
-      </div>
+      {!loading && (
+        <Tabs defaultValue="all" className="w-full">
+          <TabsList>
+            <TabsTrigger value="all">All Licenses</TabsTrigger>
+            <TabsTrigger value="active">Active ({licenses.filter(l => l.status === 'active').length})</TabsTrigger>
+            <TabsTrigger value="expiring">Expiring ({getFilteredLicenses('expiring').length})</TabsTrigger>
+            <TabsTrigger value="expired">Expired ({getFilteredLicenses('expired').length})</TabsTrigger>
+          </TabsList>
+
+          {['all', 'active', 'expiring', 'expired'].map((tabValue) => {
+            const filteredLicenses = getFilteredLicenses(tabValue as 'all' | 'active' | 'expiring' | 'expired');
+            return (
+            <TabsContent key={tabValue} value={tabValue} className="space-y-6">
+              {filteredLicenses.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {filteredLicenses.map((license) => {
+                    const expiresDate = new Date(license.expires_at);
+                    const now = new Date();
+                    const daysLeft = Math.ceil((expiresDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+                    const isExpired = daysLeft < 0;
+                    const isExpiringSoon = daysLeft > 0 && daysLeft <= 30;
+
+                    return (
+                      <Card key={license.id} className={isExpired ? 'opacity-75' : ''}>
+                        <CardHeader className="pb-3">
+                          <div className="flex justify-between items-start gap-2">
+                            <div className="flex-1 min-w-0">
+                              <CardDescription>Product UPID</CardDescription>
+                              <code className="block text-sm font-mono font-bold break-all">
+                                {license.product_upid}
+                              </code>
+                            </div>
+                            <Badge variant={
+                              license.status === 'active' && !isExpired ? 'default' : 
+                              isExpiringSoon ? 'secondary' : 'destructive'
+                            }>
+                              {isExpired ? 'Expired' : isExpiringSoon ? 'Expiring' : 'Active'}
+                            </Badge>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          {/* Expiration Info */}
+                          <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                              <p className="text-muted-foreground text-xs">Issued</p>
+                              <p className="font-medium">{new Date(license.created_at).toLocaleDateString()}</p>
+                            </div>
+                            <div>
+                              <p className="text-muted-foreground text-xs">Expires</p>
+                              <p className={`font-medium ${isExpired ? 'text-red-600' : isExpiringSoon ? 'text-yellow-600' : ''}`}>
+                                {expiresDate.toLocaleDateString()}
+                              </p>
+                              {daysLeft >= 0 && license.status === 'active' && !isExpired && (
+                                <p className="text-xs text-muted-foreground">{daysLeft} days left</p>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Usage Limits */}
+                          <div className="bg-muted p-3 rounded space-y-1 text-sm">
+                            <p className="text-xs font-semibold">Usage Limits</p>
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Daily:</span>
+                              <span className="font-medium">
+                                {license.daily_limit ? `${license.daily_limit}` : 'Unlimited'}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Monthly:</span>
+                              <span className="font-medium">
+                                {license.monthly_limit ? `${license.monthly_limit}` : 'Unlimited'}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Actions */}
+                          <div className="flex gap-2 pt-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="flex-1 gap-1"
+                              onClick={() => {
+                                navigator.clipboard.writeText(license.product_upid);
+                                alert('Copied to clipboard!');
+                              }}
+                            >
+                              <Copy className="h-4 w-4" />
+                              Copy
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="flex-1 gap-1"
+                              onClick={() => handleDownloadCertificate(license)}
+                            >
+                              <Download className="h-4 w-4" />
+                              Download
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              ) : (
+                <Card>
+                  <CardContent className="pt-8 text-center">
+                    <p className="text-muted-foreground">
+                      {licenses.length === 0 
+                        ? 'No licenses yet. Contact your organization to request one.' 
+                        : 'No licenses in this category.'}
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
+            );
+          })}
+        </Tabs>
+      )}
 
       {/* Loading State */}
       {loading && (
-        <div className="text-center py-8 text-gray-600">Loading licenses...</div>
-      )}
-
-      {/* Licenses Grid */}
-      {!loading && (
-        <>
-          {filteredLicenses.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {filteredLicenses.map((license) => {
-                const expiresDate = new Date(license.expires_at);
-                const now = new Date();
-                const daysLeft = Math.ceil((expiresDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-
-                return (
-                  <div
-                    key={license.id}
-                    className="bg-white border border-gray-200 rounded-lg shadow hover:shadow-lg transition-shadow p-6 space-y-4"
-                  >
-                    {/* Header */}
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <div className="text-sm text-gray-600">Product UPID</div>
-                        <code className="block text-xl font-mono font-bold text-gray-900 mt-1">
-                          {license.product_upid}
-                        </code>
-                      </div>
-                      <StatusBadge status={license.status} />
-                    </div>
-
-                    {/* Dates */}
-                    <div className="grid grid-cols-2 gap-4 py-3 border-y">
-                      <div>
-                        <div className="text-xs text-gray-600">Issued</div>
-                        <div className="font-medium">
-                          {new Date(license.created_at).toLocaleDateString()}
-                        </div>
-                      </div>
-                      <div>
-                        <div className="text-xs text-gray-600">Expires</div>
-                        <div className={`font-medium ${daysLeft < 0 ? 'text-red-600' : daysLeft < 7 ? 'text-orange-600' : ''}`}>
-                          {expiresDate.toLocaleDateString()}
-                          {daysLeft >= 0 && license.status === 'active' && (
-                            <div className="text-xs text-gray-600">{daysLeft} days left</div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Limits */}
-                    <div className="bg-gray-50 p-3 rounded">
-                      <div className="text-xs font-semibold text-gray-700 mb-2">Usage Limits</div>
-                      <div className="space-y-1 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Daily:</span>
-                          <span className="font-medium">
-                            {license.daily_limit ? `${license.daily_limit} requests` : 'Unlimited'}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Monthly:</span>
-                          <span className="font-medium">
-                            {license.monthly_limit ? `${license.monthly_limit} requests` : 'Unlimited'}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex gap-2 pt-2">
-                      <button
-                        onClick={() => handleCopyToClipboard(license.product_upid)}
-                        className="flex-1 px-3 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded border border-blue-200"
-                      >
-                        Copy UPID
-                      </button>
-                      <button
-                        onClick={() => handleDownloadCertificate(license)}
-                        className="flex-1 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded border border-gray-300"
-                      >
-                        Download
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="text-center py-12 text-gray-600">
-              {licenses.length === 0 ? (
-                <div>
-                  <div className="text-4xl mb-2">📭</div>
-                  <p>No licenses yet. <a href="/dashboard/licenses/request" className="text-blue-600 hover:underline">Request a license</a></p>
-                </div>
-              ) : (
-                <p>No {selectedTab} licenses found.</p>
-              )}
-            </div>
-          )}
-        </>
+        <Card>
+          <CardContent className="pt-8 text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-3" />
+            <p className="text-muted-foreground">Loading licenses...</p>
+          </CardContent>
+        </Card>
       )}
     </div>
   );

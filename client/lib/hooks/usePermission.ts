@@ -75,7 +75,7 @@ export function usePermission() {
     // Check if user has a specific permission
     hasPermission: (permission: string): boolean => {
       // Admin (allstar) has everything
-      if (user?.tier === 'allstar') return true;
+      if ((user?.tier as string) === 'allstar') return true;
       // Check wildcard match
       if (tierPermissions.includes('admin:*')) return true;
       // Check specific permission
@@ -84,20 +84,28 @@ export function usePermission() {
 
     // Check if user has any of the permissions in the list
     hasAnyPermission: (permissionList: string[]): boolean => {
-      return permissionList.some((p) => this.hasPermission(p));
+      return permissionList.some((p) => {
+        if ((user?.tier as string) === 'allstar') return true;
+        if (tierPermissions.includes('admin:*')) return true;
+        return tierPermissions.includes(p);
+      });
     },
 
     // Check if user has all permissions in the list
     hasAllPermissions: (permissionList: string[]): boolean => {
-      return permissionList.every((p) => this.hasPermission(p));
+      return permissionList.every((p) => {
+        if ((user?.tier as string) === 'allstar') return true;
+        if (tierPermissions.includes('admin:*')) return true;
+        return tierPermissions.includes(p);
+      });
     },
 
     // Tier-based checks
-    isFree: (): boolean => user?.tier === 'free',
-    isStandard: (): boolean => user?.tier === 'standard',
-    isPremium: (): boolean => user?.tier === 'premium',
-    isAllstar: (): boolean => user?.tier === 'allstar',
-    isAdmin: (): boolean => user?.tier === 'allstar',
+    isFree: (): boolean => (user?.tier as string) === 'free',
+    isStandard: (): boolean => (user?.tier as string) === 'standard',
+    isPremium: (): boolean => (user?.tier as string) === 'premium',
+    isAllstar: (): boolean => (user?.tier as string) === 'allstar',
+    isAdmin: (): boolean => (user?.tier as string) === 'allstar',
 
     // Tier level comparison
     getTier: (): string => user?.tier || 'free',
@@ -127,32 +135,32 @@ export function usePermission() {
 
     // Sidebar visibility
     canAccessAdminSection: (): boolean => {
-      return user?.tier === 'allstar';
+      return (user?.tier as string) === 'allstar';
     },
 
     canAccessOrgLicenseSection: (): boolean => {
-      return ['premium', 'allstar'].includes(user?.tier || '');
+      return ['premium', 'allstar'].includes(user?.tier as string);
     },
 
     canAccessTeamManagement: (): boolean => {
-      return ['standard', 'premium', 'allstar'].includes(user?.tier || '');
+      return ['standard', 'premium', 'allstar'].includes(user?.tier as string);
     },
 
     // Resource operations
     canCreateTeam: (): boolean => {
-      return ['premium', 'allstar'].includes(user?.tier || '');
+      return ['premium', 'allstar'].includes(user?.tier as string);
     },
 
     canDeleteTeam: (): boolean => {
-      return ['premium', 'allstar'].includes(user?.tier || '');
+      return ['premium', 'allstar'].includes(user?.tier as string);
     },
 
     canAddTeamMember: (): boolean => {
-      return ['standard', 'premium', 'allstar'].includes(user?.tier || '');
+      return ['standard', 'premium', 'allstar'].includes(user?.tier as string);
     },
 
     canManageOrganization: (): boolean => {
-      return ['premium', 'allstar'].includes(user?.tier || '');
+      return ['premium', 'allstar'].includes(user?.tier as string);
     },
 
     // Get all user's permissions

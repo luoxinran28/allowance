@@ -3,6 +3,14 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { apiClient } from '@/lib/api-client';
+import { usePermission } from '@/lib/hooks/usePermission';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { AlertCircle, Loader2, Building2, Lock, Search } from 'lucide-react';
 
 interface Organization {
   id: string;
@@ -21,6 +29,7 @@ export default function OrganizationsPage() {
   const [formData, setFormData] = useState({ name: '', description: '' });
   const [isCreating, setIsCreating] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const { canManageOrganization } = usePermission();
 
   useEffect(() => {
     loadOrganizations();
@@ -77,156 +86,179 @@ export default function OrganizationsPage() {
   const totalPages = Math.ceil(total / pageSize);
 
   return (
-    <div>
-      <div className="mb-8 flex justify-between items-center">
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-3xl font-bold mb-2">Organizations</h1>
-          <p className="text-gray-600">Manage your organizations and team structures</p>
+          <h1 className="text-3xl font-bold tracking-tight">Organizations</h1>
+          <p className="text-muted-foreground mt-2">Manage your organizations and team structures</p>
         </div>
-        <button
-          onClick={() => setShowCreateForm(!showCreateForm)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-        >
-          {showCreateForm ? 'Cancel' : '+ Create Organization'}
-        </button>
+        {canManageOrganization() ? (
+          <Button onClick={() => setShowCreateForm(!showCreateForm)}>
+            {showCreateForm ? 'Cancel' : '+ Create Organization'}
+          </Button>
+        ) : (
+          <Button disabled variant="outline" className="gap-2">
+            <Lock className="h-4 w-4" />
+            Premium feature
+          </Button>
+        )}
       </div>
 
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
-          {error}
-        </div>
+      {/* Permission Alert */}
+      {!canManageOrganization() && (
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Organization creation requires Premium tier. You can still view and use organizations created by your team.
+          </AlertDescription>
+        </Alert>
       )}
 
-      {showCreateForm && (
-        <div className="bg-white rounded-lg shadow p-6 mb-8">
-          <h2 className="text-xl font-bold mb-4">Create New Organization</h2>
-          <form onSubmit={handleCreateOrg} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Organization Name
-              </label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="e.g., Acme Corporation"
-                required
-              />
-            </div>
+      {/* Error Alert */}
+      {error && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Description
-              </label>
-              <textarea
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="What does this organization do?"
-                rows={3}
-              />
-            </div>
+      {/* Create Form */}
+      {showCreateForm && canManageOrganization() && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Create New Organization</CardTitle>
+            <CardDescription>Set up a new organization to manage teams and licenses</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleCreateOrg} className="space-y-4">
+              <div>
+                <Label htmlFor="name">Organization Name *</Label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="e.g., Acme Corporation"
+                  required
+                />
+              </div>
 
-            <div className="flex gap-3">
-              <button
-                type="submit"
-                disabled={isCreating}
-                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400"
-              >
-                {isCreating ? 'Creating...' : 'Create Organization'}
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowCreateForm(false)}
-                className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        </div>
+              <div>
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="What does this organization do?"
+                  rows={3}
+                />
+              </div>
+
+              <div className="flex gap-3">
+                <Button type="submit" disabled={isCreating}>
+                  {isCreating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                  {isCreating ? 'Creating...' : 'Create Organization'}
+                </Button>
+                <Button type="button" variant="outline" onClick={() => setShowCreateForm(false)}>
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
       )}
 
       {/* Search Bar */}
-      <div className="mb-6">
-        <input
-          type="text"
+      <div className="relative">
+        <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+        <Input
           placeholder="Search organizations..."
           value={searchQuery}
           onChange={(e) => handleSearch(e.target.value)}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="pl-10"
         />
       </div>
 
+      {/* Organizations Grid */}
       {loading ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-        </div>
+        <Card>
+          <CardContent className="pt-8 text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-3" />
+            <p className="text-muted-foreground">Loading organizations...</p>
+          </CardContent>
+        </Card>
       ) : orgs.length === 0 ? (
-        <div className="bg-white rounded-lg shadow p-12 text-center">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">No organizations</h3>
-          <p className="text-gray-600 mb-6">
-            {searchQuery ? 'No organizations match your search' : 'Create your first organization to get started'}
-          </p>
-          {!searchQuery && (
-            <button
-              onClick={() => setShowCreateForm(true)}
-              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
-            >
-              Create Organization
-            </button>
-          )}
-        </div>
+        <Card>
+          <CardContent className="pt-12 text-center">
+            <Building2 className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
+            <h3 className="text-lg font-semibold mb-2">No organizations</h3>
+            <p className="text-muted-foreground mb-6">
+              {searchQuery
+                ? 'No organizations match your search'
+                : canManageOrganization()
+                ? 'Create your first organization to get started'
+                : 'Organizations created by your team will appear here'}
+            </p>
+            {!searchQuery && canManageOrganization() && (
+              <Button onClick={() => setShowCreateForm(true)}>Create Organization</Button>
+            )}
+          </CardContent>
+        </Card>
       ) : (
         <>
-          <div className="grid gap-6">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {orgs.map((org) => (
-              <div
-                key={org.id}
-                className="bg-white rounded-lg shadow hover:shadow-lg transition p-6"
-              >
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="text-xl font-bold text-gray-900">{org.name}</h3>
-                    <p className="text-gray-600 text-sm mt-1">
-                      Created {new Date(org.created_at).toLocaleDateString()}
-                    </p>
+              <Card key={org.id} className="hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <CardTitle className="truncate">{org.name}</CardTitle>
+                      <CardDescription className="mt-1 text-xs">
+                        Created {new Date(org.created_at).toLocaleDateString()}
+                      </CardDescription>
+                    </div>
+                    <Building2 className="h-5 w-5 text-muted-foreground flex-shrink-0" />
                   </div>
-                  <Link
-                    href={`/dashboard/organizations/${org.id}`}
-                    className="bg-blue-100 text-blue-700 px-4 py-2 rounded hover:bg-blue-200 text-sm font-medium"
-                  >
-                    View Details
-                  </Link>
-                </div>
-              </div>
+                </CardHeader>
+                <CardContent>
+                  <Button asChild variant="outline" className="w-full">
+                    <Link href={`/dashboard/organizations/${org.id}`}>View Details →</Link>
+                  </Button>
+                </CardContent>
+              </Card>
             ))}
           </div>
 
+          {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between px-6 py-4 border-t bg-gray-50 mt-6 rounded-lg">
-              <div className="text-sm text-gray-600">
-                Page {page} of {totalPages} · Showing {(page - 1) * pageSize + 1}-
-                {Math.min(page * pageSize, total)} of {total}
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setPage(page - 1)}
-                  disabled={page === 1}
-                  className="px-3 py-1 rounded border border-gray-300 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-                >
-                  Previous
-                </button>
-                <button
-                  onClick={() => setPage(page + 1)}
-                  disabled={page === totalPages}
-                  className="px-3 py-1 rounded border border-gray-300 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-                >
-                  Next
-                </button>
-              </div>
-            </div>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-muted-foreground">
+                    Page {page} of {totalPages} · Showing {(page - 1) * pageSize + 1}-
+                    {Math.min(page * pageSize, total)} of {total}
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPage(page - 1)}
+                      disabled={page === 1}
+                    >
+                      Previous
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPage(page + 1)}
+                      disabled={page === totalPages}
+                    >
+                      Next
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           )}
         </>
       )}

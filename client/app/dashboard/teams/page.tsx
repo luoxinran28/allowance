@@ -3,6 +3,22 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { apiClient } from '@/lib/api-client';
+import { usePermission } from '@/lib/hooks/usePermission';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { AlertCircle, Loader2, Users, Lock } from 'lucide-react';
 
 interface Team {
   id: number;
@@ -26,6 +42,7 @@ export default function TeamsListPage() {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [formData, setFormData] = useState({ name: '', description: '', organization_id: '' });
   const [isCreating, setIsCreating] = useState(false);
+  const { canManageOrganization } = usePermission();
 
   useEffect(() => {
     loadTeams();
@@ -78,138 +95,152 @@ export default function TeamsListPage() {
   };
 
   return (
-    <div>
-      <div className="mb-8 flex justify-between items-center">
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-3xl font-bold mb-2">Teams</h1>
-          <p className="text-gray-600">Manage your teams and collaborate with members</p>
+          <h1 className="text-3xl font-bold tracking-tight">Teams</h1>
+          <p className="text-muted-foreground mt-2">Manage your teams and collaborate with members</p>
         </div>
-        <button
-          onClick={() => setShowCreateForm(!showCreateForm)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-        >
-          {showCreateForm ? 'Cancel' : '+ Create Team'}
-        </button>
+        {canManageOrganization() ? (
+          <Button onClick={() => setShowCreateForm(!showCreateForm)}>
+            {showCreateForm ? 'Cancel' : '+ Create Team'}
+          </Button>
+        ) : (
+          <Button disabled variant="outline" className="gap-2">
+            <Lock className="h-4 w-4" />
+            Premium feature
+          </Button>
+        )}
       </div>
 
+      {/* Permission Alert */}
+      {!canManageOrganization() && (
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Team creation requires Premium tier. You can still view and join existing teams.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Error Alert */}
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
-          {error}
-        </div>
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       )}
 
-      {showCreateForm && (
-        <div className="bg-white rounded-lg shadow p-6 mb-8">
-          <h2 className="text-xl font-bold mb-4">Create New Team</h2>
-          <form onSubmit={handleCreateTeam} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Organization *
-              </label>
-              <select
-                value={formData.organization_id}
-                onChange={(e) => setFormData({ ...formData, organization_id: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              >
-                <option value="">-- Select Organization --</option>
-                {organizations.map((org) => (
-                  <option key={org.id} value={org.id}>
-                    {org.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+      {/* Create Form */}
+      {showCreateForm && canManageOrganization() && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Create New Team</CardTitle>
+            <CardDescription>Set up a new team to collaborate with your members</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleCreateTeam} className="space-y-4">
+              <div>
+                <Label htmlFor="organization">Organization *</Label>
+                <Select value={formData.organization_id} onValueChange={(value) => setFormData({ ...formData, organization_id: value })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select an organization" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {organizations.map((org) => (
+                      <SelectItem key={org.id} value={org.id.toString()}>
+                        {org.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Team Name
-              </label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="e.g., Engineering Team"
-                required
-              />
-            </div>
+              <div>
+                <Label htmlFor="name">Team Name *</Label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="e.g., Engineering Team"
+                  required
+                />
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Description
-              </label>
-              <textarea
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="What's this team for?"
-                rows={3}
-              />
-            </div>
+              <div>
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="What's this team for?"
+                  rows={3}
+                />
+              </div>
 
-            <div className="flex gap-3">
-              <button
-                type="submit"
-                disabled={isCreating}
-                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400"
-              >
-                {isCreating ? 'Creating...' : 'Create Team'}
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowCreateForm(false)}
-                className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        </div>
+              <div className="flex gap-3">
+                <Button type="submit" disabled={isCreating}>
+                  {isCreating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                  {isCreating ? 'Creating...' : 'Create Team'}
+                </Button>
+                <Button type="button" variant="outline" onClick={() => setShowCreateForm(false)}>
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
       )}
 
+      {/* Teams Grid */}
       {loading ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-        </div>
+        <Card>
+          <CardContent className="pt-8 text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-3" />
+            <p className="text-muted-foreground">Loading teams...</p>
+          </CardContent>
+        </Card>
       ) : teams.length === 0 ? (
-        <div className="bg-white rounded-lg shadow p-12 text-center">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">No teams yet</h3>
-          <p className="text-gray-600 mb-6">Create your first team to get started</p>
-          <button
-            onClick={() => setShowCreateForm(true)}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
-          >
-            Create Team
-          </button>
-        </div>
+        <Card>
+          <CardContent className="pt-12 text-center">
+            <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
+            <h3 className="text-lg font-semibold mb-2">No teams yet</h3>
+            <p className="text-muted-foreground mb-6">
+              {canManageOrganization()
+                ? 'Create your first team to get started'
+                : 'Teams created by your organization will appear here'}
+            </p>
+            {canManageOrganization() && (
+              <Button onClick={() => setShowCreateForm(true)}>Create Team</Button>
+            )}
+          </CardContent>
+        </Card>
       ) : (
-        <div className="grid gap-6">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {teams.map((team) => {
             const org = organizations.find((o) => o.id === team.organization_id);
             return (
-              <div
-                key={team.id}
-                className="bg-white rounded-lg shadow hover:shadow-lg transition p-6"
-              >
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <h3 className="text-xl font-bold text-gray-900">{team.name}</h3>
-                    <p className="text-gray-600 text-sm mt-1">
-                      Organization: <span className="font-medium">{org?.name || `Org #${team.organization_id}`}</span>
-                    </p>
-                    <p className="text-gray-600 text-sm">
-                      Created {new Date(team.created_at).toLocaleDateString()}
-                    </p>
+              <Card key={team.id} className="hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <CardTitle className="truncate">{team.name}</CardTitle>
+                      <CardDescription className="mt-1">
+                        {org?.name || `Organization #${team.organization_id}`}
+                      </CardDescription>
+                    </div>
+                    <Badge variant="secondary">
+                      {new Date(team.created_at).toLocaleDateString()}
+                    </Badge>
                   </div>
-                  <Link
-                    href={`/dashboard/teams/${team.id}`}
-                    className="bg-blue-100 text-blue-700 px-4 py-2 rounded hover:bg-blue-200 text-sm font-medium whitespace-nowrap ml-4"
-                  >
-                    View Details
-                  </Link>
-                </div>
-              </div>
+                </CardHeader>
+                <CardContent>
+                  <Button asChild variant="outline" className="w-full">
+                    <Link href={`/dashboard/teams/${team.id}`}>View Details →</Link>
+                  </Button>
+                </CardContent>
+              </Card>
             );
           })}
         </div>
