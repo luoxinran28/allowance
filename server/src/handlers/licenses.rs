@@ -7,8 +7,11 @@ use sqlx::PgPool;
 
 use crate::middleware::auth::AuthClaims;
 use crate::models::LicenseResponse;
-use crate::services::ProductService;
+use crate::services::{ProductService, UserService, PermissionService};
 use crate::utils::AppResult;
+use crate::utils::errors::AppError;
+use crate::services::PermissionContext;
+use crate::utils::tier_helper::get_team_ids;
 
 #[derive(serde::Deserialize)]
 pub struct PaginationParams {
@@ -30,13 +33,28 @@ pub async fn get_user_licenses(
     Ok(Json(responses))
 }
 
-/// List all licenses with pagination (admin functionality)
+/// List all licenses with pagination (admin functionality - Premium/Allstar only)
 pub async fn list_licenses(
     State(state): State<Arc<LicenseHandler>>,
-    Query(params): Query<PaginationParams>,
+    AuthClaims(claims): AuthClaims,
 ) -> AppResult<Json<serde_json::Value>> {
-    let page = params.page.unwrap_or(1);
-    let page_size = params.page_size.unwrap_or(50);
+    let user_id = claims.user_id;
+
+    // Check permission: only Premium and Allstar can list all licenses
+    let user = UserService::get_user(&state.pool, user_id).await?;
+    if !PermissionService::can_manage_organization(
+        &PermissionContext::new(
+            user_id,
+            user.tier.clone(),
+            user.organization_id,
+            get_team_ids(user.team_ids.as_ref()),
+        ),
+    ) {
+        return Err(AppError::PermissionDenied);
+    }
+
+    let page = 1;
+    let page_size = 50;
     let offset = (page - 1) * page_size;
 
     // Query free user licenses with pagination

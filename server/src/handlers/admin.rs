@@ -6,8 +6,9 @@ use axum::{
 use serde::{Deserialize, Serialize};
 
 use crate::models::{UserResponse, User, CreateProductAdminRequest, GenerateLicensesRequest, OrgProductLicenseResponse};
-use crate::services::{AuthService, RbacService, ProductService};
+use crate::services::{AuthService, RbacService, ProductService, UserService};
 use crate::utils::{AppResult, AppError};
+use crate::utils::tier_helper::get_team_ids;
 use crate::handlers::auth::AuthHandler;
 
 #[derive(Deserialize)]
@@ -48,21 +49,18 @@ fn extract_user_from_header(state: &AuthHandler, headers: &HeaderMap) -> AppResu
     Ok(claims.user_id)
 }
 
-/// Check if user is admin
+/// Check if user is admin (Allstar tier)
 async fn check_admin_permission(
     state: &AuthHandler,
     user_id: i64,
 ) -> AppResult<()> {
-    let is_admin = RbacService::has_permission(
-        &state.pool,
-        user_id,
-        "admin:user_manage",
-    ).await?;
-
-    if !is_admin {
-        return Err(AppError::Forbidden);
+    let user = UserService::get_user(&state.pool, user_id).await?;
+    
+    // Only Allstar (admin) tier users can access admin functions
+    if user.tier != crate::models::user::UserTier::Allstar {
+        return Err(AppError::PermissionDenied);
     }
-
+    
     Ok(())
 }
 

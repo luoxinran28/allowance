@@ -7,10 +7,11 @@ use serde::Serialize;
 use sqlx;
 
 use crate::models::{Team, UserTeam, AssignLicenseToTeamRequest};
-use crate::services::{TeamService, ProductService, UserGroupService, UserService};
+use crate::services::{TeamService, ProductService, UserGroupService, UserService, PermissionService};
 use crate::utils::{AppResult, AppError};
 use crate::utils::tier_helper::get_team_ids;
 use crate::handlers::auth::AuthHandler;
+use crate::services::PermissionContext;
 
 #[derive(serde::Deserialize)]
 pub struct CreateTeamRequest {
@@ -119,7 +120,7 @@ pub async fn get_team(
     Ok(Json(team))
 }
 
-/// Add member to team
+/// Add member to team (Premium+ only)
 pub async fn add_member(
     State(state): State<Arc<AuthHandler>>,
     headers: HeaderMap,
@@ -127,6 +128,20 @@ pub async fn add_member(
     Json(req): Json<AddMemberRequest>,
 ) -> AppResult<Json<serde_json::Value>> {
     let user_id = extract_user_from_header(&state, &headers)?;
+
+    // Check permission: only Premium and Allstar can add members
+    let user = UserService::get_user(&state.pool, user_id).await?;
+    let team_ids = get_team_ids(user.team_ids.as_ref());
+    let ctx = PermissionContext::new(
+        user_id,
+        user.tier.clone(),
+        user.organization_id,
+        team_ids,
+    );
+    
+    if !PermissionService::can_manage_organization(&ctx) {
+        return Err(AppError::PermissionDenied);
+    }
 
     let role = req.role.as_deref().unwrap_or("member");
     TeamService::add_member(&state.pool, req.user_id, team_id, role, req.product_upids, user_id).await?;
@@ -146,13 +161,27 @@ pub async fn list_members(
     Ok(Json(members))
 }
 
-/// Remove member from team
+/// Remove member from team (Premium+ only)
 pub async fn remove_member(
     State(state): State<Arc<AuthHandler>>,
     headers: HeaderMap,
     Path((team_id, user_id)): Path<(i64, i64)>,
 ) -> AppResult<Json<serde_json::Value>> {
     let requester_id = extract_user_from_header(&state, &headers)?;
+
+    // Check permission: only Premium and Allstar can remove members
+    let user = UserService::get_user(&state.pool, requester_id).await?;
+    let team_ids = get_team_ids(user.team_ids.as_ref());
+    let ctx = PermissionContext::new(
+        requester_id,
+        user.tier.clone(),
+        user.organization_id,
+        team_ids,
+    );
+    
+    if !PermissionService::can_manage_organization(&ctx) {
+        return Err(AppError::PermissionDenied);
+    }
 
     TeamService::remove_member(&state.pool, user_id, team_id, requester_id).await?;
 
@@ -162,14 +191,28 @@ pub async fn remove_member(
     })))
 }
 
-/// Update member role
+/// Update member role (Premium+ only)
 pub async fn update_member_role(
     State(state): State<Arc<AuthHandler>>,
     headers: HeaderMap,
     Path((team_id, user_id)): Path<(i64, i64)>,
     Json(req): Json<UpdateMemberRoleRequest>,
 ) -> AppResult<Json<serde_json::Value>> {
-    let _requester_id = extract_user_from_header(&state, &headers)?;
+    let requester_id = extract_user_from_header(&state, &headers)?;
+
+    // Check permission: only Premium and Allstar can update member roles
+    let user = UserService::get_user(&state.pool, requester_id).await?;
+    let team_ids = get_team_ids(user.team_ids.as_ref());
+    let ctx = PermissionContext::new(
+        requester_id,
+        user.tier.clone(),
+        user.organization_id,
+        team_ids,
+    );
+    
+    if !PermissionService::can_manage_organization(&ctx) {
+        return Err(AppError::PermissionDenied);
+    }
 
     TeamService::update_member_role(&state.pool, user_id, team_id, &req.role).await?;
 

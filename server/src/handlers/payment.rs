@@ -7,8 +7,10 @@ use serde_json::json;
 use sqlx::PgPool;
 
 use crate::models::payment::*;
-use crate::services::{PaymentService, StripeService};
+use crate::services::{PaymentService, StripeService, UserService, PermissionService};
 use crate::utils::{AppResult, AppError};
+use crate::services::PermissionContext;
+use crate::utils::tier_helper::get_team_ids;
 
 pub struct PaymentHandler {
     pub pool: Arc<PgPool>,
@@ -31,13 +33,26 @@ fn extract_user_from_header(state: &PaymentHandler, headers: &HeaderMap) -> AppR
     Ok(claims.user_id)
 }
 
-/// Create a payment intent for subscription upgrade
+/// Create a payment intent for subscription upgrade (Standard+ required)
 pub async fn create_payment_intent(
     State(state): State<Arc<PaymentHandler>>,
     headers: HeaderMap,
     Json(req): Json<CreatePaymentIntentRequest>,
 ) -> AppResult<Json<PaymentIntentResponse>> {
     let user_id = extract_user_from_header(&state, &headers)?;
+
+    // Check permission: Standard, Premium, and Allstar can create payment intents
+    let user = UserService::get_user(&state.pool, user_id).await?;
+    if !PermissionService::can_manage_organization(
+        &PermissionContext::new(
+            user_id,
+            user.tier.clone(),
+            user.organization_id,
+            get_team_ids(user.team_ids.as_ref()),
+        ),
+    ) {
+        return Err(AppError::PermissionDenied);
+    }
 
     // Get pricing for tier
     let (amount, _) = match req.product_tier.as_str() {

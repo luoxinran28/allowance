@@ -7,8 +7,9 @@ use serde::Deserialize;
 use sqlx::Row;
 
 use crate::models::Organization;
-use crate::services::OrganizationService;
+use crate::services::{OrganizationService, UserService};
 use crate::utils::{AppResult, AppError};
+use crate::utils::tier_helper::get_team_ids;
 use crate::handlers::auth::AuthHandler;
 
 #[derive(Deserialize)]
@@ -50,13 +51,26 @@ fn extract_user_from_header(state: &AuthHandler, headers: &HeaderMap) -> AppResu
     Ok(claims.user_id)
 }
 
-/// Create new organization
+/// Create new organization (Premium/Allstar only)
 pub async fn create_organization(
     State(state): State<Arc<AuthHandler>>,
     headers: HeaderMap,
     Json(req): Json<CreateOrganizationRequest>,
 ) -> AppResult<(axum::http::StatusCode, Json<Organization>)> {
     let user_id = extract_user_from_header(&state, &headers)?;
+
+    // Check permission: only Premium and Allstar can create organizations
+    let user = UserService::get_user(&state.pool, user_id).await?;
+    if !crate::services::PermissionService::can_create_team(
+        &crate::services::PermissionContext::new(
+            user_id,
+            user.tier.clone(),
+            user.organization_id,
+            get_team_ids(user.team_ids.as_ref()),
+        ),
+    ) {
+        return Err(AppError::PermissionDenied);
+    }
 
     let org = OrganizationService::create_organization(
         &state.pool,

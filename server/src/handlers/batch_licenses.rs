@@ -1,11 +1,17 @@
 use axum::{
     extract::{State, Json},
     response::IntoResponse,
-    http::StatusCode,
+    http::{StatusCode, HeaderMap},
 };
 use serde::{Deserialize, Serialize};
 use chrono::Utc;
 use std::sync::Arc;
+use sqlx::PgPool;
+
+use crate::services::{UserService, PermissionService};
+use crate::utils::AppError;
+use crate::services::PermissionContext;
+use crate::utils::tier_helper::get_team_ids;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BatchLicenseRequest {
@@ -38,11 +44,67 @@ pub struct BatchLicenseItem {
     pub expires_at: String,
 }
 
-/// Generate batch licenses for bulk operations
+/// Generate batch licenses for bulk operations (Premium/Allstar only)
 pub async fn generate_batch_licenses(
-    State(_state): State<Arc<crate::handlers::auth::AuthHandler>>,
+    State(state): State<Arc<crate::handlers::auth::AuthHandler>>,
+    headers: HeaderMap,
     Json(req): Json<BatchLicenseRequest>,
 ) -> impl IntoResponse {
+    // Extract and check admin permission
+    let auth_header = match headers
+        .get("authorization")
+        .and_then(|h| h.to_str().ok()) {
+        Some(header) => header,
+        None => return (
+            StatusCode::UNAUTHORIZED,
+            Json(serde_json::json!({"error": "Missing authorization header"})),
+        )
+            .into_response(),
+    };
+
+    if !auth_header.starts_with("Bearer ") {
+        return (
+            StatusCode::UNAUTHORIZED,
+            Json(serde_json::json!({"error": "Invalid authorization header"})),
+        )
+            .into_response();
+    }
+
+    let token = &auth_header[7..];
+    let claims = match state.jwt.verify_token(token) {
+        Ok(claims) => claims,
+        Err(_) => return (
+            StatusCode::UNAUTHORIZED,
+            Json(serde_json::json!({"error": "Invalid token"})),
+        )
+            .into_response(),
+    };
+
+    // Check permission: only Premium and Allstar can generate batch licenses
+    let user = match UserService::get_user(&state.pool, claims.user_id).await {
+        Ok(user) => user,
+        Err(_) => return (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(serde_json::json!({"error": "Failed to fetch user"})),
+        )
+            .into_response(),
+    };
+
+    if !PermissionService::can_manage_organization(
+        &PermissionContext::new(
+            claims.user_id,
+            user.tier.clone(),
+            user.organization_id,
+            get_team_ids(user.team_ids.as_ref()),
+        ),
+    ) {
+        return (
+            StatusCode::FORBIDDEN,
+            Json(serde_json::json!({"error": "Permission denied"})),
+        )
+            .into_response();
+    }
+
     // Validation
     if req.quantity <= 0 || req.quantity > 10000 {
         return (
@@ -97,11 +159,67 @@ pub async fn generate_batch_licenses(
     (StatusCode::OK, Json(response)).into_response()
 }
 
-/// Revoke batch licenses
+/// Revoke batch licenses (Premium/Allstar only)
 pub async fn revoke_batch_licenses(
-    State(_state): State<Arc<crate::handlers::auth::AuthHandler>>,
+    State(state): State<Arc<crate::handlers::auth::AuthHandler>>,
+    headers: HeaderMap,
     Json(req): Json<Vec<String>>,
 ) -> impl IntoResponse {
+    // Extract and check admin permission
+    let auth_header = match headers
+        .get("authorization")
+        .and_then(|h| h.to_str().ok()) {
+        Some(header) => header,
+        None => return (
+            StatusCode::UNAUTHORIZED,
+            Json(serde_json::json!({"error": "Missing authorization header"})),
+        )
+            .into_response(),
+    };
+
+    if !auth_header.starts_with("Bearer ") {
+        return (
+            StatusCode::UNAUTHORIZED,
+            Json(serde_json::json!({"error": "Invalid authorization header"})),
+        )
+            .into_response();
+    }
+
+    let token = &auth_header[7..];
+    let claims = match state.jwt.verify_token(token) {
+        Ok(claims) => claims,
+        Err(_) => return (
+            StatusCode::UNAUTHORIZED,
+            Json(serde_json::json!({"error": "Invalid token"})),
+        )
+            .into_response(),
+    };
+
+    // Check permission: only Premium and Allstar can revoke batch licenses
+    let user = match UserService::get_user(&state.pool, claims.user_id).await {
+        Ok(user) => user,
+        Err(_) => return (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(serde_json::json!({"error": "Failed to fetch user"})),
+        )
+            .into_response(),
+    };
+
+    if !PermissionService::can_manage_organization(
+        &PermissionContext::new(
+            claims.user_id,
+            user.tier.clone(),
+            user.organization_id,
+            get_team_ids(user.team_ids.as_ref()),
+        ),
+    ) {
+        return (
+            StatusCode::FORBIDDEN,
+            Json(serde_json::json!({"error": "Permission denied"})),
+        )
+            .into_response();
+    }
+
     if req.is_empty() || req.len() > 10000 {
         return (
             StatusCode::BAD_REQUEST,
@@ -119,7 +237,7 @@ pub async fn revoke_batch_licenses(
         .bind("revoked")
         .bind(Utc::now())
         .bind(&license_key)
-        .execute(&*_state.pool)
+        .execute(&*state.pool)
         .await;
 
         if result.is_ok() {
@@ -146,13 +264,69 @@ pub struct LicenseExportRequest {
 }
 
 pub async fn export_batch_licenses(
-    State(_state): State<Arc<crate::handlers::auth::AuthHandler>>,
+    State(state): State<Arc<crate::handlers::auth::AuthHandler>>,
+    headers: HeaderMap,
     Json(req): Json<LicenseExportRequest>,
 ) -> impl IntoResponse {
+    // Extract and check admin permission
+    let auth_header = match headers
+        .get("authorization")
+        .and_then(|h| h.to_str().ok()) {
+        Some(header) => header,
+        None => return (
+            StatusCode::UNAUTHORIZED,
+            Json(serde_json::json!({"error": "Missing authorization header"})),
+        )
+            .into_response(),
+    };
+
+    if !auth_header.starts_with("Bearer ") {
+        return (
+            StatusCode::UNAUTHORIZED,
+            Json(serde_json::json!({"error": "Invalid authorization header"})),
+        )
+            .into_response();
+    }
+
+    let token = &auth_header[7..];
+    let claims = match state.jwt.verify_token(token) {
+        Ok(claims) => claims,
+        Err(_) => return (
+            StatusCode::UNAUTHORIZED,
+            Json(serde_json::json!({"error": "Invalid token"})),
+        )
+            .into_response(),
+    };
+
+    // Check permission: only Premium and Allstar can export batch licenses
+    let user = match UserService::get_user(&state.pool, claims.user_id).await {
+        Ok(user) => user,
+        Err(_) => return (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(serde_json::json!({"error": "Failed to fetch user"})),
+        )
+            .into_response(),
+    };
+
+    if !PermissionService::can_manage_organization(
+        &PermissionContext::new(
+            claims.user_id,
+            user.tier.clone(),
+            user.organization_id,
+            get_team_ids(user.team_ids.as_ref()),
+        ),
+    ) {
+        return (
+            StatusCode::FORBIDDEN,
+            Json(serde_json::json!({"error": "Permission denied"})),
+        )
+            .into_response();
+    }
+
     let query = build_export_query(&req);
 
     match sqlx::query_as::<_, (String, String, String)>(&query)
-        .fetch_all(&*_state.pool)
+        .fetch_all(&*state.pool)
         .await
     {
         Ok(licenses) => {

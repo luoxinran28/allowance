@@ -1,6 +1,6 @@
 use axum::{
     extract::{Path, State},
-    http::StatusCode,
+    http::{StatusCode, HeaderMap},
     Json,
 };
 use serde::{Deserialize, Serialize};
@@ -8,8 +8,10 @@ use std::sync::Arc;
 use sqlx::Row;
 
 use crate::models::TeamQuotaResponse;
-use crate::services::team_quota_service::TeamQuotaService;
+use crate::services::{team_quota_service::TeamQuotaService, UserService};
 use crate::utils::errors::AppResult;
+use crate::utils::tier_helper::get_team_ids;
+use crate::utils::AppError;
 use crate::handlers::auth::AuthHandler;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -32,11 +34,39 @@ pub async fn list_team_quotas(
     Ok(Json(quotas))
 }
 
-/// Allocate quota to a team for a product
+/// Allocate quota to a team for a product (Premium/Allstar only)
 pub async fn allocate_quota(
     State(state): State<Arc<AuthHandler>>,
+    headers: HeaderMap,
     Json(req): Json<AllocateQuotaRequest>,
 ) -> AppResult<(StatusCode, Json<TeamQuotaResponse>)> {
+    // Extract and check admin permission (Premium+ can manage quotas)
+    let auth_header = headers
+        .get("authorization")
+        .and_then(|h| h.to_str().ok())
+        .ok_or(AppError::Unauthorized)?;
+
+    if !auth_header.starts_with("Bearer ") {
+        return Err(AppError::Unauthorized);
+    }
+
+    let token = &auth_header[7..];
+    let claims = state.jwt.verify_token(token)?;
+    let user_id = claims.user_id;
+
+    // Check permission: only Premium and Allstar can allocate quotas
+    let user = UserService::get_user(&state.pool, user_id).await?;
+    if !crate::services::PermissionService::can_manage_organization(
+        &crate::services::PermissionContext::new(
+            user_id,
+            user.tier.clone(),
+            user.organization_id,
+            get_team_ids(user.team_ids.as_ref()),
+        ),
+    ) {
+        return Err(AppError::PermissionDenied);
+    }
+
     // Get product_id from upid
     let product_id: i64 = sqlx::query_scalar("SELECT id FROM products WHERE upid = $1")
         .bind(&req.product_upid)
@@ -60,12 +90,40 @@ pub async fn allocate_quota(
     Ok((StatusCode::CREATED, Json(quota_info)))
 }
 
-/// Update team quota
+/// Update team quota (Premium/Allstar only)
 pub async fn update_quota(
     State(state): State<Arc<AuthHandler>>,
+    headers: HeaderMap,
     Path((team_id, product_upid)): Path<(i64, String)>,
     Json(req): Json<UpdateQuotaRequest>,
 ) -> AppResult<Json<TeamQuotaResponse>> {
+    // Extract and check admin permission
+    let auth_header = headers
+        .get("authorization")
+        .and_then(|h| h.to_str().ok())
+        .ok_or(AppError::Unauthorized)?;
+
+    if !auth_header.starts_with("Bearer ") {
+        return Err(AppError::Unauthorized);
+    }
+
+    let token = &auth_header[7..];
+    let claims = state.jwt.verify_token(token)?;
+    let user_id = claims.user_id;
+
+    // Check permission: only Premium and Allstar can update quotas
+    let user = UserService::get_user(&state.pool, user_id).await?;
+    if !crate::services::PermissionService::can_manage_organization(
+        &crate::services::PermissionContext::new(
+            user_id,
+            user.tier.clone(),
+            user.organization_id,
+            get_team_ids(user.team_ids.as_ref()),
+        ),
+    ) {
+        return Err(AppError::PermissionDenied);
+    }
+
     // Get product_id from upid
     let product_id: i64 = sqlx::query_scalar("SELECT id FROM products WHERE upid = $1")
         .bind(&product_upid)
