@@ -69,7 +69,7 @@ const licenseNavItems: NavItem[] = [
     href: '/dashboard/licenses/assign',
     label: 'Assign Licenses',
     icon: <Users className="h-4 w-4" />,
-    requiredPermission: 'team:manage',
+    requiredPermission: 'license:manage', // Premium+ only
   },
 ];
 
@@ -78,16 +78,19 @@ const batchNavItems: NavItem[] = [
     href: '/dashboard/batch/generate',
     label: 'Generate Licenses',
     icon: <Zap className="h-4 w-4" />,
+    requiredPermission: 'license:manage', // Premium+ only
   },
   {
     href: '/dashboard/batch/revoke',
     label: 'Revoke Licenses',
     icon: <XCircle className="h-4 w-4" />,
+    requiredPermission: 'license:manage', // Premium+ only
   },
   {
     href: '/dashboard/batch/export',
     label: 'Export Licenses',
     icon: <Download className="h-4 w-4" />,
+    requiredPermission: 'license:manage', // Premium+ only
   },
 ];
 
@@ -114,7 +117,13 @@ const adminNavItems: NavItem[] = [
 
 export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
   const pathname = usePathname();
-  const { hasPermission, isAdmin } = usePermission();
+  const { 
+    hasPermission, 
+    isAdmin, 
+    canManageOrganization,
+    isPremium,
+    isStandard
+  } = usePermission();
 
   const isActive = (href: string): boolean => {
     if (href === '/dashboard') {
@@ -163,7 +172,7 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
         </div>
       </nav>
 
-      {/* License Management */}
+      {/* License Management - All tiers */}
       <nav className="space-y-2">
         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-4">
           License Management
@@ -175,19 +184,21 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
         </div>
       </nav>
 
-      {/* Batch Operations */}
-      <nav className="space-y-2">
-        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-4">
-          Batch Operations
-        </p>
-        <div className="space-y-1">
-          {batchNavItems.map((item) => (
-            <NavLink key={item.href} item={item} />
-          ))}
-        </div>
-      </nav>
+      {/* Batch Operations - Premium+ only */}
+      {canManageOrganization() && (
+        <nav className="space-y-2">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-4">
+            Batch Operations
+          </p>
+          <div className="space-y-1">
+            {batchNavItems.map((item) => (
+              <NavLink key={item.href} item={item} />
+            ))}
+          </div>
+        </nav>
+      )}
 
-      {/* Admin Section */}
+      {/* Admin Section - Allstar only */}
       {isAdmin() && (
         <nav className="space-y-2">
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-4">
