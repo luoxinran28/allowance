@@ -20,7 +20,6 @@ export function ProtectedRoute({
 }: ProtectedRouteProps) {
   const router = useRouter();
   const perms = usePermission();
-  const userTier = perms.getTier();
 
   useEffect(() => {
     // 如果用户没有所需的权限等级，重定向

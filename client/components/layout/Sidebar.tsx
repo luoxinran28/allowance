@@ -10,8 +10,6 @@ import {
   Building2,
   Package,
   CreditCard,
-  Zap,
-  XCircle,
   Download,
   HelpCircle,
   FileText,

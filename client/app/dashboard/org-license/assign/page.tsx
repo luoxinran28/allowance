@@ -1,11 +1,9 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { useConditionalProtectedRoute } from '@/lib/middleware/routeProtection';
 
 export default function AssignLicensesPage() {
-  const router = useRouter();
   const { hasAccess } = useConditionalProtectedRoute(
     (perms) => perms.canAccessOrgLicenseSection(),
     '/error/permission-denied'

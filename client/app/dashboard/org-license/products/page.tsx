@@ -1,9 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useConditionalProtectedRoute } from '@/lib/middleware/routeProtection';
-import { useAuthStore } from '@/lib/auth-store';
 
 interface OrgLicense {
   id: number;
@@ -15,8 +13,6 @@ interface OrgLicense {
 }
 
 export default function OrgLicenseProductsPage() {
-  const router = useRouter();
-  const { user } = useAuthStore();
   const { hasAccess } = useConditionalProtectedRoute(
     (perms) => perms.canAccessOrgLicenseSection(),
     '/error/permission-denied'

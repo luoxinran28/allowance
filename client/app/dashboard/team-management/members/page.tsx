@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useConditionalProtectedRoute } from '@/lib/middleware/routeProtection';
 
 interface TeamMember {
@@ -13,7 +12,6 @@ interface TeamMember {
 }
 
 export default function TeamMembersPage() {
-  const router = useRouter();
   const { hasAccess } = useConditionalProtectedRoute(
     (perms) => perms.canAccessTeamManagement(),
     '/error/permission-denied'

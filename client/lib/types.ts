@@ -2,10 +2,15 @@ export interface User {
   id: number;
   uid: string;
   email: string;
-  tier: 'free' | 'standard' | 'premium';
+  tier: 'free' | 'standard' | 'premium' | 'allstar';
   status: 'active' | 'inactive' | 'suspended';
+  licenseStatus?: 'valid' | 'expired' | 'not_assigned';
+  organizationId?: number | null;
+  teamIds?: number[];
+  source_upid?: string;
   roles?: string[];
   created_at: string;
+  updated_at?: string;
 }
 
 export interface UserLicense {

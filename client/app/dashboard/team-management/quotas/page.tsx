@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useConditionalProtectedRoute } from '@/lib/middleware/routeProtection';
 
 interface TeamQuota {
@@ -14,7 +13,6 @@ interface TeamQuota {
 }
 
 export default function TeamQuotasPage() {
-  const router = useRouter();
   const { hasAccess } = useConditionalProtectedRoute(
     (perms) => perms.canAccessTeamManagement(),
     '/error/permission-denied'

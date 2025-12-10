@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useConditionalProtectedRoute } from '@/lib/middleware/routeProtection';
 
 interface AdminStats {
@@ -14,7 +13,6 @@ interface AdminStats {
 }
 
 export default function AdminDashboard() {
-  const router = useRouter();
   const { hasAccess } = useConditionalProtectedRoute(
     (perms) => perms.canAccessAdminSection(),
     '/error/permission-denied'

@@ -87,8 +87,8 @@ export default function ProfilePage() {
               </div>
               <div className="flex justify-between items-center py-2 border-b border-border">
                 <span className="font-medium text-muted-foreground">License Status</span>
-                <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(user.licenseStatus)}`}>
-                  {user.licenseStatus.replace(/_/g, ' ').toUpperCase()}
+                <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(user.licenseStatus || 'not_assigned')}`}>
+                  {(user.licenseStatus || 'not_assigned').replace(/_/g, ' ').toUpperCase()}
                 </span>
               </div>
             </div>
@@ -136,7 +136,7 @@ export default function ProfilePage() {
               <div className="flex justify-between items-center py-2">
                 <span className="font-medium text-muted-foreground">Joined On</span>
                 <span className="text-foreground">
-                  {new Date(user.createdAt).toLocaleDateString()}
+                  {new Date(user.created_at).toLocaleDateString()}
                 </span>
               </div>
             </div>
