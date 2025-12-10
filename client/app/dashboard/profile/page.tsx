@@ -1,202 +1,145 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { useAuthStore } from '@/lib/auth-store';
-import { apiClient } from '@/lib/api-client';
-import { User } from '@/lib/types';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function ProfilePage() {
-  const { user, setAuth } = useAuthStore();
-  const [profile, setProfile] = useState<User | null>(user);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState({
-    email: user?.email || '',
-  });
+  const { user } = useAuthStore();
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        setLoading(true);
-        setError('');
-        const response = await apiClient.getUserProfile();
-        const userData = response.data;
-        setProfile(userData);
-        setFormData({ email: userData.email });
-      } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to load profile');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProfile();
-  }, []);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    try {
-      setLoading(true);
-      setError('');
-      setSuccess('');
-
-      const response = await apiClient.updateProfile(formData);
-      const updatedUser = response.data;
-
-      setProfile(updatedUser);
-      setAuth(updatedUser, localStorage.getItem('token') || '');
-      setSuccess('Profile updated successfully');
-      setIsEditing(false);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to update profile');
-    } finally {
-      setLoading(false);
+    if (!user) {
+      router.push('/auth/login');
+      return;
     }
+    setIsLoading(false);
+  }, [user, router]);
+
+  if (isLoading || !user) {
+    return (
+      <div className="p-8">
+        <div className="text-center text-muted-foreground">Loading profile...</div>
+      </div>
+    );
+  }
+
+  const getTierLabel = (tier: string) => {
+    const tierMap: Record<string, string> = {
+      free: 'Free User',
+      standard: 'Standard Employee / Team Leader',
+      premium: 'Organization Boss',
+      allstar: 'System Administrator',
+    };
+    return tierMap[tier] || tier;
   };
 
-  if (loading && !profile) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <p>Loading profile...</p>
-      </div>
-    );
-  }
+  const getTierColor = (tier: string) => {
+    const colorMap: Record<string, string> = {
+      free: 'bg-gray-100 text-gray-800',
+      standard: 'bg-blue-100 text-blue-800',
+      premium: 'bg-purple-100 text-purple-800',
+      allstar: 'bg-red-100 text-red-800',
+    };
+    return colorMap[tier] || 'bg-gray-100 text-gray-800';
+  };
 
-  if (!profile) {
-    return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-        <p className="text-red-700">Failed to load profile. Please try again.</p>
-      </div>
-    );
-  }
+  const getStatusColor = (status: string) => {
+    const colorMap: Record<string, string> = {
+      valid: 'bg-green-100 text-green-800',
+      expired: 'bg-red-100 text-red-800',
+      not_assigned: 'bg-yellow-100 text-yellow-800',
+    };
+    return colorMap[status] || 'bg-gray-100 text-gray-800';
+  };
 
   return (
-    <div>
-      <h2 className="text-3xl font-bold mb-8">My Profile</h2>
+    <div className="p-8">
+      <div className="max-w-3xl">
+        <h1 className="text-3xl font-bold mb-8">My Profile</h1>
 
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-          <p className="text-red-700">{error}</p>
-        </div>
-      )}
-
-      {success && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-          <p className="text-green-700">{success}</p>
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Profile Summary Cards */}
-        <div className="lg:col-span-1 space-y-4">
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold mb-4">Account Status</h3>
-            <div className="space-y-3">
-              <div>
-                <p className="text-gray-600 text-sm">Current Tier</p>
-                <p className="text-2xl font-bold text-blue-600">{profile.tier}</p>
+        <div className="grid gap-6">
+          {/* Basic Info Card */}
+          <div className="border border-border rounded-lg p-6 bg-card">
+            <h2 className="text-lg font-semibold mb-4">Account Information</h2>
+            <div className="grid gap-4">
+              <div className="flex justify-between items-center py-2 border-b border-border">
+                <span className="font-medium text-muted-foreground">Email</span>
+                <span className="text-foreground">{user.email}</span>
               </div>
-              <div>
-                <p className="text-gray-600 text-sm">Status</p>
-                <p className="text-lg font-semibold">
-                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                    profile.status === 'active'
-                      ? 'bg-green-100 text-green-800'
-                      : profile.status === 'inactive'
-                      ? 'bg-yellow-100 text-yellow-800'
-                      : 'bg-red-100 text-red-800'
-                  }`}>
-                    {profile.status.charAt(0).toUpperCase() + profile.status.slice(1)}
-                  </span>
-                </p>
-              </div>
-              <div>
-                <p className="text-gray-600 text-sm">Member Since</p>
-                <p className="text-lg font-semibold">
-                  {new Date(profile.created_at).toLocaleDateString()}
-                </p>
+              <div className="flex justify-between items-center py-2 border-b border-border">
+                <span className="font-medium text-muted-foreground">User ID</span>
+                <span className="text-foreground font-mono">{user.uid}</span>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold mb-4">User ID</h3>
-            <p className="font-mono text-sm bg-gray-100 p-2 rounded break-all">{profile.uid}</p>
-          </div>
-        </div>
-
-        {/* Profile Edit Form */}
-        <div className="lg:col-span-2">
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-lg font-semibold">Profile Details</h3>
-              {!isEditing && (
-                <button
-                  onClick={() => setIsEditing(true)}
-                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                >
-                  Edit Profile
-                </button>
-              )}
+          {/* Tier & License Info Card */}
+          <div className="border border-border rounded-lg p-6 bg-card">
+            <h2 className="text-lg font-semibold mb-4">Permission & License</h2>
+            <div className="grid gap-4">
+              <div className="flex justify-between items-center py-2 border-b border-border">
+                <span className="font-medium text-muted-foreground">Product Tier</span>
+                <span className={`px-3 py-1 rounded-full text-sm font-medium ${getTierColor(user.tier)}`}>
+                  {getTierLabel(user.tier)}
+                </span>
+              </div>
+              <div className="flex justify-between items-center py-2 border-b border-border">
+                <span className="font-medium text-muted-foreground">License Status</span>
+                <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(user.licenseStatus)}`}>
+                  {user.licenseStatus.replace(/_/g, ' ').toUpperCase()}
+                </span>
+              </div>
             </div>
+          </div>
 
-            {isEditing ? (
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                    Email Address
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    disabled={loading}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-                  />
-                </div>
-
-                <div className="flex space-x-3">
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 disabled:bg-gray-400"
-                  >
-                    {loading ? 'Saving...' : 'Save Changes'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsEditing(false);
-                      setFormData({ email: profile.email });
-                      setError('');
-                    }}
-                    disabled={loading}
-                    className="bg-gray-300 text-gray-700 px-6 py-2 rounded hover:bg-gray-400 disabled:bg-gray-200"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </form>
-            ) : (
-              <div className="space-y-4">
-                <div>
-                  <p className="text-gray-600 text-sm">Email Address</p>
-                  <p className="text-lg font-semibold">{profile.email}</p>
+          {/* Organization & Team Info Card */}
+          <div className="border border-border rounded-lg p-6 bg-card">
+            <h2 className="text-lg font-semibold mb-4">Organization & Teams</h2>
+            <div className="grid gap-4">
+              <div className="flex justify-between items-center py-2 border-b border-border">
+                <span className="font-medium text-muted-foreground">Organization</span>
+                <span className="text-foreground">
+                  {user.organizationId ? `Organization ID: ${user.organizationId}` : 'Not Assigned'}
+                </span>
+              </div>
+              <div className="flex justify-between items-start py-2">
+                <span className="font-medium text-muted-foreground">Teams</span>
+                <div className="text-right">
+                  {user.teamIds && user.teamIds.length > 0 ? (
+                    <div className="flex flex-col items-end gap-1">
+                      {user.teamIds.map((teamId) => (
+                        <span key={teamId} className="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded text-sm">
+                          Team ID: {teamId}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <span className="text-muted-foreground">No teams assigned</span>
+                  )}
                 </div>
               </div>
-            )}
+            </div>
+          </div>
+
+          {/* Registration Info Card */}
+          <div className="border border-border rounded-lg p-6 bg-card">
+            <h2 className="text-lg font-semibold mb-4">Registration Details</h2>
+            <div className="grid gap-4">
+              <div className="flex justify-between items-center py-2 border-b border-border">
+                <span className="font-medium text-muted-foreground">Registration Source Product</span>
+                <span className="text-foreground">
+                  {user.source_upid || 'Not specified'}
+                </span>
+              </div>
+              <div className="flex justify-between items-center py-2">
+                <span className="font-medium text-muted-foreground">Joined On</span>
+                <span className="text-foreground">
+                  {new Date(user.createdAt).toLocaleDateString()}
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
