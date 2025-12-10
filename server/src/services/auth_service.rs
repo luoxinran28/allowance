@@ -109,8 +109,8 @@ impl AuthService {
         // First, perform regular authentication
         let user = Self::login(pool, email, password).await?;
 
-        // Premium users have access to all products
-        if user.tier == crate::models::UserTier::Premium {
+        // Premium and Allstar users have access to all products
+        if user.tier == crate::models::UserTier::Premium || user.tier == crate::models::UserTier::Allstar {
             return Ok(user);
         }
 
