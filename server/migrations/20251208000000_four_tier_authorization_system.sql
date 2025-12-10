@@ -1,29 +1,32 @@
--- Complete Three-Tier Authorization Schema
--- Consolidated migration for Allowance System
--- Created: 2025-12-01
--- Architecture: Organization → Team → User quota-based license allocation
+-- Migration: Four-Tier Authorization System (free/standard/premium/allstar)
+-- Date: 2025-12-08
+-- Purpose: Refactor from three-tier to four-tier system with Org Boss role
+-- Architecture: free < standard < premium (org_boss) < allstar (admin)
 
 -- ============================================================
 -- ENUM Types
 -- ============================================================
 CREATE TYPE user_status AS ENUM ('active', 'inactive', 'suspended');
-CREATE TYPE user_tier AS ENUM ('free', 'standard', 'premium');
+CREATE TYPE user_tier AS ENUM ('free', 'standard', 'premium', 'allstar');
 CREATE TYPE organization_role AS ENUM ('member', 'leader', 'admin');
 
 -- ============================================================
 -- Core Tables: Users, Roles, Permissions
 -- ============================================================
 
--- Users table
+-- Users table (Four-Tier System)
 CREATE TABLE users (
     id BIGSERIAL PRIMARY KEY,
     uid VARCHAR(16) UNIQUE NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
-    tier user_tier NOT NULL DEFAULT 'free',
+    tier user_tier NOT NULL DEFAULT 'free',  -- free/standard/premium/allstar
     status user_status NOT NULL DEFAULT 'active',
-    source_upid VARCHAR(50),
+    organization_id BIGINT,  -- User's primary organization (NULL = Not Assigned)
+    team_ids JSONB DEFAULT '[]'::jsonb,  -- Array of team IDs user belongs to [1, 2, 3]
+    source_upid VARCHAR(50),  -- Product UPID used for registration
     profile_data JSONB DEFAULT '{}',
+    license_status VARCHAR(20) DEFAULT 'not_assigned',  -- valid, expired, not_assigned
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_login TIMESTAMP
@@ -32,11 +35,12 @@ CREATE TABLE users (
 CREATE INDEX idx_users_uid ON users(uid);
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_tier ON users(tier);
+CREATE INDEX idx_users_organization_id ON users(organization_id);
 CREATE INDEX idx_users_status ON users(status);
 CREATE INDEX idx_users_source_upid ON users(source_upid);
-CREATE INDEX idx_users_tier_status ON users(tier, status);
+CREATE INDEX idx_users_license_status ON users(license_status);
 
--- Roles table
+-- Roles table (for reference, but not used in permission checks anymore)
 CREATE TABLE roles (
     id BIGSERIAL PRIMARY KEY,
     code VARCHAR(50) UNIQUE NOT NULL,
@@ -45,7 +49,7 @@ CREATE TABLE roles (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- Permissions table
+-- Permissions table (for reference)
 CREATE TABLE permissions (
     id BIGSERIAL PRIMARY KEY,
     code VARCHAR(100) UNIQUE NOT NULL,
@@ -56,7 +60,7 @@ CREATE TABLE permissions (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- Role-Permission association
+-- Role-Permission association (for reference, not used for permission checks)
 CREATE TABLE role_permissions (
     id BIGSERIAL PRIMARY KEY,
     role_id BIGINT NOT NULL REFERENCES roles(id) ON DELETE CASCADE,
@@ -65,7 +69,7 @@ CREATE TABLE role_permissions (
     UNIQUE(role_id, permission_id)
 );
 
--- User-Role association
+-- User-Role association (deprecated - tier is now the source of truth)
 CREATE TABLE user_roles (
     id BIGSERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -109,33 +113,34 @@ CREATE TABLE organizations (
 
 CREATE INDEX idx_organizations_org_id ON organizations(org_id);
 
--- Groups/Teams table
-CREATE TABLE groups (
+-- Teams table (was called groups in three-tier system)
+CREATE TABLE teams (
     id BIGSERIAL PRIMARY KEY,
-    group_id VARCHAR(8) UNIQUE NOT NULL,
+    team_id VARCHAR(20) UNIQUE NOT NULL,
     organization_id BIGINT NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL,
     description TEXT,
+    is_default BOOLEAN DEFAULT FALSE,  -- Default team cannot be deleted
     created_by BIGINT NOT NULL REFERENCES users(id),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_groups_group_id ON groups(group_id);
-CREATE INDEX idx_groups_organization_id ON groups(organization_id);
+CREATE INDEX idx_teams_team_id ON teams(team_id);
+CREATE INDEX idx_teams_organization_id ON teams(organization_id);
 
--- User-Group membership
-CREATE TABLE user_groups (
+-- Team members (replaced user_groups table)
+CREATE TABLE user_teams (
     id BIGSERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    group_id BIGINT NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
-    role organization_role NOT NULL DEFAULT 'member',
+    team_id BIGINT NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
+    role organization_role NOT NULL DEFAULT 'member',  -- member, leader, admin
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(user_id, group_id)
+    UNIQUE(user_id, team_id)
 );
 
-CREATE INDEX idx_user_groups_user_id ON user_groups(user_id);
-CREATE INDEX idx_user_groups_group_id ON user_groups(group_id);
+CREATE INDEX idx_user_teams_user_id ON user_teams(user_id);
+CREATE INDEX idx_user_teams_team_id ON user_teams(team_id);
 
 -- ============================================================
 -- Product Catalog
@@ -173,7 +178,7 @@ CREATE TABLE product_versions (
 CREATE INDEX idx_product_versions_product_id ON product_versions(product_id);
 
 -- ============================================================
--- Three-Tier License Architecture
+-- Four-Tier License Architecture
 -- ============================================================
 
 -- Organization product licenses (Tier 1: Organization pool)
@@ -201,12 +206,11 @@ CREATE TABLE org_product_licenses (
 CREATE INDEX idx_org_product_licenses_org_id ON org_product_licenses(organization_id);
 CREATE INDEX idx_org_product_licenses_product_id ON org_product_licenses(product_id);
 CREATE INDEX idx_org_product_licenses_expires_at ON org_product_licenses(expires_at);
-CREATE INDEX idx_org_licenses_assigned ON org_product_licenses(assigned_count);
 
 -- Team product quotas (Tier 2: Team allocation from org pool)
 CREATE TABLE team_product_quotas (
     id BIGSERIAL PRIMARY KEY,
-    team_id BIGINT NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
+    team_id BIGINT NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
     org_id BIGINT NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
     product_id BIGINT NOT NULL REFERENCES products(id) ON DELETE CASCADE,
     upid VARCHAR(50) NOT NULL,
@@ -225,8 +229,6 @@ CREATE TABLE team_product_quotas (
 CREATE INDEX idx_team_quotas_team_id ON team_product_quotas(team_id);
 CREATE INDEX idx_team_quotas_org_id ON team_product_quotas(org_id);
 CREATE INDEX idx_team_quotas_product_id ON team_product_quotas(product_id);
-CREATE INDEX idx_team_quotas_upid ON team_product_quotas(upid);
-CREATE INDEX idx_team_product_quotas_product_upid ON team_product_quotas(product_id, upid);
 
 -- Free user licenses (Tier 3: Individual free tier)
 CREATE TABLE free_user_licenses (
@@ -242,14 +244,13 @@ CREATE TABLE free_user_licenses (
 CREATE INDEX idx_free_user_licenses_upid ON free_user_licenses(upid);
 CREATE INDEX idx_free_user_licenses_user ON free_user_licenses(user_id);
 CREATE INDEX idx_free_user_licenses_product ON free_user_licenses(product_id);
-CREATE INDEX idx_free_user_licenses_user_product ON free_user_licenses(user_id, product_id);
 
 -- User license history (Audit trail)
 CREATE TABLE user_license_history (
     id BIGSERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     product_id BIGINT REFERENCES products(id) ON DELETE SET NULL,
-    team_id BIGINT REFERENCES groups(id) ON DELETE SET NULL,
+    team_id BIGINT REFERENCES teams(id) ON DELETE SET NULL,
     action VARCHAR(50) NOT NULL,
     old_tier VARCHAR(20),
     new_tier VARCHAR(20),
@@ -300,7 +301,6 @@ CREATE TABLE subscriptions (
 CREATE INDEX idx_subscriptions_user_id ON subscriptions(user_id);
 CREATE INDEX idx_subscriptions_tier ON subscriptions(tier);
 CREATE INDEX idx_subscriptions_auto_renew ON subscriptions(auto_renew) WHERE status = 'active';
-CREATE INDEX idx_subscriptions_stripe_subscription_id ON subscriptions(stripe_subscription_id);
 
 -- Invoices
 CREATE TABLE invoices (
@@ -319,7 +319,6 @@ CREATE INDEX idx_invoices_user_id ON invoices(user_id);
 CREATE INDEX idx_invoices_payment_intent_id ON invoices(payment_intent_id);
 CREATE INDEX idx_invoices_subscription_id ON invoices(subscription_id);
 CREATE INDEX idx_invoices_status ON invoices(status);
-CREATE INDEX idx_invoices_due_date ON invoices(due_date);
 
 -- ============================================================
 -- Batch Operations Tracking
@@ -362,17 +361,19 @@ CREATE INDEX idx_audit_logs_user_id ON audit_logs(user_id);
 CREATE INDEX idx_audit_logs_created_at ON audit_logs(created_at);
 
 -- ============================================================
--- Seed Data: Roles & Permissions
+-- Seed Data: Default Roles & Permissions
 -- ============================================================
 
--- Insert default roles
+-- Insert default roles (kept for reference/backward compatibility)
 INSERT INTO roles (code, name, description) VALUES
-    ('free_user', 'Free Trial User', 'User with free tier access'),
+    ('free_user', 'Free User', 'User with free tier access'),
     ('standard_employee', 'Standard Employee', 'Paid user with standard permissions'),
     ('team_leader', 'Team Leader', 'Employee with team management permissions'),
-    ('admin', 'System Administrator', 'Full system access');
+    ('org_boss', 'Organization Boss', 'Organization-level manager'),
+    ('admin', 'System Administrator', 'Full system access')
+ON CONFLICT (code) DO NOTHING;
 
--- Insert default permissions
+-- Insert default permissions (kept for reference)
 INSERT INTO permissions (code, name, description, resource, action) VALUES
     ('user:read', 'Read User Profile', 'Can read own profile', 'user', 'read'),
     ('user:update', 'Update User Profile', 'Can update own profile', 'user', 'update'),
@@ -380,52 +381,9 @@ INSERT INTO permissions (code, name, description, resource, action) VALUES
     ('product:license_generate', 'Generate License', 'Can generate product license', 'product', 'license_generate'),
     ('team:create', 'Create Team', 'Can create a new team', 'team', 'create'),
     ('team:list', 'List Teams', 'Can list teams', 'team', 'list'),
-    ('team:approve_join', 'Approve Team Join', 'Can approve team join requests', 'team', 'approve'),
-    ('team:approve_license', 'Approve Team License', 'Can approve license requests for team', 'team', 'approve_license'),
-    ('org:list', 'List Organizations', 'Can list organizations', 'org', 'list'),
-    ('org:join', 'Join Organization', 'Can request to join organization', 'org', 'join'),
-    ('admin:user_manage', 'Manage Users', 'Can manage all users', 'admin', 'user_manage'),
-    ('admin:role_assign', 'Assign Roles', 'Can assign roles to users', 'admin', 'role_assign'),
-    ('admin:system_config', 'System Configuration', 'Can configure system settings', 'admin', 'system_config');
-
--- Assign permissions to roles
-INSERT INTO role_permissions (role_id, permission_id)
-SELECT r.id, p.id FROM roles r, permissions p
-WHERE r.code = 'free_user' AND p.code IN ('user:read', 'product:list', 'org:list');
-
-INSERT INTO role_permissions (role_id, permission_id)
-SELECT r.id, p.id FROM roles r, permissions p
-WHERE r.code = 'standard_employee' AND p.code IN ('user:read', 'user:update', 'product:list', 'product:license_generate', 'team:list', 'org:list');
-
-INSERT INTO role_permissions (role_id, permission_id)
-SELECT r.id, p.id FROM roles r, permissions p
-WHERE r.code = 'team_leader' AND p.code IN ('user:read', 'user:update', 'product:list', 'product:license_generate', 'team:create', 'team:list', 'team:approve_join', 'team:approve_license', 'org:list');
-
-INSERT INTO role_permissions (role_id, permission_id)
-SELECT r.id, p.id FROM roles r, permissions p
-WHERE r.code = 'admin';
-
--- ============================================================
--- Seed Data: Default Product
--- ============================================================
-
-INSERT INTO products (upid, product_slug, name, description) VALUES
-    ('UALLOWANCE0001', 'allowance', 'Allowance System', 'Core allowance authorization management system')
-ON CONFLICT (upid) DO NOTHING;
-
-INSERT INTO product_versions (product_id, version_name, description, features, tier_required, daily_limit, monthly_limit)
-SELECT p.id, 'basic', 'Basic allowance features',
-    '{"max_recipients": 10, "reporting": false, "automation": false}'::jsonb,
-    'free'::user_tier, 10, 1000
-FROM products p WHERE p.upid = 'UALLOWANCE0001'
-UNION ALL
-SELECT p.id, 'standard', 'Standard allowance with reporting',
-    '{"max_recipients": 100, "reporting": true, "automation": false}'::jsonb,
-    'standard'::user_tier, 100, 10000
-FROM products p WHERE p.upid = 'UALLOWANCE0001'
-UNION ALL
-SELECT p.id, 'premium', 'Premium allowance with full features',
-    '{"max_recipients": 1000, "reporting": true, "automation": true, "api_access": true}'::jsonb,
-    'premium'::user_tier, NULL, NULL
-FROM products p WHERE p.upid = 'UALLOWANCE0001'
-ON CONFLICT (product_id, version_name) DO NOTHING;
+    ('team:manage', 'Manage Team', 'Can manage team members', 'team', 'manage'),
+    ('org:manage', 'Manage Organization', 'Can manage organization', 'org', 'manage'),
+    ('admin:system', 'System Administration', 'Can access admin panel', 'admin', 'system'),
+    ('admin:user_manage', 'Manage All Users', 'Can manage all users', 'admin', 'user_manage'),
+    ('admin:org_manage', 'Manage All Organizations', 'Can manage all organizations', 'admin', 'org_manage')
+ON CONFLICT (code) DO NOTHING;

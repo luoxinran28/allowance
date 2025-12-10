@@ -1,9 +1,16 @@
 #!/bin/bash
 
 # Docker Development Setup Script for Allowance Authorization Management System
+# ⚠️  DEVELOPMENT MODE ONLY - Do not use in production
 
 echo "🚀 Setting up Allowance Authorization Management System (Development Mode)"
 echo ""
+
+# Safety check - only allow in development environment
+if [ "$DEPLOYMENT_ENV" == "production" ] || [ "$NODE_ENV" == "production" ]; then
+    echo "❌ ERROR: This script is for development only. Production environments cannot run this script."
+    exit 1
+fi
 
 # Check if Docker is installed
 if ! command -v docker &> /dev/null; then
@@ -108,6 +115,11 @@ echo "   • Make code changes in your IDE - they'll hot reload automatically"
 echo "   • Check container logs for compilation errors: $COMPOSE_CMD logs -f server"
 echo "   • Database data persists between restarts"
 echo "   • To stop: $COMPOSE_CMD down"
+echo ""
+echo "🔄 Database Reset:"
+echo "   • Reset database: bash setup_db_v3.sh"
+echo "   • This will clear all data and reload seed data from database/seed_data.sql"
+echo "   • Starts fresh server with migrations applied"
 echo ""
 echo "📝 Next steps:"
 echo "   1. Visit http://localhost:3030 to access the application"
