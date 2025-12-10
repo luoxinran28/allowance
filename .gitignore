@@ -68,6 +68,7 @@ uploads/
 !basic-needs.prompt.md
 !CONTRIBUTING.md
 !QUICK_REFERENCE.md
+!DEV_SETUP.md
 
 # Testing
 coverage/
