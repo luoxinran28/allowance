@@ -115,7 +115,10 @@ while [ $attempt -le $max_attempts ]; do
     result=$(docker exec allowance-postgres psql -U postgres -d allowance -t -c \
         "SELECT COUNT(*) FROM information_schema.columns WHERE table_name='users' AND column_name='tier';" 2>/dev/null || echo "0")
     
-    if [ "$result" == " 1" ] || [ "$result" == "1" ]; then
+    # Trim whitespace from result
+    result=$(echo "$result" | xargs)
+    
+    if [ "$result" = "1" ]; then
         log_info "✓ Migrations completed"
         break
     fi
