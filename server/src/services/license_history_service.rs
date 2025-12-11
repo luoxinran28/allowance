@@ -1,4 +1,3 @@
-use sqlx::PgPool;
 use crate::utils::AppResult;
 
 pub struct LicenseHistoryService;

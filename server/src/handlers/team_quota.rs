@@ -5,7 +5,6 @@ use axum::{
 };
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-use sqlx::Row;
 
 use crate::models::TeamQuotaResponse;
 use crate::services::{team_quota_service::TeamQuotaService, UserService};

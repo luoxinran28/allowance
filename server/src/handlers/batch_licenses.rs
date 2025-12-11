@@ -6,10 +6,8 @@ use axum::{
 use serde::{Deserialize, Serialize};
 use chrono::Utc;
 use std::sync::Arc;
-use sqlx::PgPool;
 
 use crate::services::{UserService, PermissionService};
-use crate::utils::AppError;
 use crate::services::PermissionContext;
 use crate::utils::tier_helper::get_team_ids;
 
@@ -419,10 +417,9 @@ pub async fn generate_batch_org_licenses(
         )
             .into_response();
     }
-
     let batch_id = uuid::Uuid::new_v4().to_string();
     let mut licenses = Vec::new();
-    let mut error_count = 0;
+    let error_count = 0;
 
     // Generate licenses for the organization
     for _ in 0..req.quantity {

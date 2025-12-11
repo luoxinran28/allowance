@@ -114,6 +114,25 @@ const adminNavItems: NavItem[] = [
   },
 ];
 
+// Batch Operations (allstar only)
+const batchNavItems: NavItem[] = [
+  {
+    href: '/admin/batch/generate',
+    label: 'Generate Licenses',
+    icon: <Plus className="h-4 w-4" />,
+  },
+  {
+    href: '/admin/batch/revoke',
+    label: 'Revoke Licenses',
+    icon: <Trash2 className="h-4 w-4" />,
+  },
+  {
+    href: '/admin/batch/export',
+    label: 'Export Licenses',
+    icon: <Download className="h-4 w-4" />,
+  },
+];
+
 // Help Section (all users)
 const helpNavItems: NavItem[] = [
   {
@@ -140,12 +159,17 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
     return pathname === href || pathname.startsWith(href + '/');
   };
 
-  // Define all sections
+  // Define all sections - Updated order as per requirements
   const sections: NavSection[] = [
     {
       title: 'Main Menu',
       visible: () => true,
       items: mainNavItems,
+    },
+    {
+      title: 'Administration',
+      visible: () => perms.canAccessAdminSection(),
+      items: adminNavItems,
     },
     {
       title: 'Organization & License',
@@ -156,11 +180,6 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
       title: 'Team Management',
       visible: () => perms.canAccessTeamManagement(),
       items: teamMgmtItems,
-    },
-    {
-      title: 'Administration',
-      visible: () => perms.canAccessAdminSection(),
-      items: adminNavItems,
     },
     {
       title: 'Resources',

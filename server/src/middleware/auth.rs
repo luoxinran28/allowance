@@ -4,7 +4,6 @@ use axum::{
     middleware::Next,
     response::Response,
     http::HeaderMap,
-    Extension,
 };
 use axum::http::request::Parts;
 use std::sync::Arc;

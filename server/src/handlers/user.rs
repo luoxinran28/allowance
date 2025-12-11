@@ -5,9 +5,8 @@ use axum::{
 };
 
 use crate::models::UserResponse;
-use crate::services::{AuthService, UserService};
+use crate::services::AuthService;
 use crate::utils::{AppResult, AppError};
-use crate::utils::tier_helper::get_team_ids;
 use crate::handlers::auth::AuthHandler;
 
 /// Helper to extract user_id from Authorization header

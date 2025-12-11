@@ -1,6 +1,6 @@
 use std::sync::Arc;
 use axum::{
-    extract::{State, Query},
+    extract::State,
     Json,
 };
 use sqlx::PgPool;

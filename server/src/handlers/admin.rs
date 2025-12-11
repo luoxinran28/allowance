@@ -8,7 +8,6 @@ use serde::{Deserialize, Serialize};
 use crate::models::{UserResponse, User, CreateProductAdminRequest, GenerateLicensesRequest, OrgProductLicenseResponse};
 use crate::services::{AuthService, RbacService, ProductService, UserService};
 use crate::utils::{AppResult, AppError};
-use crate::utils::tier_helper::get_team_ids;
 use crate::handlers::auth::AuthHandler;
 
 #[derive(Deserialize)]
@@ -75,92 +74,40 @@ pub async fn list_users(
 ) -> AppResult<Json<serde_json::Value>> {
     let user_id = extract_user_from_header(&state, &headers)?;
     
+    // Fetch the requesting user to check tier
+    let requesting_user = sqlx::query_as::<_, User>(
+        "SELECT * FROM users WHERE id = $1"
+    )
+        .bind(user_id)
+        .fetch_optional(&*state.pool)
+        .await?
+        .ok_or(AppError::Unauthorized)?;
+
     let page = params.page.unwrap_or(1);
     let page_size = params.page_size.unwrap_or(20);
     let offset = (page - 1) * page_size;
 
-    // Check if user is admin
-    let is_admin = RbacService::has_permission(
-        &state.pool,
-        user_id,
-        "admin:user_manage",
-    ).await?;
-
-    // Check if user is team leader
-    let is_team_leader = sqlx::query_scalar::<_, bool>(
-        r#"
-        SELECT EXISTS(
-            SELECT 1 FROM user_teams
-            WHERE user_id = $1 AND role IN ('leader', 'admin')
-        )
-        "#
-    )
-        .bind(user_id)
-        .fetch_one(&*state.pool)
-        .await?;
-
-    // Deny access for regular users
-    if !is_admin && !is_team_leader {
-        return Err(AppError::Forbidden);
+    // Only allstar (admin) tier users can list all users
+    if requesting_user.tier != crate::models::UserTier::Allstar {
+        return Err(AppError::PermissionDenied);
     }
 
-    let (users, total) = if is_admin {
-        // Admin: Return all users
-        let users = sqlx::query_as::<_, User>(
-            r#"
-            SELECT * FROM users
-            ORDER BY created_at DESC
-            LIMIT $1 OFFSET $2
-            "#
-        )
-            .bind(page_size)
-            .bind(offset)
-            .fetch_all(&*state.pool)
-            .await?;
+    // Admin: Return all users
+    let users = sqlx::query_as::<_, User>(
+        r#"
+        SELECT * FROM users
+        ORDER BY created_at DESC
+        LIMIT $1 OFFSET $2
+        "#
+    )
+        .bind(page_size)
+        .bind(offset)
+        .fetch_all(&*state.pool)
+        .await?;
 
-        let total: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM users")
-            .fetch_one(&*state.pool)
-            .await?;
-
-        (users, total)
-    } else {
-        // Team Leader: Return only members from teams they lead
-        let users = sqlx::query_as::<_, User>(
-            r#"
-            SELECT DISTINCT u.* FROM users u
-            INNER JOIN user_teams ut_member ON u.id = ut_member.user_id
-            INNER JOIN teams t ON ut_member.team_id = t.id
-            WHERE t.id IN (
-                SELECT team_id FROM user_teams
-                WHERE user_id = $1 AND role IN ('leader', 'admin')
-            )
-            ORDER BY u.created_at DESC
-            LIMIT $2 OFFSET $3
-            "#
-        )
-            .bind(user_id)
-            .bind(page_size)
-            .bind(offset)
-            .fetch_all(&*state.pool)
-            .await?;
-
-        let total: i64 = sqlx::query_scalar(
-            r#"
-            SELECT COUNT(DISTINCT u.id) FROM users u
-            INNER JOIN user_teams ut_member ON u.id = ut_member.user_id
-            INNER JOIN teams t ON ut_member.team_id = t.id
-            WHERE t.id IN (
-                SELECT team_id FROM user_teams
-                WHERE user_id = $1 AND role IN ('leader', 'admin')
-            )
-            "#
-        )
-            .bind(user_id)
-            .fetch_one(&*state.pool)
-            .await?;
-
-        (users, total)
-    };
+    let total: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM users")
+        .fetch_one(&*state.pool)
+        .await?;
 
     let user_responses: Vec<UserResponse> = users.into_iter()
         .map(|u| UserResponse::from(u))

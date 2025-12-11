@@ -2,7 +2,6 @@
 // 统一的权限检查服务 - 仅基于 Tier 进行权限判断
 
 use crate::models::user::UserTier;
-use crate::utils::tier_helper::get_team_ids;
 
 /// 权限检查上下文
 #[derive(Debug, Clone)]

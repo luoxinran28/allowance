@@ -6,7 +6,7 @@ use axum::{
 use serde::Serialize;
 use sqlx;
 
-use crate::models::{Team, UserTeam, AssignLicenseToTeamRequest};
+use crate::models::{Team, AssignLicenseToTeamRequest};
 use crate::services::{TeamService, ProductService, UserGroupService, UserService, PermissionService};
 use crate::utils::{AppResult, AppError};
 use crate::utils::tier_helper::get_team_ids;
