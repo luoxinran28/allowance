@@ -87,8 +87,11 @@ pub async fn list_users(
     let page_size = params.page_size.unwrap_or(20);
     let offset = (page - 1) * page_size;
 
-    // Only allstar (admin) tier users can list all users
-    if requesting_user.tier != crate::models::UserTier::Allstar {
+    // TEMP: Allow all for debugging
+    // Check if user has admin role
+    let user_roles = crate::services::RbacService::get_user_roles(&state.pool, user_id).await?;
+    let has_admin_role = user_roles.iter().any(|r| r.code == "admin");
+    if !has_admin_role && requesting_user.tier != crate::models::UserTier::Allstar {
         return Err(AppError::PermissionDenied);
     }
 
@@ -114,7 +117,7 @@ pub async fn list_users(
         .collect();
 
     Ok(Json(serde_json::json!({
-        "users": user_responses,
+        "data": user_responses,
         "total": total,
         "page": page,
         "page_size": page_size

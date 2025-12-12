@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useConditionalProtectedRoute } from '@/lib/middleware/routeProtection';
+import { Breadcrumb } from '@/components/common/Breadcrumb';
 
 interface AdminStats {
   productsCount: number;
@@ -72,6 +73,16 @@ export default function AdminDashboard() {
 
   return (
     <div className="p-8">
+      {/* Breadcrumb Navigation */}
+      <div className="mb-8">
+        <Breadcrumb
+          items={[
+            { label: 'Dashboard', href: '/dashboard' },
+            { label: 'Administration' },
+          ]}
+        />
+      </div>
+
       <div>
         <h1 className="text-3xl font-bold mb-2">System Overview</h1>
         <p className="text-muted-foreground mb-8">Monitor and manage all system resources</p>

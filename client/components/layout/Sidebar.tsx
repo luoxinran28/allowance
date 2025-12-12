@@ -114,24 +114,7 @@ const adminNavItems: NavItem[] = [
   },
 ];
 
-// Batch Operations (allstar only)
-const batchNavItems: NavItem[] = [
-  {
-    href: '/admin/batch/generate',
-    label: 'Generate Licenses',
-    icon: <Plus className="h-4 w-4" />,
-  },
-  {
-    href: '/admin/batch/revoke',
-    label: 'Revoke Licenses',
-    icon: <Trash2 className="h-4 w-4" />,
-  },
-  {
-    href: '/admin/batch/export',
-    label: 'Export Licenses',
-    icon: <Download className="h-4 w-4" />,
-  },
-];
+
 
 // Help Section (all users)
 const helpNavItems: NavItem[] = [

@@ -40,23 +40,25 @@ export const test = base.extend({
     // Login as admin
     try {
       await page.goto('/auth/login');
-      
+
       await page.fill('input[type="email"]', 'admin@allowance.test');
       await page.fill('input[type="password"]', 'Pass888999');
       await page.click('button:has-text("Sign in")');
-      
-      // Wait for navigation to dashboard
-      try {
-        await page.waitForURL('/dashboard', { timeout: 15000 });
-      } catch (e) {
-        console.error('Dashboard navigation timeout for admin', e);
+
+      // Wait for login to complete - check for redirect or success
+      await page.waitForTimeout(3000);
+
+      // Check if we're not on login page anymore
+      const currentUrl = page.url();
+      if (currentUrl.includes('/auth/login')) {
+        throw new Error('Login failed - still on login page');
       }
-      
-      await page.waitForTimeout(500);
+
     } catch (err) {
       console.error('Admin fixture authentication failed:', err);
+      throw err;
     }
-    
+
     await use(page);
   },
 

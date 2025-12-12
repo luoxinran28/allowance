@@ -1,12 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { apiClient } from '@/lib/api-client';
 import { RoleTag } from '@/components/common/RoleTag';
 import { StatusBadge } from '@/components/common/StatusBadge';
 import { PaginationNav } from '@/components/common/PaginationNav';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
+import { AdminDetailOverlay } from '@/components/admin/AdminDetailOverlay';
 
 interface User {
   id: number;
@@ -33,6 +34,10 @@ const AVAILABLE_ROLES = [
 ];
 
 export default function AdminUsersPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const selectedUserId = searchParams.get('selected_id') ? parseInt(searchParams.get('selected_id')!) : null;
+
   const [users, setUsers] = useState<User[]>([]);
   const [page, setPage] = useState(1);
   const pageSize = 20;
@@ -42,8 +47,7 @@ export default function AdminUsersPage() {
   const [success, setSuccess] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Modal state
-  const [showRoleModal, setShowRoleModal] = useState(false);
+  // Detail overlay state
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [selectedRole, setSelectedRole] = useState('');
 
@@ -58,6 +62,19 @@ export default function AdminUsersPage() {
   useEffect(() => {
     loadUsers();
   }, [page]);
+
+  useEffect(() => {
+    // Sync selected user when selectedUserId changes
+    if (selectedUserId && users.length > 0) {
+      const user = users.find(u => u.id === selectedUserId);
+      if (user) {
+        setSelectedUser(user);
+        setSelectedRole(user.roles?.[0] || 'free_user');
+      }
+    } else {
+      setSelectedUser(null);
+    }
+  }, [selectedUserId, users]);
 
   const loadUsers = async () => {
     try {
@@ -75,21 +92,13 @@ export default function AdminUsersPage() {
   };
 
   const handleOpenRoleModal = (user: User) => {
-    setSelectedUser(user);
-    setSelectedRole(user.roles?.[0] || 'free_user');
-    setShowRoleModal(true);
+    router.push(`?selected_id=${user.id}`);
   };
 
-  const handleCloseRoleModal = () => {
-    setShowRoleModal(false);
+  const handleCloseOverlay = () => {
+    router.push('');
     setSelectedUser(null);
     setSelectedRole('');
-  };
-
-  const handleAssignRole = () => {
-    if (!selectedUser || !selectedRole) return;
-    setConfirmAction({ type: 'assign', userId: selectedUser.id, role: selectedRole });
-    setShowConfirm(true);
   };
 
   const handleRemoveRole = (userId: number, role: string) => {
@@ -110,7 +119,7 @@ export default function AdminUsersPage() {
         setSuccess('Role removed successfully');
       }
 
-      handleCloseRoleModal();
+      handleCloseOverlay();
       await loadUsers();
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to update role');
@@ -224,13 +233,6 @@ export default function AdminUsersPage() {
                       >
                         👤
                       </button>
-                      <Link
-                        href={`/admin/users/${user.id}`}
-                        className="text-indigo-600 hover:text-indigo-800 font-medium transition"
-                        title="View details"
-                      >
-                        👁️
-                      </Link>
                     </td>
                   </tr>
                 ))}
@@ -250,84 +252,109 @@ export default function AdminUsersPage() {
         />
       )}
 
-      {/* Role Assignment Modal */}
-      {showRoleModal && selectedUser && (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-lg max-w-md w-full">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-lg font-bold text-gray-900">Assign Role</h2>
-              <p className="text-sm text-gray-600 mt-1">User: {selectedUser.email}</p>
+      {/* Role Assignment Overlay */}
+      <AdminDetailOverlay
+        isOpen={!!selectedUser}
+        title={`User Details - ${selectedUser?.email}`}
+        onClose={handleCloseOverlay}
+        size="md"
+      >
+        <div className="p-6 space-y-6">
+          {/* User Info */}
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <p className="text-gray-600 font-medium">Email</p>
+              <p className="text-gray-900 font-mono">{selectedUser?.email}</p>
             </div>
-
-            <div className="space-y-4 p-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Select Role
-                </label>
-                <div className="space-y-2">
-                  {AVAILABLE_ROLES.map((role) => (
-                    <label
-                      key={role.code}
-                      className="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 transition"
-                    >
-                      <input
-                        type="radio"
-                        name="role"
-                        value={role.code}
-                        checked={selectedRole === role.code}
-                        onChange={(e) => setSelectedRole(e.target.value)}
-                        className="w-4 h-4 text-blue-600"
-                      />
-                      <div className="ml-3">
-                        <p className="font-medium text-gray-900">{role.label}</p>
-                        <p className="text-xs text-gray-500">{role.code}</p>
-                      </div>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {selectedUser.roles && selectedUser.roles.length > 0 && (
-                <div className="pt-4 border-t">
-                  <p className="text-sm font-medium text-gray-700 mb-2">Current Roles</p>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedUser.roles.map((role) => (
-                      <div
-                        key={role}
-                        className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100 text-sm text-gray-800"
-                      >
-                        <span>{role}</span>
-                        <button
-                          onClick={() => handleRemoveRole(selectedUser.id, role)}
-                          className="text-red-600 hover:text-red-800 font-bold"
-                          title="Remove role"
-                        >
-                          ×
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              <div className="flex gap-3 pt-4">
-                <button
-                  onClick={handleCloseRoleModal}
-                  className="flex-1 rounded-lg border border-gray-300 px-4 py-2 font-medium text-gray-700 hover:bg-gray-50 transition"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleAssignRole}
-                  className="flex-1 rounded-lg bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700 transition"
-                >
-                  Assign
-                </button>
-              </div>
+            <div>
+              <p className="text-gray-600 font-medium">UID</p>
+              <p className="text-gray-900 font-mono">{selectedUser?.uid}</p>
+            </div>
+            <div>
+              <p className="text-gray-600 font-medium">Tier</p>
+              <p className="text-gray-900">{selectedUser?.tier}</p>
+            </div>
+            <div>
+              <p className="text-gray-600 font-medium">Status</p>
+              <p className="text-gray-900">{selectedUser?.status}</p>
             </div>
           </div>
+
+          <div className="border-t border-gray-200" />
+
+          {/* Role Assignment */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              Select Role
+            </label>
+            <div className="space-y-2">
+              {AVAILABLE_ROLES.map((role) => (
+                <label
+                  key={role.code}
+                  className="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 transition"
+                >
+                  <input
+                    type="radio"
+                    name="role"
+                    value={role.code}
+                    checked={selectedRole === role.code}
+                    onChange={(e) => setSelectedRole(e.target.value)}
+                    className="w-4 h-4 text-blue-600"
+                  />
+                  <div className="ml-3">
+                    <p className="font-medium text-gray-900">{role.label}</p>
+                    <p className="text-xs text-gray-500">{role.code}</p>
+                  </div>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Current Roles */}
+          {selectedUser?.roles && selectedUser.roles.length > 0 && (
+            <div className="pt-4 border-t">
+              <p className="text-sm font-medium text-gray-700 mb-2">Current Roles</p>
+              <div className="flex flex-wrap gap-2">
+                {selectedUser.roles.map((role) => (
+                  <div
+                    key={role}
+                    className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100 text-sm text-gray-800"
+                  >
+                    <span>{role}</span>
+                    <button
+                      onClick={() => handleRemoveRole(selectedUser.id, role)}
+                      className="text-red-600 hover:text-red-800 font-bold"
+                      title="Remove role"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Actions */}
+          <div className="flex gap-3 pt-4 border-t">
+            <button
+              onClick={handleCloseOverlay}
+              className="flex-1 rounded-lg border border-gray-300 px-4 py-2 font-medium text-gray-700 hover:bg-gray-50 transition"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => {
+                if (!selectedUser || !selectedRole) return;
+                setConfirmAction({ type: 'assign', userId: selectedUser.id, role: selectedRole });
+                setShowConfirm(true);
+              }}
+              className="flex-1 rounded-lg bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700 transition"
+            >
+              Assign
+            </button>
+          </div>
         </div>
-      )}
+      </AdminDetailOverlay>
 
       {/* Confirm Dialog */}
       <ConfirmDialog

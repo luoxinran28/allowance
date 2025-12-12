@@ -1,11 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useConditionalProtectedRoute } from '@/lib/middleware/routeProtection';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, Plus } from 'lucide-react';
+import { AdminDetailOverlay } from '@/components/admin/AdminDetailOverlay';
 
 interface Organization {
   id: number;
@@ -20,14 +21,20 @@ interface Organization {
 }
 
 export default function AdminOrganizationsPage() {
-  const { hasAccess } = useConditionalProtectedRoute(
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const selectedOrgId = searchParams.get('selected_id') ? parseInt(searchParams.get('selected_id')!) : null;
+
+  useConditionalProtectedRoute(
     (perms) => perms.canAccessAdminSection(),
     '/error/permission-denied'
   );
+
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
 
   useEffect(() => {
     const loadOrganizations = async () => {
@@ -48,20 +55,37 @@ export default function AdminOrganizationsPage() {
     loadOrganizations();
   }, [searchTerm]);
 
-  if (!hasAccess) {
-    return null;
-  }
+  useEffect(() => {
+    // Sync selected org when selectedOrgId changes
+    if (selectedOrgId && organizations.length > 0) {
+      const org = organizations.find(o => o.id === selectedOrgId);
+      if (org) {
+        setSelectedOrg(org);
+      }
+    } else {
+      setSelectedOrg(null);
+    }
+  }, [selectedOrgId, organizations]);
+
+  const handleOpenOverlay = (org: Organization) => {
+    router.push(`?selected_id=${org.id}`);
+  };
+
+  const handleCloseOverlay = () => {
+    router.push('');
+    setSelectedOrg(null);
+  };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-8">
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Organizations</h1>
         <Button asChild>
-          <Link href="/admin/organizations/create">
+          <button onClick={() => handleOpenOverlay({ id: 0, org_id: '', name: 'Create Organization', created_at: new Date().toISOString() })}>
             <Plus className="h-4 w-4 mr-2" />
             Create Organization
-          </Link>
+          </button>
         </Button>
       </div>
 
@@ -116,9 +140,12 @@ export default function AdminOrganizationsPage() {
               organizations.map((org) => (
                 <tr key={org.id} className="hover:bg-muted/50">
                   <td className="px-6 py-4">
-                    <Link href={`/admin/organizations/${org.id}`} className="font-medium hover:underline">
+                    <button
+                      onClick={() => handleOpenOverlay(org)}
+                      className="font-medium hover:underline text-blue-600"
+                    >
                       {org.name}
-                    </Link>
+                    </button>
                   </td>
                   <td className="px-6 py-4 text-sm text-muted-foreground">
                     {org.boss_count || 0} boss(es)
@@ -136,9 +163,12 @@ export default function AdminOrganizationsPage() {
                     {new Date(org.created_at).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4 text-sm">
-                    <Button variant="ghost" size="sm" asChild>
-                      <Link href={`/admin/organizations/${org.id}`}>View</Link>
-                    </Button>
+                    <button
+                      onClick={() => handleOpenOverlay(org)}
+                      className="px-3 py-1 rounded hover:bg-gray-100 text-blue-600 hover:text-blue-800"
+                    >
+                      View
+                    </button>
                   </td>
                 </tr>
               ))
@@ -146,6 +176,81 @@ export default function AdminOrganizationsPage() {
           </tbody>
         </table>
       </div>
+
+      {/* Organization Detail Overlay */}
+      <AdminDetailOverlay
+        isOpen={!!selectedOrg}
+        title={selectedOrg?.name || 'Organization Details'}
+        onClose={handleCloseOverlay}
+        size="lg"
+      >
+        {selectedOrg && (
+          <div className="p-6 space-y-6">
+            {/* Organization Info */}
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Organization Info</h3>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p className="text-gray-600 font-medium">Organization ID</p>
+                  <p className="text-gray-900 font-mono">{selectedOrg.org_id}</p>
+                </div>
+                <div>
+                  <p className="text-gray-600 font-medium">Name</p>
+                  <p className="text-gray-900">{selectedOrg.name}</p>
+                </div>
+                <div>
+                  <p className="text-gray-600 font-medium">Description</p>
+                  <p className="text-gray-900">{selectedOrg.description || 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-gray-600 font-medium">Created</p>
+                  <p className="text-gray-900">{new Date(selectedOrg.created_at).toLocaleDateString()}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="border-t border-gray-200" />
+
+            {/* Statistics */}
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Statistics</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-3 rounded-lg bg-blue-50 border border-blue-200">
+                  <p className="text-sm text-gray-600">Bosses</p>
+                  <p className="text-2xl font-bold text-blue-600">{selectedOrg.boss_count || 0}</p>
+                </div>
+                <div className="p-3 rounded-lg bg-green-50 border border-green-200">
+                  <p className="text-sm text-gray-600">Teams</p>
+                  <p className="text-2xl font-bold text-green-600">{selectedOrg.team_count || 0}</p>
+                </div>
+                <div className="p-3 rounded-lg bg-yellow-50 border border-yellow-200">
+                  <p className="text-sm text-gray-600">Members</p>
+                  <p className="text-2xl font-bold text-yellow-600">{selectedOrg.member_count || 0}</p>
+                </div>
+                <div className="p-3 rounded-lg bg-purple-50 border border-purple-200">
+                  <p className="text-sm text-gray-600">Products</p>
+                  <p className="text-2xl font-bold text-purple-600">{selectedOrg.product_count || 0}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-3 pt-4 border-t">
+              <button
+                onClick={handleCloseOverlay}
+                className="flex-1 rounded-lg border border-gray-300 px-4 py-2 font-medium text-gray-700 hover:bg-gray-50 transition"
+              >
+                Close
+              </button>
+              <button
+                className="flex-1 rounded-lg bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700 transition"
+              >
+                Edit
+              </button>
+            </div>
+          </div>
+        )}
+      </AdminDetailOverlay>
     </div>
   );
 }
