@@ -78,37 +78,37 @@ const teamMgmtItems: NavItem[] = [
 // Admin Section (allstar only)
 const adminNavItems: NavItem[] = [
   {
-    href: '/admin/dashboard',
+    href: '/dashboard/admin/dashboard',
     label: 'Dashboard',
     icon: <LayoutDashboard className="h-4 w-4" />,
   },
   {
-    href: '/admin/products',
+    href: '/dashboard/admin/products',
     label: 'Products',
     icon: <Package className="h-4 w-4" />,
   },
   {
-    href: '/admin/organizations',
+    href: '/dashboard/admin/organizations',
     label: 'Organizations',
     icon: <Building2 className="h-4 w-4" />,
   },
   {
-    href: '/admin/users',
+    href: '/dashboard/admin/users',
     label: 'Users',
     icon: <Users className="h-4 w-4" />,
   },
   {
-    href: '/admin/batch/generate',
+    href: '/dashboard/admin/batch/generate',
     label: 'Generate Licenses',
     icon: <Plus className="h-4 w-4" />,
   },
   {
-    href: '/admin/batch/revoke',
+    href: '/dashboard/admin/batch/revoke',
     label: 'Revoke Licenses',
     icon: <Trash2 className="h-4 w-4" />,
   },
   {
-    href: '/admin/batch/export',
+    href: '/dashboard/admin/batch/export',
     label: 'Export Licenses',
     icon: <Download className="h-4 w-4" />,
   },

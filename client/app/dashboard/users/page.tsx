@@ -265,7 +265,7 @@ export default function UsersPage() {
                     <tr key={user.id} className="hover:bg-gray-50 transition">
                       <td className="px-6 py-4 text-sm font-medium text-gray-900">
                         <Link
-                          href={`/admin/users/${user.id}`}
+                          href={`/dashboard/admin/users/${user.id}`}
                           className="text-blue-600 hover:underline"
                         >
                           {user.email}

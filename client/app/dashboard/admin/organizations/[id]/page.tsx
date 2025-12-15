@@ -72,8 +72,8 @@ export default function OrganizationDetailPage() {
       {/* Breadcrumb */}
       <Breadcrumb
         items={[
-          { label: 'Admin', href: '/admin/dashboard' },
-          { label: 'Organizations', href: '/admin/organizations' },
+          { label: 'Admin', href: '/dashboard/admin/dashboard' },
+          { label: 'Organizations', href: '/dashboard/admin/organizations' },
           { label: organization.name },
         ]}
       />
@@ -81,7 +81,7 @@ export default function OrganizationDetailPage() {
       {/* Back Button */}
       <div className="flex items-center gap-2">
         <Button variant="ghost" size="sm" asChild>
-          <Link href="/admin/organizations">
+          <Link href="/dashboard/admin/organizations">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Organizations
           </Link>

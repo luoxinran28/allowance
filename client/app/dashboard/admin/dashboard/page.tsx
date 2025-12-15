@@ -98,7 +98,7 @@ export default function AdminDashboard() {
               </div>
               <div className="text-3xl">📦</div>
             </div>
-            <a href="/admin/products" className="text-sm text-blue-600 hover:text-blue-700 mt-4 block">
+            <a href="/dashboard/admin/products" className="text-sm text-blue-600 hover:text-blue-700 mt-4 block">
               View Products →
             </a>
           </div>
@@ -112,7 +112,7 @@ export default function AdminDashboard() {
               </div>
               <div className="text-3xl">🏢</div>
             </div>
-            <a href="/admin/organizations" className="text-sm text-blue-600 hover:text-blue-700 mt-4 block">
+            <a href="/dashboard/admin/organizations" className="text-sm text-blue-600 hover:text-blue-700 mt-4 block">
               View Organizations →
             </a>
           </div>
@@ -126,7 +126,7 @@ export default function AdminDashboard() {
               </div>
               <div className="text-3xl">👥</div>
             </div>
-            <a href="/admin/users" className="text-sm text-blue-600 hover:text-blue-700 mt-4 block">
+            <a href="/dashboard/admin/users" className="text-sm text-blue-600 hover:text-blue-700 mt-4 block">
               View Teams →
             </a>
           </div>
@@ -140,7 +140,7 @@ export default function AdminDashboard() {
               </div>
               <div className="text-3xl">👤</div>
             </div>
-            <a href="/admin/users" className="text-sm text-blue-600 hover:text-blue-700 mt-4 block">
+            <a href="/dashboard/admin/users" className="text-sm text-blue-600 hover:text-blue-700 mt-4 block">
               View Users →
             </a>
           </div>
@@ -187,28 +187,28 @@ export default function AdminDashboard() {
           <h2 className="text-2xl font-bold mb-6">Quick Actions</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <a 
-              href="/admin/batch/generate" 
+              href="/dashboard/admin/batch/generate" 
               className="border border-border rounded-lg p-4 hover:bg-accent transition-colors"
             >
               <p className="font-medium">Generate Licenses</p>
               <p className="text-sm text-muted-foreground mt-1">Create new batch licenses</p>
             </a>
             <a 
-              href="/admin/batch/revoke" 
+              href="/dashboard/admin/batch/revoke" 
               className="border border-border rounded-lg p-4 hover:bg-accent transition-colors"
             >
               <p className="font-medium">Revoke Licenses</p>
               <p className="text-sm text-muted-foreground mt-1">Revoke existing licenses</p>
             </a>
             <a 
-              href="/admin/batch/export" 
+              href="/dashboard/admin/batch/export" 
               className="border border-border rounded-lg p-4 hover:bg-accent transition-colors"
             >
               <p className="font-medium">Export Licenses</p>
               <p className="text-sm text-muted-foreground mt-1">Export license data</p>
             </a>
             <a 
-              href="/admin/users" 
+              href="/dashboard/admin/users" 
               className="border border-border rounded-lg p-4 hover:bg-accent transition-colors"
             >
               <p className="font-medium">Manage Users</p>

@@ -262,13 +262,13 @@ export default function DashboardPage() {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Button variant="outline" asChild className="justify-start">
-                <Link href="/admin/users">Manage Users</Link>
+                <Link href="/dashboard/admin/users">Manage Users</Link>
               </Button>
               <Button variant="outline" asChild className="justify-start">
-                <Link href="/admin/products">Manage Products</Link>
+                <Link href="/dashboard/admin/products">Manage Products</Link>
               </Button>
               <Button variant="outline" asChild className="justify-start">
-                <Link href="/admin/team-quotas">Team Quotas</Link>
+                <Link href="/dashboard/admin/team-quotas">Team Quotas</Link>
               </Button>
             </div>
           </CardContent>
