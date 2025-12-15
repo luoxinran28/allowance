@@ -35,14 +35,14 @@ impl CacheService {
         let json = serde_json::to_string(value)
             .map_err(|_| redis::RedisError::from((redis::ErrorKind::TypeError, "Serialization failed")))?;
         
-        conn.set_ex(key, json, ttl_secs as u64).await?;
+        conn.set_ex::<_, _, ()>(key, json, ttl_secs as u64).await?;
         Ok(())
     }
 
     /// Delete cached value
     pub async fn delete(&self, key: &str) -> RedisResult<()> {
         let mut conn = self.client.get_async_connection().await?;
-        conn.del(key).await?;
+        conn.del::<_, ()>(key).await?;
         Ok(())
     }
 
@@ -52,7 +52,7 @@ impl CacheService {
         let keys: Vec<String> = conn.keys(pattern).await?;
         
         if !keys.is_empty() {
-            conn.del(keys).await?;
+            conn.del::<_, ()>(keys).await?;
         }
         Ok(())
     }
@@ -93,7 +93,7 @@ impl CacheService {
         let count: i64 = conn.incr(key, 1).await?;
         
         if count == 1 {
-            conn.expire(key, ttl_secs as i64).await?;
+            conn.expire::<_, ()>(key, ttl_secs as i64).await?;
         }
         
         Ok(count)
@@ -109,7 +109,7 @@ impl CacheService {
     /// Flush all cache (use with caution!)
     pub async fn flush_all(&self) -> RedisResult<()> {
         let mut conn = self.client.get_async_connection().await?;
-        redis::cmd("FLUSHALL").query_async(&mut conn).await?;
+        redis::cmd("FLUSHALL").query_async::<_, ()>(&mut conn).await?;
         Ok(())
     }
 
@@ -119,11 +119,11 @@ impl CacheService {
         
         let info: String = redis::cmd("INFO")
             .arg("stats")
-            .query_async(&mut conn)
+            .query_async::<_, String>(&mut conn)
             .await?;
 
         let db_size: String = redis::cmd("DBSIZE")
-            .query_async(&mut conn)
+            .query_async::<_, String>(&mut conn)
             .await?;
 
         Ok(CacheStats {

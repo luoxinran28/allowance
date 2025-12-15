@@ -57,7 +57,7 @@ impl RedisNonceService {
         let key = format!("nonce:{}", nonce);
         let used: bool = redis::cmd("EXISTS")
             .arg(&key)
-            .query_async(&mut self.conn)
+            .query_async::<_, bool>(&mut self.conn)
             .await?;
 
         if used {
@@ -78,7 +78,7 @@ impl RedisNonceService {
             .arg(&serialized)
             .arg("EX")
             .arg(3600)
-            .query_async(&mut self.conn)
+            .query_async::<_, ()>(&mut self.conn)
             .await?;
 
         Ok(true)
@@ -89,7 +89,7 @@ impl RedisNonceService {
         let key = format!("nonce:{}", nonce);
         let exists: bool = redis::cmd("EXISTS")
             .arg(&key)
-            .query_async(&mut self.conn)
+            .query_async::<_, bool>(&mut self.conn)
             .await?;
         Ok(exists)
     }
@@ -98,7 +98,7 @@ impl RedisNonceService {
     pub async fn get_stats(&mut self) -> Result<CacheStats> {
         let keys: Vec<String> = redis::cmd("KEYS")
             .arg("nonce:*")
-            .query_async(&mut self.conn)
+            .query_async::<_, Vec<String>>(&mut self.conn)
             .await?;
 
         let mut oldest_timestamp: Option<i64> = None;
@@ -107,7 +107,7 @@ impl RedisNonceService {
         for key in &keys {
             let value: Option<String> = redis::cmd("GET")
                 .arg(key)
-                .query_async(&mut self.conn)
+                .query_async::<_, Option<String>>(&mut self.conn)
                 .await?;
 
             if let Some(v) = value {
