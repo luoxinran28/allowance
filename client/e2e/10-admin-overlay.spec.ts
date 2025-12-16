@@ -17,13 +17,13 @@ test.describe('Admin Pages - Overlay Mode', () => {
       console.log('Login successful, redirected to dashboard');
 
       // Navigate to users page
-      await page.goto('/admin/users');
+      await page.goto('/dashboard/admin/users');
       console.log('Navigated to admin users page');
 
       await page.waitForTimeout(2000);
 
       // Check if we're on the admin users page
-      await expect(page).toHaveURL('/admin/users');
+      await expect(page).toHaveURL('/dashboard/admin/users');
       console.log('Successfully navigated to admin users page');
     });
 
@@ -38,7 +38,7 @@ test.describe('Admin Pages - Overlay Mode', () => {
       await page.waitForURL('/dashboard', { timeout: 10000 });
 
       // Navigate to users page
-      await page.goto('/admin/users');
+      await page.goto('/dashboard/admin/users');
       await page.waitForTimeout(2000);
 
       // Wait for table and buttons to load
@@ -69,7 +69,7 @@ test.describe('Admin Pages - Overlay Mode', () => {
       await page.waitForURL('/dashboard', { timeout: 10000 });
 
       // Navigate to users page
-      await page.goto('/admin/users');
+      await page.goto('/dashboard/admin/users');
       await page.waitForTimeout(2000);
 
       // Wait for buttons to load

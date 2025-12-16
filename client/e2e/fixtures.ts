@@ -8,26 +8,64 @@ export const test = base.extend({
   authenticatedPage: async ({ page }, use) => {
     // Return a function that can login any user
     const loginAs = async (email: string): Promise<Page> => {
-      try {
-        await page.goto('/auth/login');
-        
-        // Fill and submit login form
-        await page.fill('input[type="email"]', email);
-        await page.fill('input[type="password"]', 'Pass888999');
-        await page.click('button:has-text("Sign in")');
-        
-        // Wait for navigation to dashboard
+      let attempts = 0;
+      const maxAttempts = 3;
+      
+      while (attempts < maxAttempts) {
         try {
-          await page.waitForURL('/dashboard', { timeout: 15000 });
-        } catch (e) {
-          console.error('Dashboard navigation timeout', e);
-          // Continue anyway
+          attempts++;
+          console.log(`Login attempt ${attempts}/${maxAttempts} for ${email}`);
+          
+          await page.goto('/auth/login');
+          
+          // Clear any existing auth state before login
+          await page.evaluate(() => {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+          });
+          
+          // Wait a bit to ensure localStorage is cleared
+          await page.waitForTimeout(200);
+          
+          // Fill and submit login form
+          await page.fill('input[type="email"]', email);
+          await page.fill('input[type="password"]', 'Pass888999');
+          await page.click('button:has-text("Sign in")');
+          
+          // Wait for navigation to dashboard (wait for redirect to complete)
+          try {
+            await page.waitForURL('**/dashboard', { timeout: 10000, waitUntil: 'load' });
+          } catch (e) {
+            if (attempts < maxAttempts) {
+              console.log(`Dashboard navigation timeout, retrying...`);
+              await page.waitForTimeout(500);
+              continue; // Retry
+            }
+            throw new Error('Login failed: Dashboard navigation timeout');
+          }
+          
+          // Give page time to settle and verify we're truly authenticated
+          await page.waitForTimeout(1000);
+          
+          // Verify we're not back on login page
+          const finalUrl = page.url();
+          if (finalUrl.includes('/auth/login')) {
+            if (attempts < maxAttempts) {
+              console.log(`Still on login page after navigation, retrying...`);
+              await page.waitForTimeout(500);
+              continue; // Retry
+            }
+            throw new Error(`Login failed: Still on login page after navigation. URL: ${finalUrl}`);
+          }
+          
+          console.log('Successfully logged in as', email, 'Final URL:', finalUrl);
+          return page; // Success
+        } catch (err) {
+          if (attempts >= maxAttempts) {
+            console.error('Fixture authentication failed after', maxAttempts, 'attempts:', err);
+            throw err;
+          }
         }
-        
-        // Give page time to settle
-        await page.waitForTimeout(500);
-      } catch (err) {
-        console.error('Fixture authentication failed:', err);
       }
       
       return page;

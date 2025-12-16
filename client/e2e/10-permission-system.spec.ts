@@ -25,7 +25,7 @@ test.describe('Permission System - Free User', () => {
     const page = await authenticatedPage('free@allowance.test');
     
     // Try to access admin panel directly
-    await page.goto('/admin/users');
+    await page.goto('/dashboard/admin/users');
     
     // Should show access denied
     const accessDenied = await page.locator('text=Access Denied').isVisible();
@@ -80,7 +80,7 @@ test.describe('Permission System - Standard User', () => {
     const page = await authenticatedPage('standard@allowance.test');
     
     // Try to access admin panel directly
-    await page.goto('/admin/users');
+    await page.goto('/dashboard/admin/users');
     
     // Should show access denied
     const accessDenied = await page.locator('text=Access Denied').isVisible();
@@ -134,7 +134,7 @@ test.describe('Permission System - Premium User', () => {
     const page = await authenticatedPage('premium@allowance.test');
     
     // Try to access admin panel directly
-    await page.goto('/admin/users');
+    await page.goto('/dashboard/admin/users');
     
     // Should show access denied
     const accessDenied = await page.locator('text=Access Denied').isVisible();
@@ -215,7 +215,7 @@ test.describe('Permission System - Admin User', () => {
   });
 
   test('admin user can access admin users page', async ({ adminPage }) => {
-    await adminPage.goto('/admin/users');
+    await adminPage.goto('/dashboard/admin/users');
     
     // Should see admin users page without access denied
     const title = await adminPage.locator('text=Users').isVisible();
@@ -227,7 +227,7 @@ test.describe('Permission System - Admin User', () => {
   });
 
   test('admin user can access admin products page', async ({ adminPage }) => {
-    await adminPage.goto('/admin/products');
+    await adminPage.goto('/dashboard/admin/products');
     
     // Should see admin products page without access denied
     const title = await adminPage.locator('text=Products').isVisible();
@@ -239,7 +239,7 @@ test.describe('Permission System - Admin User', () => {
   });
 
   test('admin user can access admin team-quotas page', async ({ adminPage }) => {
-    await adminPage.goto('/admin/team-quotas');
+    await adminPage.goto('/dashboard/admin/team-quotas');
     
     // Should see admin team quotas page without access denied
     const title = await adminPage.locator('text=Quotas').isVisible();
@@ -287,7 +287,7 @@ test.describe('Permission UI Elements', () => {
   test('permission denied alerts should be visible on restricted pages', async ({ authenticatedPage }) => {
     const page = await authenticatedPage('free@allowance.test');
     
-    await page.goto('/admin/users');
+    await page.goto('/dashboard/admin/users');
     
     // Should see access denied alert
     const alert = await page.locator('text=Access Denied').isVisible();

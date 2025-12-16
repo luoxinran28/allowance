@@ -96,13 +96,13 @@ test.describe('Issue Fixes - Team Details, Team Creation, Batch Generation', () 
     await page.waitForURL('/dashboard', { timeout: 15000 });
     
     // Navigate to admin teams page
-    await page.goto(`${baseUrl}/admin/teams`);
+    await page.goto(`${baseUrl}/dashboard/admin/teams`);
     
     // Wait for teams table to load
     await expect(page.locator('table, div:has-text("Team Name")')).toBeVisible({ timeout: 10000 });
     
     // Find and click first team link
-    const firstTeamLink = page.locator('a[href*="/admin/teams/"]').first();
+    const firstTeamLink = page.locator('a[href*="/dashboard/admin/teams/"]').first();
     if (await firstTeamLink.isVisible()) {
       await firstTeamLink.click();
       
@@ -126,20 +126,20 @@ test.describe('Issue Fixes - Team Details, Team Creation, Batch Generation', () 
     await page.waitForURL('/dashboard', { timeout: 15000 });
     
     // Navigate to admin teams page
-    await page.goto(`${baseUrl}/admin/teams`);
+    await page.goto(`${baseUrl}/dashboard/admin/teams`);
     
     // Wait for teams to load
     await expect(page.locator('table, div')).toBeVisible({ timeout: 10000 });
     
     // Find first team link and click it
-    const firstTeamLink = page.locator('a[href*="/admin/teams/"]').first();
+    const firstTeamLink = page.locator('a[href*="/dashboard/admin/teams/"]').first();
     const href = await firstTeamLink.getAttribute('href');
     
     if (href) {
       const teamId = href.split('/').pop();
       
       // Navigate directly to team details page
-      await page.goto(`${baseUrl}/admin/teams/${teamId}`);
+      await page.goto(`${baseUrl}/dashboard/admin/teams/${teamId}`);
       
       // Check page content with improved logging
       const pageContent = await page.content();
@@ -337,7 +337,7 @@ test.describe('Issue Fixes - Team Details, Team Creation, Batch Generation', () 
     await expect(page.locator(`text=${testTeamName}`)).toBeVisible({ timeout: 10000 });
     
     // Navigate to admin teams page
-    await page.goto(`${baseUrl}/admin/teams`);
+    await page.goto(`${baseUrl}/dashboard/admin/teams`);
     
     // Find the newly created team
     const teamLink = page.locator(`a:has-text("${testTeamName}")`).first();
@@ -438,7 +438,7 @@ test.describe('Issue Fixes - Team Details, Team Creation, Batch Generation', () 
     await page.click('button:has-text("Sign in")');
     
     // Navigate to admin products
-    await page.goto(`${baseUrl}/admin/products`, { waitUntil: 'networkidle', timeout: 30000 });
+    await page.goto(`${baseUrl}/dashboard/admin/products`, { waitUntil: 'networkidle', timeout: 30000 });
     
     // Should not see infinite loading spinner after reasonable wait
     const spinner = page.locator('[class*="animate-spin"]');
@@ -462,7 +462,7 @@ test.describe('Issue Fixes - Team Details, Team Creation, Batch Generation', () 
     await page.click('button:has-text("Sign in")');
     
     // Navigate to admin users
-    await page.goto(`${baseUrl}/admin/users`, { waitUntil: 'networkidle', timeout: 30000 });
+    await page.goto(`${baseUrl}/dashboard/admin/users`, { waitUntil: 'networkidle', timeout: 30000 });
     
     // Should not see infinite loading
     await page.waitForTimeout(3000);

@@ -15,19 +15,30 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, initialize } = useAuthStore();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [isLoading, setIsLoading] = useState(true);
+  const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      router.push('/auth/login');
-    } else {
-      setIsLoading(false);
-    }
-  }, [isAuthenticated, router]);
+    // Initialize auth store from localStorage
+    initialize();
+    
+    // After initialize is called, wait for state to update before checking auth
+    const checkAuthTimer = setTimeout(() => {
+      setAuthChecked(true);
+    }, 150);
+    
+    return () => clearTimeout(checkAuthTimer);
+  }, [initialize]);
 
-  if (isLoading) {
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (authChecked && !isAuthenticated) {
+      router.push('/auth/login');
+    }
+  }, [authChecked, isAuthenticated, router]);
+
+  if (!authChecked) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />

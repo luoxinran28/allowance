@@ -17,11 +17,11 @@ test.describe('Advanced Features - Product & Team Management', () => {
     await page.waitForTimeout(2000);
 
     // Navigate to products admin page
-    await page.goto(`${baseUrl}/admin/products`);
+    await page.goto(`${baseUrl}/dashboard/admin/products`);
     await page.waitForTimeout(1000);
 
     // Verify we're on products admin page
-    expect(page.url()).toContain('/admin/products');
+    expect(page.url()).toContain('/dashboard/admin/products');
     
     // Verify page contains "UPID" column header
     const pageContent = await page.content();
@@ -37,7 +37,7 @@ test.describe('Advanced Features - Product & Team Management', () => {
     await page.waitForTimeout(2000);
 
     // Navigate to products admin page
-    await page.goto(`${baseUrl}/admin/products`);
+    await page.goto(`${baseUrl}/dashboard/admin/products`);
     await page.waitForTimeout(1000);
 
     // Look for "Add Product" button
@@ -56,7 +56,7 @@ test.describe('Advanced Features - Product & Team Management', () => {
     await page.waitForTimeout(2000);
 
     // Navigate to products admin page
-    await page.goto(`${baseUrl}/admin/products`);
+    await page.goto(`${baseUrl}/dashboard/admin/products`);
     await page.waitForTimeout(1000);
 
     // Verify table has UPID column
@@ -76,11 +76,11 @@ test.describe('Advanced Features - Product & Team Management', () => {
     await page.waitForTimeout(2000);
 
     // Navigate to teams admin page
-    await page.goto(`${baseUrl}/admin/teams`);
+    await page.goto(`${baseUrl}/dashboard/admin/teams`);
     await page.waitForTimeout(1000);
 
     // Verify we're on teams admin page
-    expect(page.url()).toContain('/admin/teams');
+    expect(page.url()).toContain('/dashboard/admin/teams');
   });
 
   test('Feature 2.2: Teams page has organization filter', async ({ page }) => {
@@ -92,7 +92,7 @@ test.describe('Advanced Features - Product & Team Management', () => {
     await page.waitForTimeout(2000);
 
     // Navigate to teams admin page
-    await page.goto(`${baseUrl}/admin/teams`);
+    await page.goto(`${baseUrl}/dashboard/admin/teams`);
     await page.waitForTimeout(1000);
 
     // Look for "Filter by Organization" dropdown
@@ -111,7 +111,7 @@ test.describe('Advanced Features - Product & Team Management', () => {
     await page.waitForTimeout(2000);
 
     // Navigate to teams admin page
-    await page.goto(`${baseUrl}/admin/teams`);
+    await page.goto(`${baseUrl}/dashboard/admin/teams`);
     await page.waitForTimeout(1500);
 
     // Verify page content has "Organization" column or "organization" text
@@ -131,11 +131,11 @@ test.describe('Advanced Features - Product & Team Management', () => {
     await page.waitForTimeout(2000);
 
     // Navigate to teams admin page
-    await page.goto(`${baseUrl}/admin/teams`);
+    await page.goto(`${baseUrl}/dashboard/admin/teams`);
     await page.waitForTimeout(1000);
 
     // Try to find and click first team link (view button)
-    const viewButtons = page.locator('a[href*="/admin/teams/"]').first();
+    const viewButtons = page.locator('a[href*="/dashboard/admin/teams/"]').first();
     const exists = await viewButtons.isVisible().catch(() => false);
 
     // If teams exist, clicking should work
@@ -143,10 +143,10 @@ test.describe('Advanced Features - Product & Team Management', () => {
       await viewButtons.click();
       await page.waitForTimeout(1000);
       // Should be on team details page
-      expect(page.url()).toContain('/admin/teams/');
+      expect(page.url()).toContain('/dashboard/admin/teams/');
     } else {
       // No teams yet, that's ok
-      expect(page.url()).toContain('/admin/teams');
+      expect(page.url()).toContain('/dashboard/admin/teams');
     }
   });
 
@@ -159,12 +159,12 @@ test.describe('Advanced Features - Product & Team Management', () => {
     await page.waitForTimeout(2000);
 
     // Navigate to a specific team details page
-    await page.goto(`${baseUrl}/admin/teams/6`);
+    await page.goto(`${baseUrl}/dashboard/admin/teams/6`);
     await page.waitForTimeout(1000);
 
     // Either on team details or redirected to teams list - both are valid
-    const isTeamDetails = page.url().includes('/admin/teams/');
-    const isTeamsList = page.url().includes('/admin/teams');
+    const isTeamDetails = page.url().includes('/dashboard/admin/teams/');
+    const isTeamsList = page.url().includes('/dashboard/admin/teams');
 
     expect(isTeamDetails || isTeamsList).toBeTruthy();
   });
@@ -178,7 +178,7 @@ test.describe('Advanced Features - Product & Team Management', () => {
     await page.waitForTimeout(2000);
 
     // Navigate to team details
-    await page.goto(`${baseUrl}/admin/teams/6`);
+    await page.goto(`${baseUrl}/dashboard/admin/teams/6`);
     await page.waitForTimeout(1000);
 
     // Look for "Promote to Leader" button or "Team Leader" section
@@ -186,7 +186,7 @@ test.describe('Advanced Features - Product & Team Management', () => {
     const hasLeaderUI = pageContent.includes('Leader') || pageContent.includes('leader');
 
     // Verify we can access some team administration page
-    const onValidPage = page.url().includes('/admin/teams');
+    const onValidPage = page.url().includes('/dashboard/admin/teams');
     expect(onValidPage).toBeTruthy();
   });
 
@@ -223,14 +223,14 @@ test.describe('Advanced Features - Product & Team Management', () => {
     await page.waitForTimeout(2000);
 
     // Visit products admin page
-    await page.goto(`${baseUrl}/admin/products`);
+    await page.goto(`${baseUrl}/dashboard/admin/products`);
     await page.waitForTimeout(1000);
-    expect(page.url()).toContain('/admin/products');
+    expect(page.url()).toContain('/dashboard/admin/products');
 
     // Visit teams admin page
-    await page.goto(`${baseUrl}/admin/teams`);
+    await page.goto(`${baseUrl}/dashboard/admin/teams`);
     await page.waitForTimeout(1000);
-    expect(page.url()).toContain('/admin/teams');
+    expect(page.url()).toContain('/dashboard/admin/teams');
   });
 
   test('Integration: Admin can filter teams by organization and manage leaders', async ({ page }) => {
@@ -242,9 +242,9 @@ test.describe('Advanced Features - Product & Team Management', () => {
     await page.waitForTimeout(2000);
 
     // Step 1: Visit teams admin page
-    await page.goto(`${baseUrl}/admin/teams`);
+    await page.goto(`${baseUrl}/dashboard/admin/teams`);
     await page.waitForTimeout(1000);
-    expect(page.url()).toContain('/admin/teams');
+    expect(page.url()).toContain('/dashboard/admin/teams');
 
     // Step 2: Verify filter exists
     const filterLabel = page.locator('text=Filter by Organization');
@@ -254,6 +254,6 @@ test.describe('Advanced Features - Product & Team Management', () => {
     const pageContent = await page.content();
     const hasOrgColumn = pageContent.toLowerCase().includes('organization');
 
-    expect(page.url()).toContain('/admin/teams');
+    expect(page.url()).toContain('/dashboard/admin/teams');
   });
 });

@@ -63,8 +63,8 @@ test.describe('Authentication', () => {
     } catch (e) {
       // Ignore
     }
-    await page.goto('/dashboard', { waitUntil: 'networkidle' });
-    await page.waitForTimeout(1000);
+    await page.goto('/dashboard', { waitUntil: 'domcontentloaded', timeout: 5000 }).catch(() => {});
+    await page.waitForTimeout(500);
     const url = page.url();
     expect(url.includes('/auth') || url.includes('/login')).toBeTruthy();
   });
@@ -119,7 +119,10 @@ test.describe('Authentication', () => {
 });
 
 test.describe('Logout', () => {
-  test('should logout and clear token', async ({ authenticatedPage: page }) => {
+  test('should logout and clear token', async ({ authenticatedPage, page }) => {
+    // Login using the fixture
+    await authenticatedPage('free@allowance.test');
+    
     expect(page).toHaveURL(/\/dashboard/);
     const logoutSelectors = [
       'button:has-text("Logout")',

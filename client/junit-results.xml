@@ -1,0 +1,230 @@
+<testsuites id="" name="" tests="39" failures="2" skipped="0" errors="0" time="108.251999">
+<testsuite name="01-auth.spec.ts" timestamp="2025-12-16T00:39:01.362Z" hostname="chromium" tests="13" failures="0" skipped="0" time="16.341" errors="0">
+<testcase name="Authentication › should display login page with form" classname="01-auth.spec.ts" time="1.275">
+</testcase>
+<testcase name="Authentication › should show error on invalid credentials" classname="01-auth.spec.ts" time="2.295">
+</testcase>
+<testcase name="Authentication › should login with valid credentials" classname="01-auth.spec.ts" time="0.686">
+</testcase>
+<testcase name="Authentication › should persist token in localStorage after login" classname="01-auth.spec.ts" time="0.625">
+</testcase>
+<testcase name="Authentication › should allow navigation when authenticated" classname="01-auth.spec.ts" time="1.509">
+</testcase>
+<testcase name="Authentication › should redirect to login when accessing protected page without auth" classname="01-auth.spec.ts" time="0.944">
+</testcase>
+<testcase name="Authentication › should show password reset option on login page" classname="01-auth.spec.ts" time="0.353">
+</testcase>
+<testcase name="Authentication › should allow access to password reset page" classname="01-auth.spec.ts" time="0.527">
+</testcase>
+<testcase name="Authentication › should handle password reset with non-existent email" classname="01-auth.spec.ts" time="2.446">
+</testcase>
+<testcase name="Authentication › should handle password reset with valid email" classname="01-auth.spec.ts" time="2.257">
+</testcase>
+<testcase name="Authentication › should have email activation page" classname="01-auth.spec.ts" time="0.568">
+</testcase>
+<testcase name="Authentication › should show registration option on login page" classname="01-auth.spec.ts" time="0.722">
+</testcase>
+<testcase name="Logout › should logout and clear token" classname="01-auth.spec.ts" time="2.134">
+<system-out>
+<![CDATA[Successfully logged in as free@allowance.test Final URL: http://localhost:3030/dashboard
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="01-auth.spec.ts" timestamp="2025-12-16T00:39:01.362Z" hostname="firefox" tests="13" failures="0" skipped="0" time="19.857" errors="0">
+<testcase name="Authentication › should display login page with form" classname="01-auth.spec.ts" time="2.357">
+</testcase>
+<testcase name="Authentication › should show error on invalid credentials" classname="01-auth.spec.ts" time="2.646">
+</testcase>
+<testcase name="Authentication › should login with valid credentials" classname="01-auth.spec.ts" time="0.98">
+</testcase>
+<testcase name="Authentication › should persist token in localStorage after login" classname="01-auth.spec.ts" time="1.047">
+</testcase>
+<testcase name="Authentication › should allow navigation when authenticated" classname="01-auth.spec.ts" time="1.866">
+</testcase>
+<testcase name="Authentication › should redirect to login when accessing protected page without auth" classname="01-auth.spec.ts" time="1.351">
+</testcase>
+<testcase name="Authentication › should show password reset option on login page" classname="01-auth.spec.ts" time="0.782">
+</testcase>
+<testcase name="Authentication › should allow access to password reset page" classname="01-auth.spec.ts" time="0.683">
+</testcase>
+<testcase name="Authentication › should handle password reset with non-existent email" classname="01-auth.spec.ts" time="2.489">
+</testcase>
+<testcase name="Authentication › should handle password reset with valid email" classname="01-auth.spec.ts" time="2.357">
+</testcase>
+<testcase name="Authentication › should have email activation page" classname="01-auth.spec.ts" time="0.702">
+</testcase>
+<testcase name="Authentication › should show registration option on login page" classname="01-auth.spec.ts" time="0.604">
+</testcase>
+<testcase name="Logout › should logout and clear token" classname="01-auth.spec.ts" time="1.993">
+<system-out>
+<![CDATA[Successfully logged in as free@allowance.test Final URL: http://localhost:3030/dashboard
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="01-auth.spec.ts" timestamp="2025-12-16T00:39:01.362Z" hostname="webkit" tests="13" failures="2" skipped="0" time="55.152" errors="0">
+<testcase name="Authentication › should display login page with form" classname="01-auth.spec.ts" time="3.141">
+</testcase>
+<testcase name="Authentication › should show error on invalid credentials" classname="01-auth.spec.ts" time="3.209">
+</testcase>
+<testcase name="Authentication › should login with valid credentials" classname="01-auth.spec.ts" time="21.873">
+<failure message="01-auth.spec.ts:22:7 should login with valid credentials" type="FAILURE">
+<![CDATA[  [webkit] › 01-auth.spec.ts:22:7 › Authentication › should login with valid credentials ───────────
+
+    TimeoutError: page.waitForURL: Timeout 20000ms exceeded.
+    =========================== logs ===========================
+    waiting for navigation to "/dashboard" until "load"
+    ============================================================
+
+      25 |     await page.fill('input[type="password"]', 'Pass888999');
+      26 |     await page.click('button:has-text("Sign in")');
+    > 27 |     await page.waitForURL('/dashboard', { timeout: 20000 });
+         |                ^
+      28 |     expect(page).toHaveURL(/\/dashboard/);
+      29 |   });
+      30 |
+        at C:\Users\carri\Downloads\Sean's Offline\workspsace\allowance\client\e2e\01-auth.spec.ts:27:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\01-auth-Authentication-should-login-with-valid-credentials-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\01-auth-Authentication-should-login-with-valid-credentials-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\01-auth-Authentication-should-login-with-valid-credentials-webkit\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|test-results\01-auth-Authentication-should-login-with-valid-credentials-webkit\test-failed-1.png]]
+
+[[ATTACHMENT|test-results\01-auth-Authentication-should-login-with-valid-credentials-webkit\video.webm]]
+
+[[ATTACHMENT|test-results\01-auth-Authentication-should-login-with-valid-credentials-webkit\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Authentication › should persist token in localStorage after login" classname="01-auth.spec.ts" time="1.904">
+</testcase>
+<testcase name="Authentication › should allow navigation when authenticated" classname="01-auth.spec.ts" time="2.641">
+</testcase>
+<testcase name="Authentication › should redirect to login when accessing protected page without auth" classname="01-auth.spec.ts" time="1.62">
+</testcase>
+<testcase name="Authentication › should show password reset option on login page" classname="01-auth.spec.ts" time="0.929">
+</testcase>
+<testcase name="Authentication › should allow access to password reset page" classname="01-auth.spec.ts" time="1.027">
+</testcase>
+<testcase name="Authentication › should handle password reset with non-existent email" classname="01-auth.spec.ts" time="2.87">
+</testcase>
+<testcase name="Authentication › should handle password reset with valid email" classname="01-auth.spec.ts" time="2.87">
+</testcase>
+<testcase name="Authentication › should have email activation page" classname="01-auth.spec.ts" time="0.81">
+</testcase>
+<testcase name="Authentication › should show registration option on login page" classname="01-auth.spec.ts" time="0.784">
+</testcase>
+<testcase name="Logout › should logout and clear token" classname="01-auth.spec.ts" time="11.474">
+<failure message="01-auth.spec.ts:122:7 should logout and clear token" type="FAILURE">
+<![CDATA[  [webkit] › 01-auth.spec.ts:122:7 › Logout › should logout and clear token ────────────────────────
+
+    Error: Login failed: Dashboard navigation timeout
+
+       at fixtures.ts:25
+
+      23 |           console.error('Dashboard navigation timeout, current URL:', page.url(), e);
+      24 |           // Don't continue - this is a critical failure
+    > 25 |           throw new Error('Login failed: Dashboard navigation timeout');
+         |                 ^
+      26 |         }
+      27 |         
+      28 |         // Give page time to settle and verify we're truly authenticated
+        at loginAs (C:\Users\carri\Downloads\Sean's Offline\workspsace\allowance\client\e2e\fixtures.ts:25:17)
+        at C:\Users\carri\Downloads\Sean's Offline\workspsace\allowance\client\e2e\01-auth.spec.ts:124:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\01-auth-Logout-should-logout-and-clear-token-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\01-auth-Logout-should-logout-and-clear-token-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\01-auth-Logout-should-logout-and-clear-token-webkit\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|test-results\01-auth-Logout-should-logout-and-clear-token-webkit\test-failed-1.png]]
+
+[[ATTACHMENT|test-results\01-auth-Logout-should-logout-and-clear-token-webkit\video.webm]]
+
+[[ATTACHMENT|test-results\01-auth-Logout-should-logout-and-clear-token-webkit\error-context.md]]
+]]>
+</system-out>
+<system-err>
+<![CDATA[Dashboard navigation timeout, current URL: http://localhost:3030/auth/login page.waitForURL: Timeout 10000ms exceeded.
+=========================== logs ===========================
+waiting for navigation to "**/dashboard" until "load"
+============================================================
+    at loginAs [90m(C:\Users\carri\Downloads\Sean's Offline\workspsace\allowance\client\[39me2e\fixtures.ts:21:22[90m)[39m
+    at [90mC:\Users\carri\Downloads\Sean's Offline\workspsace\allowance\client\[39me2e\01-auth.spec.ts:124:5 {
+  name: [32m'TimeoutError'[39m,
+  [[32mSymbol(step)[39m]: {
+    location: {
+      file: [32m"C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\fixtures.ts"[39m,
+      line: [33m21[39m,
+      column: [33m22[39m,
+      function: [32m'loginAs'[39m
+    },
+    category: [32m'pw:api'[39m,
+    title: [32m'Wait for navigation'[39m,
+    apiName: [32m'page.waitForURL'[39m,
+    params: { info: [36m[Object][39m },
+    group: [90mundefined[39m,
+    stepId: [32m'pw:api@31'[39m,
+    boxedStack: [90mundefined[39m,
+    steps: [],
+    attachmentIndices: [],
+    info: TestStepInfoImpl {
+      annotations: [],
+      _testInfo: [36m[TestInfoImpl][39m,
+      _stepId: [32m'pw:api@31'[39m,
+      _title: [32m'Wait for navigation'[39m,
+      _parentStep: [90mundefined[39m,
+      skip: [36m[Function (anonymous)][39m
+    },
+    complete: [36m[Function: complete][39m,
+    endWallTime: [33m1765845648990[39m,
+    error: {
+      message: [32m'TimeoutError: page.waitForURL: Timeout 10000ms exceeded.\n'[39m +
+        [32m'=========================== logs ===========================\n'[39m +
+        [32m'waiting for navigation to "**/dashboard" until "load"\n'[39m +
+        [32m'============================================================'[39m,
+      stack: [32m'TimeoutError: page.waitForURL: Timeout 10000ms exceeded.\n'[39m +
+        [32m'=========================== logs ===========================\n'[39m +
+        [32m'waiting for navigation to "**/dashboard" until "load"\n'[39m +
+        [32m'============================================================\n'[39m +
+        [32m"    at loginAs (C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\fixtures.ts:21:22)\n"[39m +
+        [32m"    at C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\01-auth.spec.ts:124:5"[39m,
+      cause: [90mundefined[39m
+    }
+  }
+}
+Fixture authentication failed: Error: Login failed: Dashboard navigation timeout
+    at loginAs [90m(C:\Users\carri\Downloads\Sean's Offline\workspsace\allowance\client\[39me2e\fixtures.ts:25:17[90m)[39m
+    at [90mC:\Users\carri\Downloads\Sean's Offline\workspsace\allowance\client\[39me2e\01-auth.spec.ts:124:5
+    at [90mC:\Users\carri\Downloads\Sean's Offline\workspsace\allowance\client\[39mnode_modules\[4mplaywright[24m\lib\worker\workerMain.js:322:9
+    at [90mC:\Users\carri\Downloads\Sean's Offline\workspsace\allowance\client\[39mnode_modules\[4mplaywright[24m\lib\worker\testInfo.js:311:11
+    at TimeoutManager.withRunnable [90m(C:\Users\carri\Downloads\Sean's Offline\workspsace\allowance\client\[39mnode_modules\[4mplaywright[24m\lib\worker\timeoutManager.js:67:14[90m)[39m
+    at TestInfoImpl._runWithTimeout [90m(C:\Users\carri\Downloads\Sean's Offline\workspsace\allowance\client\[39mnode_modules\[4mplaywright[24m\lib\worker\testInfo.js:309:7[90m)[39m
+    at [90mC:\Users\carri\Downloads\Sean's Offline\workspsace\allowance\client\[39mnode_modules\[4mplaywright[24m\lib\worker\workerMain.js:320:7
+    at WorkerMain._runTest [90m(C:\Users\carri\Downloads\Sean's Offline\workspsace\allowance\client\[39mnode_modules\[4mplaywright[24m\lib\worker\workerMain.js:295:5[90m)[39m
+    at WorkerMain.runTestGroup [90m(C:\Users\carri\Downloads\Sean's Offline\workspsace\allowance\client\[39mnode_modules\[4mplaywright[24m\lib\worker\workerMain.js:199:11[90m)[39m
+    at process.<anonymous> [90m(C:\Users\carri\Downloads\Sean's Offline\workspsace\allowance\client\[39mnode_modules\[4mplaywright[24m\lib\common\process.js:65:22[90m)[39m
+]]>
+</system-err>
+</testcase>
+</testsuite>
+</testsuites>

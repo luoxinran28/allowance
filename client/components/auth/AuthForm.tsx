@@ -52,10 +52,20 @@ export function AuthForm({ mode }: AuthFormProps) {
           router.push(`/auth/activate?email=${encodeURIComponent(email)}`);
         }, 2000);
       } else {
-        // Login with UPID if available
-        const response = await apiClient.login(email, password, upid || undefined);
+        // Login without UPID - UPID is only required when accessing a specific product
+        // not for initial authentication
+        const response = await apiClient.login(email, password);
         const { user, token } = response.data;
+        
+        // Set auth state and ensure localStorage is written
+        localStorage.setItem('user', JSON.stringify(user));
+        localStorage.setItem('token', token);
         setAuth(user, token);
+        
+        // Small delay to ensure state updates are processed before navigation
+        await new Promise(resolve => setTimeout(resolve, 50));
+        
+        // Use router.push for Next.js navigation since localStorage is now set
         router.push('/dashboard');
       }
     } catch (err: any) {
