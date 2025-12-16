@@ -214,14 +214,14 @@ export default function AdminTeamsPage() {
                       </td>
                       <td className="px-6 py-4 text-sm space-x-3 flex">
                         <Link
-                          href={`/admin/teams/${team.id}`}
+                          href={`/dashboard/admin/teams/${team.id}`}
                           className="text-blue-600 hover:text-blue-800 font-medium transition"
                           title="View team details"
                         >
                           👁️
                         </Link>
                         <Link
-                          href={`/admin/teams/${team.id}/members`}
+                          href={`/dashboard/admin/teams/${team.id}/members`}
                           className="text-indigo-600 hover:text-indigo-800 font-medium transition"
                           title="Manage members"
                         >

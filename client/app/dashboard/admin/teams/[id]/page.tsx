@@ -134,7 +134,7 @@ export default function AdminTeamDetailsPage() {
     return (
       <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-6 text-center">
         <p className="text-yellow-800">Team not found</p>
-        <Link href="/admin/teams" className="text-blue-600 hover:text-blue-800 mt-4 inline-block">
+        <Link href="/dashboard/admin/teams" className="text-blue-600 hover:text-blue-800 mt-4 inline-block">
           ← Back to Teams
         </Link>
       </div>
@@ -150,7 +150,7 @@ export default function AdminTeamDetailsPage() {
       <div className="flex items-center justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <Link href="/admin/teams" className="text-blue-600 hover:text-blue-800">
+            <Link href="/dashboard/admin/teams" className="text-blue-600 hover:text-blue-800">
               ← Teams
             </Link>
           </div>

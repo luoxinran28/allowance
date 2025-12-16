@@ -1,17 +1,34 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { apiClient } from '@/lib/api-client';
 import { useConditionalProtectedRoute } from '@/lib/middleware/routeProtection';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
 
+interface Organization {
+  id: number;
+  name: string;
+}
+
+interface Product {
+  id: number;
+  name: string;
+  upid?: string;
+}
+
 export default function GenerateLicensesPage() {
   const { hasAccess } = useConditionalProtectedRoute(
     (perms) => perms.canAccessAdminSection(),
     '/error/permission-denied'
   );
+  
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loadingData, setLoadingData] = useState(true);
+  
   const [formData, setFormData] = useState({
     organizationId: '',
     productId: '',
@@ -21,6 +38,26 @@ export default function GenerateLicensesPage() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      const [orgsRes, productsRes] = await Promise.all([
+        apiClient.listOrganizations(),
+        apiClient.listProducts(),
+      ]);
+      setOrganizations(orgsRes.data || []);
+      setProducts(productsRes.data || []);
+    } catch (error) {
+      console.error('Failed to load organizations or products:', error);
+      setMessage({ type: 'error', text: 'Failed to load organizations or products' });
+    } finally {
+      setLoadingData(false);
+    }
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -28,6 +65,17 @@ export default function GenerateLicensesPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!formData.organizationId) {
+      setMessage({ type: 'error', text: 'Please select an organization' });
+      return;
+    }
+    
+    if (!formData.productId) {
+      setMessage({ type: 'error', text: 'Please select a product' });
+      return;
+    }
+
     setLoading(true);
     setMessage(null);
 
@@ -72,26 +120,48 @@ export default function GenerateLicensesPage() {
       <form onSubmit={handleSubmit} className="border border-border rounded-lg p-6 space-y-6">
         <div className="space-y-2">
           <Label htmlFor="organizationId">Organization</Label>
-          <Input
-            id="organizationId"
-            name="organizationId"
-            placeholder="Select organization"
-            value={formData.organizationId}
-            onChange={handleChange}
-            required
-          />
+          {loadingData ? (
+            <div className="text-gray-500">Loading organizations...</div>
+          ) : (
+            <select
+              id="organizationId"
+              name="organizationId"
+              value={formData.organizationId}
+              onChange={handleChange}
+              className="w-full rounded-lg border border-gray-300 px-4 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              required
+            >
+              <option value="">-- Select organization --</option>
+              {organizations.map((org) => (
+                <option key={org.id} value={org.id}>
+                  {org.name}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="productId">Product</Label>
-          <Input
-            id="productId"
-            name="productId"
-            placeholder="Select product"
-            value={formData.productId}
-            onChange={handleChange}
-            required
-          />
+          {loadingData ? (
+            <div className="text-gray-500">Loading products...</div>
+          ) : (
+            <select
+              id="productId"
+              name="productId"
+              value={formData.productId}
+              onChange={handleChange}
+              className="w-full rounded-lg border border-gray-300 px-4 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              required
+            >
+              <option value="">-- Select product --</option>
+              {products.map((product) => (
+                <option key={product.id} value={product.id}>
+                  {product.name} {product.upid && `(${product.upid})`}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
 
         <div className="grid grid-cols-2 gap-4">
@@ -122,7 +192,7 @@ export default function GenerateLicensesPage() {
           </div>
         </div>
 
-        <Button type="submit" disabled={loading} className="w-full">
+        <Button type="submit" disabled={loading || loadingData} className="w-full">
           {loading ? 'Generating...' : 'Generate Licenses'}
         </Button>
       </form>

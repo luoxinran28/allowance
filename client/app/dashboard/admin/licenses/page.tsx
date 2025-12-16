@@ -91,7 +91,7 @@ export default function AdminLicensesPage() {
           sort_by: filters.sortBy,
         });
 
-        const response = await (apiClient as any).client.get(`/admin/licenses?${params}`);
+        const response = await (apiClient as any).client.get(`/licenses?${params}`);
         setLicenses(response.data.licenses || []);
         setTotalCount(response.data.total_count || 0);
       } catch (err) {
@@ -152,7 +152,7 @@ export default function AdminLicensesPage() {
   // Handle export to CSV
   const handleExportCSV = async () => {
     try {
-      const response = await (apiClient as any).client.get('/admin/licenses/export', {
+      const response = await (apiClient as any).client.get('/licenses/export', {
         responseType: 'blob',
       });
       

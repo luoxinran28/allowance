@@ -74,6 +74,8 @@ coverage/
 *.webm
 test-results/
 playwright-report/
+junit-results.xml
+test-results.json
 
 # Build artifacts
 *.tsbuildinfo

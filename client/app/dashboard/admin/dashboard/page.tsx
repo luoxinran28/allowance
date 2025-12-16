@@ -154,7 +154,7 @@ export default function AdminDashboard() {
               </div>
               <div className="text-3xl">🎫</div>
             </div>
-            <a href="/admin/batch/generate" className="text-sm text-blue-600 hover:text-blue-700 mt-4 block">
+            <a href="/dashboard/admin/batch/generate" className="text-sm text-blue-600 hover:text-blue-700 mt-4 block">
               Manage Licenses →
             </a>
           </div>

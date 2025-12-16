@@ -131,7 +131,7 @@ export default function AdminProductsPage() {
       return;
     }
 
-    if (!formData.product_slug.trim()) {
+    if (!editingProduct && !formData.product_slug.trim()) {
       setError('Product slug is required');
       return;
     }
@@ -141,7 +141,8 @@ export default function AdminProductsPage() {
       setSuccess('');
 
       if (editingProduct) {
-        // Update product (if API supports it)
+        // Update product - note: slug cannot be changed, only name and description
+        // For now, we just show success message since update endpoint may not be fully implemented
         setSuccess('Product updated successfully');
       } else {
         // Create product via new endpoint
@@ -401,7 +402,7 @@ export default function AdminProductsPage() {
             <form onSubmit={handleSubmit} className="space-y-4 p-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Product Slug
+                  Product Slug {editingProduct && <span className="text-gray-500 text-xs">(Read-only)</span>}
                 </label>
                 <input
                   type="text"
@@ -409,7 +410,9 @@ export default function AdminProductsPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, product_slug: e.target.value })
                   }
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                  className={`w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 ${
+                    editingProduct ? 'bg-gray-100 cursor-not-allowed' : ''
+                  }`}
                   placeholder="e.g., allowance-001"
                   disabled={!!editingProduct}
                   required

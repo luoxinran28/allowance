@@ -147,6 +147,9 @@ pub async fn assign_role(
     let requester_id = extract_user_from_header(&state, &headers)?;
     check_admin_permission(&state, requester_id).await?;
 
+    // Verify the user exists
+    let _user = UserService::get_user(&state.pool, user_id).await?;
+    
     RbacService::assign_role(&state.pool, user_id, &req.role_code).await?;
 
     Ok(Json(AdminResponse {
