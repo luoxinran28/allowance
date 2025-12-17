@@ -1,6 +1,8 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { usePermission } from '@/lib/hooks/usePermission';
+import { useAuthStore } from '@/lib/auth-store';
 import Link from 'next/link';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -8,6 +10,15 @@ import { AlertCircle } from 'lucide-react';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { isAdmin } = usePermission();
+  const { initialize } = useAuthStore();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    initialize();
+    setMounted(true);
+  }, [initialize]);
+
+  if (!mounted) return null;
 
   if (!isAdmin()) {
     return (
