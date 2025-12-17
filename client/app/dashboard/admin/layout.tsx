@@ -15,7 +15,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            <strong>Access Denied</strong> - You don't have permission to access the admin panel. Only administrators can access this area.
+            Access Denied - You don't have permission to access the admin panel. Only administrators can access this area.
           </AlertDescription>
         </Alert>
         <Button asChild>

@@ -102,16 +102,15 @@ export default function TeamsListPage() {
           <h1 className="text-3xl font-bold tracking-tight">Teams</h1>
           <p className="text-muted-foreground mt-2">Manage your teams and collaborate with members</p>
         </div>
-        {canManageOrganization() ? (
-          <Button onClick={() => setShowCreateForm(!showCreateForm)}>
-            {showCreateForm ? 'Cancel' : '+ Create Team'}
-          </Button>
-        ) : (
-          <Button disabled variant="outline" className="gap-2">
-            <Lock className="h-4 w-4" />
-            Premium feature
-          </Button>
-        )}
+        <Button 
+          disabled={!canManageOrganization()}
+          onClick={() => canManageOrganization() && setShowCreateForm(!showCreateForm)}
+          variant={!canManageOrganization() ? 'outline' : 'default'}
+          className="gap-2"
+        >
+          {!canManageOrganization() && <Lock className="h-4 w-4" />}
+          Create Team
+        </Button>
       </div>
 
       {/* Permission Alert */}

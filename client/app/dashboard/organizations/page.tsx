@@ -93,16 +93,15 @@ export default function OrganizationsPage() {
           <h1 className="text-3xl font-bold tracking-tight">Organizations</h1>
           <p className="text-muted-foreground mt-2">Manage your organizations and team structures</p>
         </div>
-        {canManageOrganization() ? (
-          <Button onClick={() => setShowCreateForm(!showCreateForm)}>
-            {showCreateForm ? 'Cancel' : '+ Create Organization'}
-          </Button>
-        ) : (
-          <Button disabled variant="outline" className="gap-2">
-            <Lock className="h-4 w-4" />
-            Premium feature
-          </Button>
-        )}
+        <Button 
+          disabled={!canManageOrganization()}
+          onClick={() => canManageOrganization() && setShowCreateForm(!showCreateForm)}
+          variant={!canManageOrganization() ? 'outline' : 'default'}
+          className="gap-2"
+        >
+          {!canManageOrganization() && <Lock className="h-4 w-4" />}
+          Create Organization
+        </Button>
       </div>
 
       {/* Permission Alert */}

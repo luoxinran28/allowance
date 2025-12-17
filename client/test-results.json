@@ -118,7 +118,7 @@
                           "workerIndex": 0,
                           "parallelIndex": 0,
                           "status": "passed",
-                          "duration": 3095,
+                          "duration": 3244,
                           "errors": [],
                           "stdout": [
                             {
@@ -139,7 +139,7 @@
                           ],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2025-12-17T01:09:45.982Z",
+                          "startTime": "2025-12-17T02:15:46.159Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -154,7 +154,7 @@
                 },
                 {
                   "title": "should open overlay when clicking user action button",
-                  "ok": false,
+                  "ok": true,
                   "tags": [],
                   "tests": [
                     {
@@ -167,58 +167,18 @@
                         {
                           "workerIndex": 0,
                           "parallelIndex": 0,
-                          "status": "failed",
-                          "duration": 9409,
-                          "error": {
-                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[role=\"dialog\"]')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[role=\"dialog\"]')\u001b[22m\n",
-                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[role=\"dialog\"]')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[role=\"dialog\"]')\u001b[22m\n\n    at C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-admin-overlay.spec.ts:54:29",
-                            "location": {
-                              "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-admin-overlay.spec.ts",
-                              "column": 29,
-                              "line": 54
-                            },
-                            "snippet": "\u001b[0m \u001b[90m 52 |\u001b[39m       \u001b[90m// Check if overlay is visible\u001b[39m\n \u001b[90m 53 |\u001b[39m       \u001b[36mconst\u001b[39m overlay \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'[role=\"dialog\"]'\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 54 |\u001b[39m       \u001b[36mawait\u001b[39m expect(overlay)\u001b[33m.\u001b[39mtoBeVisible({ timeout\u001b[33m:\u001b[39m \u001b[35m5000\u001b[39m })\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 55 |\u001b[39m\n \u001b[90m 56 |\u001b[39m       \u001b[90m// Check overlay content\u001b[39m\n \u001b[90m 57 |\u001b[39m       \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=User Details'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\u001b[0m"
-                          },
-                          "errors": [
-                            {
-                              "location": {
-                                "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-admin-overlay.spec.ts",
-                                "column": 29,
-                                "line": 54
-                              },
-                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[role=\"dialog\"]')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[role=\"dialog\"]')\u001b[22m\n\n\n  52 |       // Check if overlay is visible\n  53 |       const overlay = page.locator('[role=\"dialog\"]');\n> 54 |       await expect(overlay).toBeVisible({ timeout: 5000 });\n     |                             ^\n  55 |\n  56 |       // Check overlay content\n  57 |       await expect(page.locator('text=User Details')).toBeVisible();\n    at C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-admin-overlay.spec.ts:54:29"
-                            }
-                          ],
+                          "status": "passed",
+                          "duration": 3643,
+                          "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2025-12-17T01:09:49.249Z",
+                          "startTime": "2025-12-17T02:15:49.593Z",
                           "annotations": [],
-                          "attachments": [
-                            {
-                              "name": "screenshot",
-                              "contentType": "image/png",
-                              "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-admin-overlay-Admin-Pag-3e5da-clicking-user-action-button-chromium\\test-failed-1.png"
-                            },
-                            {
-                              "name": "video",
-                              "contentType": "video/webm",
-                              "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-admin-overlay-Admin-Pag-3e5da-clicking-user-action-button-chromium\\video.webm"
-                            },
-                            {
-                              "name": "error-context",
-                              "contentType": "text/markdown",
-                              "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-admin-overlay-Admin-Pag-3e5da-clicking-user-action-button-chromium\\error-context.md"
-                            }
-                          ],
-                          "errorLocation": {
-                            "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-admin-overlay.spec.ts",
-                            "column": 29,
-                            "line": 54
-                          }
+                          "attachments": []
                         }
                       ],
-                      "status": "unexpected"
+                      "status": "expected"
                     }
                   ],
                   "id": "1ef459cf616fe510ce36-14b2a8fad5c7f19a3aef",
@@ -228,7 +188,7 @@
                 },
                 {
                   "title": "should close overlay on close button click",
-                  "ok": false,
+                  "ok": true,
                   "tags": [],
                   "tests": [
                     {
@@ -239,68 +199,1924 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 1,
+                          "workerIndex": 0,
                           "parallelIndex": 0,
-                          "status": "failed",
-                          "duration": 9811,
-                          "error": {
-                            "message": "TimeoutError: page.waitForSelector: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[role=\"dialog\"]') to be visible\u001b[22m\n",
-                            "stack": "TimeoutError: page.waitForSelector: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[role=\"dialog\"]') to be visible\u001b[22m\n\n    at C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-admin-overlay.spec.ts:83:18",
-                            "location": {
-                              "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-admin-overlay.spec.ts",
-                              "column": 18,
-                              "line": 83
-                            },
-                            "snippet": "\u001b[0m \u001b[90m 81 |\u001b[39m\n \u001b[90m 82 |\u001b[39m       \u001b[90m// Wait for overlay to be visible\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 83 |\u001b[39m       \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mwaitForSelector(\u001b[32m'[role=\"dialog\"]'\u001b[39m\u001b[33m,\u001b[39m { timeout\u001b[33m:\u001b[39m \u001b[35m5000\u001b[39m })\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                  \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 84 |\u001b[39m\n \u001b[90m 85 |\u001b[39m       \u001b[90m// Click close button (X icon)\u001b[39m\n \u001b[90m 86 |\u001b[39m       \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mclick(\u001b[32m'button[aria-label=\"Close\"]'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
-                          },
-                          "errors": [
-                            {
-                              "location": {
-                                "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-admin-overlay.spec.ts",
-                                "column": 18,
-                                "line": 83
-                              },
-                              "message": "TimeoutError: page.waitForSelector: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[role=\"dialog\"]') to be visible\u001b[22m\n\n\n  81 |\n  82 |       // Wait for overlay to be visible\n> 83 |       await page.waitForSelector('[role=\"dialog\"]', { timeout: 5000 });\n     |                  ^\n  84 |\n  85 |       // Click close button (X icon)\n  86 |       await page.click('button[aria-label=\"Close\"]');\n    at C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-admin-overlay.spec.ts:83:18"
-                            }
-                          ],
+                          "status": "passed",
+                          "duration": 3936,
+                          "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2025-12-17T01:10:00.736Z",
+                          "startTime": "2025-12-17T02:15:53.259Z",
                           "annotations": [],
-                          "attachments": [
-                            {
-                              "name": "screenshot",
-                              "contentType": "image/png",
-                              "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-admin-overlay-Admin-Pag-019f2-erlay-on-close-button-click-chromium\\test-failed-1.png"
-                            },
-                            {
-                              "name": "video",
-                              "contentType": "video/webm",
-                              "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-admin-overlay-Admin-Pag-019f2-erlay-on-close-button-click-chromium\\video.webm"
-                            },
-                            {
-                              "name": "error-context",
-                              "contentType": "text/markdown",
-                              "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-admin-overlay-Admin-Pag-019f2-erlay-on-close-button-click-chromium\\error-context.md"
-                            }
-                          ],
-                          "errorLocation": {
-                            "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-admin-overlay.spec.ts",
-                            "column": 18,
-                            "line": 83
-                          }
+                          "attachments": []
                         }
                       ],
-                      "status": "unexpected"
+                      "status": "expected"
                     }
                   ],
                   "id": "1ef459cf616fe510ce36-911e207bb8b1bfc2d8d8",
                   "file": "10-admin-overlay.spec.ts",
-                  "line": 61,
+                  "line": 64,
                   "column": 9
                 }
               ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "10-permission-system.spec.ts",
+      "file": "10-permission-system.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Permission System - Free User",
+          "file": "10-permission-system.spec.ts",
+          "line": 13,
+          "column": 6,
+          "specs": [
+            {
+              "title": "free user should not see batch operations",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2205,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Login attempt 1/3 for free@allowance.test\n"
+                        },
+                        {
+                          "text": "Successfully logged in as free@allowance.test Final URL: http://localhost:3030/dashboard\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-17T02:15:57.233Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "fa4c43cb71282347ac88-2865cae6dd30dc9de655",
+              "file": "10-permission-system.spec.ts",
+              "line": 14,
+              "column": 7
+            },
+            {
+              "title": "free user should not see admin panel",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 2064,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n    at C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts:32:26",
+                        "location": {
+                          "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts",
+                          "column": 26,
+                          "line": 32
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 30 |\u001b[39m     \u001b[90m// Should show access denied\u001b[39m\n \u001b[90m 31 |\u001b[39m     \u001b[36mconst\u001b[39m accessDenied \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=Access Denied'\u001b[39m)\u001b[33m.\u001b[39misVisible()\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 32 |\u001b[39m     expect(accessDenied)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                          \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 33 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 34 |\u001b[39m\n \u001b[90m 35 |\u001b[39m   test(\u001b[32m'free user can view their own licenses'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ authenticatedPage }) \u001b[33m=>\u001b[39m {\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts",
+                            "column": 26,
+                            "line": 32
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n\n  30 |     // Should show access denied\n  31 |     const accessDenied = await page.locator('text=Access Denied').isVisible();\n> 32 |     expect(accessDenied).toBe(true);\n     |                          ^\n  33 |   });\n  34 |\n  35 |   test('free user can view their own licenses', async ({ authenticatedPage }) => {\n    at C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts:32:26"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "Login attempt 1/3 for free@allowance.test\n"
+                        },
+                        {
+                          "text": "Successfully logged in as free@allowance.test Final URL: http://localhost:3030/dashboard\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-17T02:15:59.455Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-af97d--should-not-see-admin-panel-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-af97d--should-not-see-admin-panel-chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-af97d--should-not-see-admin-panel-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts",
+                        "column": 26,
+                        "line": 32
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "fa4c43cb71282347ac88-fd1f3ad3e582e13a9a45",
+              "file": "10-permission-system.spec.ts",
+              "line": 24,
+              "column": 7
+            },
+            {
+              "title": "free user can view their own licenses",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 2358,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n    at C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts:42:19",
+                        "location": {
+                          "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts",
+                          "column": 19,
+                          "line": 42
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 40 |\u001b[39m     \u001b[90m// Should see the my licenses page\u001b[39m\n \u001b[90m 41 |\u001b[39m     \u001b[36mconst\u001b[39m title \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=My Licenses'\u001b[39m)\u001b[33m.\u001b[39misVisible()\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 42 |\u001b[39m     expect(title)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                   \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 43 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 44 |\u001b[39m\n \u001b[90m 45 |\u001b[39m   test(\u001b[32m'free user cannot create team'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ authenticatedPage }) \u001b[33m=>\u001b[39m {\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts",
+                            "column": 19,
+                            "line": 42
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n\n  40 |     // Should see the my licenses page\n  41 |     const title = await page.locator('text=My Licenses').isVisible();\n> 42 |     expect(title).toBe(true);\n     |                   ^\n  43 |   });\n  44 |\n  45 |   test('free user cannot create team', async ({ authenticatedPage }) => {\n    at C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts:42:19"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "Login attempt 1/3 for free@allowance.test\n"
+                        },
+                        {
+                          "text": "Successfully logged in as free@allowance.test Final URL: http://localhost:3030/dashboard\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-17T02:16:03.588Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-6f77c-can-view-their-own-licenses-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-6f77c-can-view-their-own-licenses-chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-6f77c-can-view-their-own-licenses-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts",
+                        "column": 19,
+                        "line": 42
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "fa4c43cb71282347ac88-bb028528c9a2d52225c7",
+              "file": "10-permission-system.spec.ts",
+              "line": 35,
+              "column": 7
+            },
+            {
+              "title": "free user cannot create team",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "timedOut",
+                      "duration": 32706,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "location": {
+                            "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts",
+                            "column": 43,
+                            "line": 52
+                          },
+                          "message": "Error: locator.isDisabled: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Create Team\")')\u001b[22m\n\n\n  50 |     // Create button should be disabled or locked\n  51 |     const createButton = await page.locator('button:has-text(\"Create Team\")');\n> 52 |     const isDisabled = await createButton.isDisabled();\n     |                                           ^\n  53 |     expect(isDisabled).toBe(true);\n  54 |   });\n  55 |\n    at C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts:52:43"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "Login attempt 1/3 for free@allowance.test\n"
+                        },
+                        {
+                          "text": "Successfully logged in as free@allowance.test Final URL: http://localhost:3030/dashboard\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-17T02:16:08.143Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-ebeb7-ree-user-cannot-create-team-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-ebeb7-ree-user-cannot-create-team-chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-ebeb7-ree-user-cannot-create-team-chromium\\error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "fa4c43cb71282347ac88-898c8ef217f53282ae7e",
+              "file": "10-permission-system.spec.ts",
+              "line": 45,
+              "column": 7
+            },
+            {
+              "title": "free user cannot create organization",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "timedOut",
+                      "duration": 33055,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "location": {
+                            "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts",
+                            "column": 43,
+                            "line": 63
+                          },
+                          "message": "Error: locator.isDisabled: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Create Organization\")')\u001b[22m\n\n\n  61 |     // Create button should be disabled or locked\n  62 |     const createButton = await page.locator('button:has-text(\"Create Organization\")');\n> 63 |     const isDisabled = await createButton.isDisabled();\n     |                                           ^\n  64 |     expect(isDisabled).toBe(true);\n  65 |   });\n  66 | });\n    at C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts:63:43"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "Login attempt 1/3 for free@allowance.test\n"
+                        },
+                        {
+                          "text": "Successfully logged in as free@allowance.test Final URL: http://localhost:3030/dashboard\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-17T02:16:42.706Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-4e71f--cannot-create-organization-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-4e71f--cannot-create-organization-chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-4e71f--cannot-create-organization-chromium\\error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "fa4c43cb71282347ac88-bbd9ad84bc201c43da4e",
+              "file": "10-permission-system.spec.ts",
+              "line": 56,
+              "column": 7
+            }
+          ]
+        },
+        {
+          "title": "Permission System - Standard User",
+          "file": "10-permission-system.spec.ts",
+          "line": 68,
+          "column": 6,
+          "specs": [
+            {
+              "title": "standard user should not see batch operations",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2180,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Login attempt 1/3 for standard@allowance.test\n"
+                        },
+                        {
+                          "text": "Successfully logged in as standard@allowance.test Final URL: http://localhost:3030/dashboard\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-17T02:17:17.627Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "fa4c43cb71282347ac88-06f172b7db8bfcdcdfce",
+              "file": "10-permission-system.spec.ts",
+              "line": 69,
+              "column": 7
+            },
+            {
+              "title": "standard user should not see admin panel",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 2405,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n    at C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts:87:26",
+                        "location": {
+                          "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts",
+                          "column": 26,
+                          "line": 87
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 85 |\u001b[39m     \u001b[90m// Should show access denied\u001b[39m\n \u001b[90m 86 |\u001b[39m     \u001b[36mconst\u001b[39m accessDenied \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=Access Denied'\u001b[39m)\u001b[33m.\u001b[39misVisible()\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 87 |\u001b[39m     expect(accessDenied)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                          \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 88 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 89 |\u001b[39m\n \u001b[90m 90 |\u001b[39m   test(\u001b[32m'standard user cannot create team without organization'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ authenticatedPage }) \u001b[33m=>\u001b[39m {\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts",
+                            "column": 26,
+                            "line": 87
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n\n  85 |     // Should show access denied\n  86 |     const accessDenied = await page.locator('text=Access Denied').isVisible();\n> 87 |     expect(accessDenied).toBe(true);\n     |                          ^\n  88 |   });\n  89 |\n  90 |   test('standard user cannot create team without organization', async ({ authenticatedPage }) => {\n    at C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts:87:26"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "Login attempt 1/3 for standard@allowance.test\n"
+                        },
+                        {
+                          "text": "Successfully logged in as standard@allowance.test Final URL: http://localhost:3030/dashboard\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-17T02:17:20.004Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-365ef--should-not-see-admin-panel-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-365ef--should-not-see-admin-panel-chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-365ef--should-not-see-admin-panel-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts",
+                        "column": 26,
+                        "line": 87
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "fa4c43cb71282347ac88-c11fe358883441eca3e7",
+              "file": "10-permission-system.spec.ts",
+              "line": 79,
+              "column": 7
+            },
+            {
+              "title": "standard user cannot create team without organization",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 0,
+                      "status": "timedOut",
+                      "duration": 32161,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "location": {
+                            "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts",
+                            "column": 43,
+                            "line": 97
+                          },
+                          "message": "Error: locator.isDisabled: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Create Team\")')\u001b[22m\n\n\n   95 |     // Create button should be disabled\n   96 |     const createButton = await page.locator('button:has-text(\"Create Team\")');\n>  97 |     const isDisabled = await createButton.isDisabled();\n      |                                           ^\n   98 |     expect(isDisabled).toBe(true);\n   99 |   });\n  100 |\n    at C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts:97:43"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "Login attempt 1/3 for standard@allowance.test\n"
+                        },
+                        {
+                          "text": "Successfully logged in as standard@allowance.test Final URL: http://localhost:3030/dashboard\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-17T02:17:24.242Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-e40e1-e-team-without-organization-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-e40e1-e-team-without-organization-chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-e40e1-e-team-without-organization-chromium\\error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "fa4c43cb71282347ac88-c47380d5a04c2fd3f83c",
+              "file": "10-permission-system.spec.ts",
+              "line": 90,
+              "column": 7
+            },
+            {
+              "title": "standard user can view license management",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 6,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 2265,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n    at C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts:108:19",
+                        "location": {
+                          "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts",
+                          "column": 19,
+                          "line": 108
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 106 |\u001b[39m     \u001b[90m// Should see the my licenses page\u001b[39m\n \u001b[90m 107 |\u001b[39m     \u001b[36mconst\u001b[39m title \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=My Licenses'\u001b[39m)\u001b[33m.\u001b[39misVisible()\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 108 |\u001b[39m     expect(title)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                   \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 109 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 110 |\u001b[39m })\u001b[33m;\u001b[39m\n \u001b[90m 111 |\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts",
+                            "column": 19,
+                            "line": 108
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n\n  106 |     // Should see the my licenses page\n  107 |     const title = await page.locator('text=My Licenses').isVisible();\n> 108 |     expect(title).toBe(true);\n      |                   ^\n  109 |   });\n  110 | });\n  111 |\n    at C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts:108:19"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "Login attempt 1/3 for standard@allowance.test\n"
+                        },
+                        {
+                          "text": "Successfully logged in as standard@allowance.test Final URL: http://localhost:3030/dashboard\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-17T02:17:58.372Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-9f30e-can-view-license-management-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-9f30e-can-view-license-management-chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-9f30e-can-view-license-management-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts",
+                        "column": 19,
+                        "line": 108
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "fa4c43cb71282347ac88-300fa5959c82cb18e709",
+              "file": "10-permission-system.spec.ts",
+              "line": 101,
+              "column": 7
+            }
+          ]
+        },
+        {
+          "title": "Permission System - Premium User",
+          "file": "10-permission-system.spec.ts",
+          "line": 112,
+          "column": 6,
+          "specs": [
+            {
+              "title": "premium user should see batch operations in sidebar",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 7,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 2274,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n    at C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts:120:26",
+                        "location": {
+                          "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts",
+                          "column": 26,
+                          "line": 120
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 118 |\u001b[39m     \u001b[90m// Check sidebar - batch operations SHOULD be visible\u001b[39m\n \u001b[90m 119 |\u001b[39m     \u001b[36mconst\u001b[39m batchSection \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=Batch Operations'\u001b[39m)\u001b[33m.\u001b[39misVisible()\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 120 |\u001b[39m     expect(batchSection)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                          \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 121 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 122 |\u001b[39m\n \u001b[90m 123 |\u001b[39m   test(\u001b[32m'premium user should see premium features card'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ authenticatedPage }) \u001b[33m=>\u001b[39m {\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts",
+                            "column": 26,
+                            "line": 120
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n\n  118 |     // Check sidebar - batch operations SHOULD be visible\n  119 |     const batchSection = await page.locator('text=Batch Operations').isVisible();\n> 120 |     expect(batchSection).toBe(true);\n      |                          ^\n  121 |   });\n  122 |\n  123 |   test('premium user should see premium features card', async ({ authenticatedPage }) => {\n    at C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts:120:26"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "Login attempt 1/3 for premium@allowance.test\n"
+                        },
+                        {
+                          "text": "Successfully logged in as premium@allowance.test Final URL: http://localhost:3030/dashboard\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-17T02:18:02.414Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-32c49-batch-operations-in-sidebar-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-32c49-batch-operations-in-sidebar-chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-32c49-batch-operations-in-sidebar-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts",
+                        "column": 26,
+                        "line": 120
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "fa4c43cb71282347ac88-46d94a53c11472c00b44",
+              "file": "10-permission-system.spec.ts",
+              "line": 113,
+              "column": 7
+            },
+            {
+              "title": "premium user should see premium features card",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 8,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 2262,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n    at C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts:130:25",
+                        "location": {
+                          "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts",
+                          "column": 25,
+                          "line": 130
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 128 |\u001b[39m     \u001b[90m// Should see Premium Features section\u001b[39m\n \u001b[90m 129 |\u001b[39m     \u001b[36mconst\u001b[39m premiumCard \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=Premium Features'\u001b[39m)\u001b[33m.\u001b[39misVisible()\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 130 |\u001b[39m     expect(premiumCard)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                         \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 131 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 132 |\u001b[39m\n \u001b[90m 133 |\u001b[39m   test(\u001b[32m'premium user cannot access admin panel'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ authenticatedPage }) \u001b[33m=>\u001b[39m {\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts",
+                            "column": 25,
+                            "line": 130
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n\n  128 |     // Should see Premium Features section\n  129 |     const premiumCard = await page.locator('text=Premium Features').isVisible();\n> 130 |     expect(premiumCard).toBe(true);\n      |                         ^\n  131 |   });\n  132 |\n  133 |   test('premium user cannot access admin panel', async ({ authenticatedPage }) => {\n    at C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts:130:25"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "Login attempt 1/3 for premium@allowance.test\n"
+                        },
+                        {
+                          "text": "Successfully logged in as premium@allowance.test Final URL: http://localhost:3030/dashboard\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-17T02:18:06.709Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-76f5b-d-see-premium-features-card-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-76f5b-d-see-premium-features-card-chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-76f5b-d-see-premium-features-card-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts",
+                        "column": 25,
+                        "line": 130
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "fa4c43cb71282347ac88-345535ad96b202467e39",
+              "file": "10-permission-system.spec.ts",
+              "line": 123,
+              "column": 7
+            },
+            {
+              "title": "premium user cannot access admin panel",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 9,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 2264,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n    at C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts:141:26",
+                        "location": {
+                          "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts",
+                          "column": 26,
+                          "line": 141
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 139 |\u001b[39m     \u001b[90m// Should show access denied\u001b[39m\n \u001b[90m 140 |\u001b[39m     \u001b[36mconst\u001b[39m accessDenied \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=Access Denied'\u001b[39m)\u001b[33m.\u001b[39misVisible()\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 141 |\u001b[39m     expect(accessDenied)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                          \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 142 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 143 |\u001b[39m\n \u001b[90m 144 |\u001b[39m   test(\u001b[32m'premium user can create team'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ authenticatedPage }) \u001b[33m=>\u001b[39m {\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts",
+                            "column": 26,
+                            "line": 141
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n\n  139 |     // Should show access denied\n  140 |     const accessDenied = await page.locator('text=Access Denied').isVisible();\n> 141 |     expect(accessDenied).toBe(true);\n      |                          ^\n  142 |   });\n  143 |\n  144 |   test('premium user can create team', async ({ authenticatedPage }) => {\n    at C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts:141:26"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "Login attempt 1/3 for premium@allowance.test\n"
+                        },
+                        {
+                          "text": "Successfully logged in as premium@allowance.test Final URL: http://localhost:3030/dashboard\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-17T02:18:10.985Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-42198-r-cannot-access-admin-panel-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-42198-r-cannot-access-admin-panel-chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-42198-r-cannot-access-admin-panel-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts",
+                        "column": 26,
+                        "line": 141
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "fa4c43cb71282347ac88-70affa62411ac8c754ec",
+              "file": "10-permission-system.spec.ts",
+              "line": 133,
+              "column": 7
+            },
+            {
+              "title": "premium user can create team",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 10,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2331,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Login attempt 1/3 for premium@allowance.test\n"
+                        },
+                        {
+                          "text": "Successfully logged in as premium@allowance.test Final URL: http://localhost:3030/dashboard\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-17T02:18:15.533Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "fa4c43cb71282347ac88-c59e93fa9e2781f8b062",
+              "file": "10-permission-system.spec.ts",
+              "line": 144,
+              "column": 7
+            },
+            {
+              "title": "premium user can create organization",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 10,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2547,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Login attempt 1/3 for premium@allowance.test\n"
+                        },
+                        {
+                          "text": "Successfully logged in as premium@allowance.test Final URL: http://localhost:3030/dashboard\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-17T02:18:18.046Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "fa4c43cb71282347ac88-4fb8f7a9733afb64619c",
+              "file": "10-permission-system.spec.ts",
+              "line": 155,
+              "column": 7
+            },
+            {
+              "title": "premium user can access batch generate page",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 10,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 2159,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n    at C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts:173:19",
+                        "location": {
+                          "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts",
+                          "column": 19,
+                          "line": 173
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 171 |\u001b[39m     \u001b[90m// Should see the batch generate page\u001b[39m\n \u001b[90m 172 |\u001b[39m     \u001b[36mconst\u001b[39m title \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=Generate'\u001b[39m)\u001b[33m.\u001b[39misVisible()\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 173 |\u001b[39m     expect(title)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                   \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 174 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 175 |\u001b[39m\n \u001b[90m 176 |\u001b[39m   test(\u001b[32m'premium user can access batch revoke page'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ authenticatedPage }) \u001b[33m=>\u001b[39m {\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts",
+                            "column": 19,
+                            "line": 173
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n\n  171 |     // Should see the batch generate page\n  172 |     const title = await page.locator('text=Generate').isVisible();\n> 173 |     expect(title).toBe(true);\n      |                   ^\n  174 |   });\n  175 |\n  176 |   test('premium user can access batch revoke page', async ({ authenticatedPage }) => {\n    at C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts:173:19"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "Login attempt 1/3 for premium@allowance.test\n"
+                        },
+                        {
+                          "text": "Successfully logged in as premium@allowance.test Final URL: http://localhost:3030/dashboard\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-17T02:18:20.617Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-68c3b--access-batch-generate-page-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-68c3b--access-batch-generate-page-chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-68c3b--access-batch-generate-page-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts",
+                        "column": 19,
+                        "line": 173
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "fa4c43cb71282347ac88-9bc124df44317a701604",
+              "file": "10-permission-system.spec.ts",
+              "line": 166,
+              "column": 7
+            },
+            {
+              "title": "premium user can access batch revoke page",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 11,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 2525,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n    at C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts:183:19",
+                        "location": {
+                          "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts",
+                          "column": 19,
+                          "line": 183
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 181 |\u001b[39m     \u001b[90m// Should see the batch revoke page\u001b[39m\n \u001b[90m 182 |\u001b[39m     \u001b[36mconst\u001b[39m title \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=Revoke'\u001b[39m)\u001b[33m.\u001b[39misVisible()\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 183 |\u001b[39m     expect(title)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                   \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 184 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 185 |\u001b[39m\n \u001b[90m 186 |\u001b[39m   test(\u001b[32m'premium user can access batch export page'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ authenticatedPage }) \u001b[33m=>\u001b[39m {\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts",
+                            "column": 19,
+                            "line": 183
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n\n  181 |     // Should see the batch revoke page\n  182 |     const title = await page.locator('text=Revoke').isVisible();\n> 183 |     expect(title).toBe(true);\n      |                   ^\n  184 |   });\n  185 |\n  186 |   test('premium user can access batch export page', async ({ authenticatedPage }) => {\n    at C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts:183:19"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "Login attempt 1/3 for premium@allowance.test\n"
+                        },
+                        {
+                          "text": "Successfully logged in as premium@allowance.test Final URL: http://localhost:3030/dashboard\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-17T02:18:24.355Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-39d3a-an-access-batch-revoke-page-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-39d3a-an-access-batch-revoke-page-chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-39d3a-an-access-batch-revoke-page-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts",
+                        "column": 19,
+                        "line": 183
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "fa4c43cb71282347ac88-234a6d4457b8e3ba4b23",
+              "file": "10-permission-system.spec.ts",
+              "line": 176,
+              "column": 7
+            },
+            {
+              "title": "premium user can access batch export page",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 12,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 2143,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n    at C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts:193:19",
+                        "location": {
+                          "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts",
+                          "column": 19,
+                          "line": 193
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 191 |\u001b[39m     \u001b[90m// Should see the batch export page\u001b[39m\n \u001b[90m 192 |\u001b[39m     \u001b[36mconst\u001b[39m title \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=Export'\u001b[39m)\u001b[33m.\u001b[39misVisible()\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 193 |\u001b[39m     expect(title)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                   \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 194 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 195 |\u001b[39m })\u001b[33m;\u001b[39m\n \u001b[90m 196 |\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts",
+                            "column": 19,
+                            "line": 193
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n\n  191 |     // Should see the batch export page\n  192 |     const title = await page.locator('text=Export').isVisible();\n> 193 |     expect(title).toBe(true);\n      |                   ^\n  194 |   });\n  195 | });\n  196 |\n    at C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts:193:19"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "Login attempt 1/3 for premium@allowance.test\n"
+                        },
+                        {
+                          "text": "Successfully logged in as premium@allowance.test Final URL: http://localhost:3030/dashboard\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-17T02:18:28.700Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-3de78-an-access-batch-export-page-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-3de78-an-access-batch-export-page-chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-3de78-an-access-batch-export-page-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts",
+                        "column": 19,
+                        "line": 193
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "fa4c43cb71282347ac88-09962c59d3731e80b6fe",
+              "file": "10-permission-system.spec.ts",
+              "line": 186,
+              "column": 7
+            }
+          ]
+        },
+        {
+          "title": "Permission System - Admin User",
+          "file": "10-permission-system.spec.ts",
+          "line": 197,
+          "column": 6,
+          "specs": [
+            {
+              "title": "admin user should see all sidebar sections",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 13,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 3998,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n    at C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts:203:26",
+                        "location": {
+                          "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts",
+                          "column": 26,
+                          "line": 203
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 201 |\u001b[39m     \u001b[90m// Should see all sections including admin\u001b[39m\n \u001b[90m 202 |\u001b[39m     \u001b[36mconst\u001b[39m adminSection \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m adminPage\u001b[33m.\u001b[39mlocator(\u001b[32m'text=Administration'\u001b[39m)\u001b[33m.\u001b[39misVisible()\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 203 |\u001b[39m     expect(adminSection)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                          \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 204 |\u001b[39m     \n \u001b[90m 205 |\u001b[39m     \u001b[36mconst\u001b[39m batchSection \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m adminPage\u001b[33m.\u001b[39mlocator(\u001b[32m'text=Batch Operations'\u001b[39m)\u001b[33m.\u001b[39misVisible()\u001b[33m;\u001b[39m\n \u001b[90m 206 |\u001b[39m     expect(batchSection)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts",
+                            "column": 26,
+                            "line": 203
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n\n  201 |     // Should see all sections including admin\n  202 |     const adminSection = await adminPage.locator('text=Administration').isVisible();\n> 203 |     expect(adminSection).toBe(true);\n      |                          ^\n  204 |     \n  205 |     const batchSection = await adminPage.locator('text=Batch Operations').isVisible();\n  206 |     expect(batchSection).toBe(true);\n    at C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts:203:26"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-17T02:18:32.616Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-30588-ld-see-all-sidebar-sections-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-30588-ld-see-all-sidebar-sections-chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-30588-ld-see-all-sidebar-sections-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts",
+                        "column": 26,
+                        "line": 203
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "fa4c43cb71282347ac88-6d4cb3fbfa9b1b28527e",
+              "file": "10-permission-system.spec.ts",
+              "line": 198,
+              "column": 7
+            },
+            {
+              "title": "admin user should see admin features card",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 14,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 4211,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n    at C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts:214:23",
+                        "location": {
+                          "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts",
+                          "column": 23,
+                          "line": 214
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 212 |\u001b[39m     \u001b[90m// Should see Administrator Panel section\u001b[39m\n \u001b[90m 213 |\u001b[39m     \u001b[36mconst\u001b[39m adminCard \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m adminPage\u001b[33m.\u001b[39mlocator(\u001b[32m'text=Administrator Panel'\u001b[39m)\u001b[33m.\u001b[39misVisible()\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 214 |\u001b[39m     expect(adminCard)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                       \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 215 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 216 |\u001b[39m\n \u001b[90m 217 |\u001b[39m   test(\u001b[32m'admin user can access admin users page'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ adminPage }) \u001b[33m=>\u001b[39m {\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts",
+                            "column": 23,
+                            "line": 214
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n\n  212 |     // Should see Administrator Panel section\n  213 |     const adminCard = await adminPage.locator('text=Administrator Panel').isVisible();\n> 214 |     expect(adminCard).toBe(true);\n      |                       ^\n  215 |   });\n  216 |\n  217 |   test('admin user can access admin users page', async ({ adminPage }) => {\n    at C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts:214:23"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-17T02:18:38.403Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-2d8a0-uld-see-admin-features-card-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-2d8a0-uld-see-admin-features-card-chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-2d8a0-uld-see-admin-features-card-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts",
+                        "column": 23,
+                        "line": 214
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "fa4c43cb71282347ac88-dd4a5307b7844c35351f",
+              "file": "10-permission-system.spec.ts",
+              "line": 209,
+              "column": 7
+            },
+            {
+              "title": "admin user can access admin users page",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 15,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 4050,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n    at C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts:222:19",
+                        "location": {
+                          "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts",
+                          "column": 19,
+                          "line": 222
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 220 |\u001b[39m     \u001b[90m// Should see admin users page without access denied\u001b[39m\n \u001b[90m 221 |\u001b[39m     \u001b[36mconst\u001b[39m title \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m adminPage\u001b[33m.\u001b[39mlocator(\u001b[32m'text=Users'\u001b[39m)\u001b[33m.\u001b[39misVisible()\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 222 |\u001b[39m     expect(title)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                   \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 223 |\u001b[39m     \n \u001b[90m 224 |\u001b[39m     \u001b[90m// Should not see access denied message\u001b[39m\n \u001b[90m 225 |\u001b[39m     \u001b[36mconst\u001b[39m accessDenied \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m adminPage\u001b[33m.\u001b[39mlocator(\u001b[32m'text=Access Denied'\u001b[39m)\u001b[33m.\u001b[39misVisible()\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts",
+                            "column": 19,
+                            "line": 222
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n\n  220 |     // Should see admin users page without access denied\n  221 |     const title = await adminPage.locator('text=Users').isVisible();\n> 222 |     expect(title).toBe(true);\n      |                   ^\n  223 |     \n  224 |     // Should not see access denied message\n  225 |     const accessDenied = await adminPage.locator('text=Access Denied').isVisible();\n    at C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts:222:19"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-17T02:18:44.437Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-704e0-can-access-admin-users-page-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-704e0-can-access-admin-users-page-chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-704e0-can-access-admin-users-page-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts",
+                        "column": 19,
+                        "line": 222
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "fa4c43cb71282347ac88-0645209bf51767a8af1b",
+              "file": "10-permission-system.spec.ts",
+              "line": 217,
+              "column": 7
+            },
+            {
+              "title": "admin user can access admin products page",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 16,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 3942,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n    at C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts:234:19",
+                        "location": {
+                          "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts",
+                          "column": 19,
+                          "line": 234
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 232 |\u001b[39m     \u001b[90m// Should see admin products page without access denied\u001b[39m\n \u001b[90m 233 |\u001b[39m     \u001b[36mconst\u001b[39m title \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m adminPage\u001b[33m.\u001b[39mlocator(\u001b[32m'text=Products'\u001b[39m)\u001b[33m.\u001b[39misVisible()\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 234 |\u001b[39m     expect(title)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                   \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 235 |\u001b[39m     \n \u001b[90m 236 |\u001b[39m     \u001b[90m// Should not see access denied message\u001b[39m\n \u001b[90m 237 |\u001b[39m     \u001b[36mconst\u001b[39m accessDenied \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m adminPage\u001b[33m.\u001b[39mlocator(\u001b[32m'text=Access Denied'\u001b[39m)\u001b[33m.\u001b[39misVisible()\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts",
+                            "column": 19,
+                            "line": 234
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n\n  232 |     // Should see admin products page without access denied\n  233 |     const title = await adminPage.locator('text=Products').isVisible();\n> 234 |     expect(title).toBe(true);\n      |                   ^\n  235 |     \n  236 |     // Should not see access denied message\n  237 |     const accessDenied = await adminPage.locator('text=Access Denied').isVisible();\n    at C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts:234:19"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-17T02:18:50.167Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-4ae8f--access-admin-products-page-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-4ae8f--access-admin-products-page-chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-4ae8f--access-admin-products-page-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts",
+                        "column": 19,
+                        "line": 234
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "fa4c43cb71282347ac88-d3c7abbdeee4fae464b0",
+              "file": "10-permission-system.spec.ts",
+              "line": 229,
+              "column": 7
+            },
+            {
+              "title": "admin user can access admin team-quotas page",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 17,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 4044,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n    at C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts:246:19",
+                        "location": {
+                          "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts",
+                          "column": 19,
+                          "line": 246
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 244 |\u001b[39m     \u001b[90m// Should see admin team quotas page without access denied\u001b[39m\n \u001b[90m 245 |\u001b[39m     \u001b[36mconst\u001b[39m title \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m adminPage\u001b[33m.\u001b[39mlocator(\u001b[32m'text=Quotas'\u001b[39m)\u001b[33m.\u001b[39misVisible()\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 246 |\u001b[39m     expect(title)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                   \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 247 |\u001b[39m     \n \u001b[90m 248 |\u001b[39m     \u001b[90m// Should not see access denied message\u001b[39m\n \u001b[90m 249 |\u001b[39m     \u001b[36mconst\u001b[39m accessDenied \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m adminPage\u001b[33m.\u001b[39mlocator(\u001b[32m'text=Access Denied'\u001b[39m)\u001b[33m.\u001b[39misVisible()\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts",
+                            "column": 19,
+                            "line": 246
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n\n  244 |     // Should see admin team quotas page without access denied\n  245 |     const title = await adminPage.locator('text=Quotas').isVisible();\n> 246 |     expect(title).toBe(true);\n      |                   ^\n  247 |     \n  248 |     // Should not see access denied message\n  249 |     const accessDenied = await adminPage.locator('text=Access Denied').isVisible();\n    at C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts:246:19"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-17T02:18:55.733Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-57725-cess-admin-team-quotas-page-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-57725-cess-admin-team-quotas-page-chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-57725-cess-admin-team-quotas-page-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts",
+                        "column": 19,
+                        "line": 246
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "fa4c43cb71282347ac88-6eca91e5a0e881821d1b",
+              "file": "10-permission-system.spec.ts",
+              "line": 241,
+              "column": 7
+            }
+          ]
+        },
+        {
+          "title": "Permission UI Elements",
+          "file": "10-permission-system.spec.ts",
+          "line": 254,
+          "column": 6,
+          "specs": [
+            {
+              "title": "dashboard should show tier-specific upgrade prompts",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 18,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 2222,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n    at C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts:262:27",
+                        "location": {
+                          "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts",
+                          "column": 27,
+                          "line": 262
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 260 |\u001b[39m     \u001b[90m// Should see upgrade prompt for free users\u001b[39m\n \u001b[90m 261 |\u001b[39m     \u001b[36mconst\u001b[39m upgradePrompt \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=/Unlock Premium|Upgrade to Premium/'\u001b[39m)\u001b[33m.\u001b[39misVisible()\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 262 |\u001b[39m     expect(upgradePrompt)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                           \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 263 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 264 |\u001b[39m\n \u001b[90m 265 |\u001b[39m   test(\u001b[32m'locked features should show lock icon'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ authenticatedPage }) \u001b[33m=>\u001b[39m {\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts",
+                            "column": 27,
+                            "line": 262
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n\n  260 |     // Should see upgrade prompt for free users\n  261 |     const upgradePrompt = await page.locator('text=/Unlock Premium|Upgrade to Premium/').isVisible();\n> 262 |     expect(upgradePrompt).toBe(true);\n      |                           ^\n  263 |   });\n  264 |\n  265 |   test('locked features should show lock icon', async ({ authenticatedPage }) => {\n    at C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts:262:27"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "Login attempt 1/3 for free@allowance.test\n"
+                        },
+                        {
+                          "text": "Successfully logged in as free@allowance.test Final URL: http://localhost:3030/dashboard\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-17T02:19:01.352Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-f4eff-er-specific-upgrade-prompts-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-f4eff-er-specific-upgrade-prompts-chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-f4eff-er-specific-upgrade-prompts-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts",
+                        "column": 27,
+                        "line": 262
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "fa4c43cb71282347ac88-ae4e5fbca884d124c0ff",
+              "file": "10-permission-system.spec.ts",
+              "line": 255,
+              "column": 7
+            },
+            {
+              "title": "locked features should show lock icon",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 19,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 2270,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n    at C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts:272:22",
+                        "location": {
+                          "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts",
+                          "column": 22,
+                          "line": 272
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 270 |\u001b[39m     \u001b[90m// Create team button should show lock icon\u001b[39m\n \u001b[90m 271 |\u001b[39m     \u001b[36mconst\u001b[39m lockIcon \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'button:has-text(\"Premium feature\")'\u001b[39m)\u001b[33m.\u001b[39misVisible()\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 272 |\u001b[39m     expect(lockIcon)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                      \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 273 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 274 |\u001b[39m\n \u001b[90m 275 |\u001b[39m   test(\u001b[32m'sidebar should dynamically show/hide sections based on tier'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ authenticatedPage }) \u001b[33m=>\u001b[39m {\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts",
+                            "column": 22,
+                            "line": 272
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n\n  270 |     // Create team button should show lock icon\n  271 |     const lockIcon = await page.locator('button:has-text(\"Premium feature\")').isVisible();\n> 272 |     expect(lockIcon).toBe(true);\n      |                      ^\n  273 |   });\n  274 |\n  275 |   test('sidebar should dynamically show/hide sections based on tier', async ({ authenticatedPage }) => {\n    at C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts:272:22"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "Login attempt 1/3 for free@allowance.test\n"
+                        },
+                        {
+                          "text": "Successfully logged in as free@allowance.test Final URL: http://localhost:3030/dashboard\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-17T02:19:05.664Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-64887-tures-should-show-lock-icon-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-64887-tures-should-show-lock-icon-chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-64887-tures-should-show-lock-icon-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts",
+                        "column": 22,
+                        "line": 272
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "fa4c43cb71282347ac88-8560ebba88d7e7d12ac8",
+              "file": "10-permission-system.spec.ts",
+              "line": 265,
+              "column": 7
+            },
+            {
+              "title": "sidebar should dynamically show/hide sections based on tier",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 20,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2382,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Login attempt 1/3 for free@allowance.test\n"
+                        },
+                        {
+                          "text": "Successfully logged in as free@allowance.test Final URL: http://localhost:3030/dashboard\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-17T02:19:10.044Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "fa4c43cb71282347ac88-8354e570b13c8605fa63",
+              "file": "10-permission-system.spec.ts",
+              "line": 275,
+              "column": 7
+            },
+            {
+              "title": "permission denied alerts should be visible on restricted pages",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 20,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 2229,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n    at C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts:294:19",
+                        "location": {
+                          "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts",
+                          "column": 19,
+                          "line": 294
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 292 |\u001b[39m     \u001b[90m// Should see access denied alert\u001b[39m\n \u001b[90m 293 |\u001b[39m     \u001b[36mconst\u001b[39m alert \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=Access Denied'\u001b[39m)\u001b[33m.\u001b[39misVisible()\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 294 |\u001b[39m     expect(alert)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                   \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 295 |\u001b[39m     \n \u001b[90m 296 |\u001b[39m     \u001b[36mconst\u001b[39m alertDescription \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=/don\\'t have permission|requires.*tier/i'\u001b[39m)\u001b[33m.\u001b[39misVisible()\u001b[33m;\u001b[39m\n \u001b[90m 297 |\u001b[39m     expect(alertDescription)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts",
+                            "column": 19,
+                            "line": 294
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n\n  292 |     // Should see access denied alert\n  293 |     const alert = await page.locator('text=Access Denied').isVisible();\n> 294 |     expect(alert).toBe(true);\n      |                   ^\n  295 |     \n  296 |     const alertDescription = await page.locator('text=/don\\'t have permission|requires.*tier/i').isVisible();\n  297 |     expect(alertDescription).toBe(true);\n    at C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts:294:19"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "Login attempt 1/3 for free@allowance.test\n"
+                        },
+                        {
+                          "text": "Successfully logged in as free@allowance.test Final URL: http://localhost:3030/dashboard\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-17T02:19:12.596Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-f47a3-visible-on-restricted-pages-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-f47a3-visible-on-restricted-pages-chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\test-results\\10-permission-system-Permi-f47a3-visible-on-restricted-pages-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Users\\carri\\Downloads\\Sean's Offline\\workspsace\\allowance\\client\\e2e\\10-permission-system.spec.ts",
+                        "column": 19,
+                        "line": 294
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "fa4c43cb71282347ac88-34433d15d31986f8d3e2",
+              "file": "10-permission-system.spec.ts",
+              "line": 287,
+              "column": 7
             }
           ]
         }
@@ -309,11 +2125,11 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2025-12-17T01:09:44.548Z",
-    "duration": 26299.453,
-    "expected": 1,
+    "startTime": "2025-12-17T02:15:44.457Z",
+    "duration": 210504.06999999998,
+    "expected": 8,
     "skipped": 0,
-    "unexpected": 2,
+    "unexpected": 21,
     "flaky": 0
   }
 }
