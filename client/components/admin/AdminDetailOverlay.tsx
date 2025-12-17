@@ -73,6 +73,7 @@ export function AdminDetailOverlay({
       {/* Panel - responsive positioning */}
       <div className="fixed inset-0 z-50 pointer-events-none flex items-end md:items-center md:justify-center p-4">
         <div
+          role="dialog"
           className={`${sizeClasses[size]} w-full pointer-events-auto bg-white rounded-t-lg md:rounded-lg shadow-xl overflow-hidden flex flex-col animate-in slide-in-from-bottom-4 md:slide-in-from-top-4 duration-300 max-h-[90vh] md:max-h-[80vh]`}
           onClick={(e) => e.stopPropagation()}
         >

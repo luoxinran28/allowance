@@ -47,7 +47,10 @@ test.describe('Admin Pages - Overlay Mode', () => {
 
       // Click first role assignment button
       await page.click('button[title="Assign role"]');
-      await page.waitForTimeout(1000);
+      
+      // Wait for URL to change with selected_id parameter
+      await page.waitForURL(/selected_id=\d+/, { timeout: 5000 });
+      await page.waitForTimeout(500);
 
       // Check if overlay is visible
       const overlay = page.locator('[role="dialog"]');
@@ -77,13 +80,18 @@ test.describe('Admin Pages - Overlay Mode', () => {
 
       // Open overlay
       await page.click('button[title="Assign role"]');
-      await page.waitForTimeout(1000);
+      
+      // Wait for URL to change with selected_id parameter
+      await page.waitForURL(/selected_id=\d+/, { timeout: 5000 });
+      await page.waitForTimeout(500);
 
       // Wait for overlay to be visible
       await page.waitForSelector('[role="dialog"]', { timeout: 5000 });
 
       // Click close button (X icon)
       await page.click('button[aria-label="Close"]');
+      
+      // Wait for URL to go back
       await page.waitForTimeout(500);
 
       // Check if overlay is closed
