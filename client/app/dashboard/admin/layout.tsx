@@ -9,7 +9,7 @@ import { AlertCircle } from 'lucide-react';
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { isAdmin } = usePermission();
 
-  if (!isAdmin() && false) { // Temporarily disabled for testing
+  if (!isAdmin()) {
     return (
       <div className="space-y-6">
         <Alert variant="destructive">

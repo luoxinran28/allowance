@@ -22,7 +22,7 @@ impl AuthService {
     ) -> AppResult<UserResponse> {
         // Check if email already exists
         let existing = sqlx::query_as::<_, User>(
-            "SELECT * FROM users WHERE email = $1"
+            "SELECT id, uid, email, password_hash, tier, status, organization_id, team_ids, license_status, source_upid, profile_data, created_at, updated_at, last_login FROM users WHERE email = $1"
         )
             .bind(email)
             .fetch_optional(pool)
@@ -41,7 +41,7 @@ impl AuthService {
             r#"
             INSERT INTO users (uid, email, password_hash, status, tier, source_upid)
             VALUES ($1, $2, $3, 'inactive', 'free', $4)
-            RETURNING *
+            RETURNING id, uid, email, password_hash, tier, status, organization_id, team_ids, license_status, source_upid, profile_data, created_at, updated_at, last_login
             "#
         )
             .bind(&uid)
@@ -70,7 +70,7 @@ impl AuthService {
         password: &str,
     ) -> AppResult<User> {
         let user = sqlx::query_as::<_, User>(
-            "SELECT * FROM users WHERE email = $1"
+            "SELECT id, uid, email, password_hash, tier, status, organization_id, team_ids, license_status, source_upid, profile_data, created_at, updated_at, last_login FROM users WHERE email = $1"
         )
             .bind(email)
             .fetch_optional(pool)
@@ -189,7 +189,7 @@ impl AuthService {
 
         // Update user to active
         let user = sqlx::query_as::<_, User>(
-            "UPDATE users SET status = 'active', updated_at = $1 WHERE id = $2 RETURNING *"
+            "UPDATE users SET status = 'active', updated_at = $1 WHERE id = $2 RETURNING id, uid, email, password_hash, tier, status, organization_id, team_ids, license_status, source_upid, profile_data, created_at, updated_at, last_login"
         )
             .bind(Utc::now().naive_utc())
             .bind(user_id)
@@ -216,7 +216,7 @@ impl AuthService {
         email: &str,
     ) -> AppResult<String> {
         let user = sqlx::query_as::<_, User>(
-            "SELECT * FROM users WHERE email = $1"
+            "SELECT id, uid, email, tier, status, organization_id, team_ids, license_status, source_upid, profile_data, created_at, updated_at, last_login FROM users WHERE email = $1"
         )
             .bind(email)
             .fetch_optional(pool)
@@ -293,7 +293,7 @@ impl AuthService {
     /// Get user by ID
     pub async fn get_user_by_id(pool: &PgPool, user_id: i64) -> AppResult<User> {
         sqlx::query_as::<_, User>(
-            "SELECT * FROM users WHERE id = $1"
+            "SELECT id, uid, email, password_hash, tier, status, organization_id, team_ids, license_status, source_upid, profile_data, created_at, updated_at, last_login FROM users WHERE id = $1"
         )
             .bind(user_id)
             .fetch_optional(pool)
@@ -304,7 +304,7 @@ impl AuthService {
     /// Get user by email
     pub async fn get_user_by_email(pool: &PgPool, email: &str) -> AppResult<User> {
         sqlx::query_as::<_, User>(
-            "SELECT * FROM users WHERE email = $1"
+            "SELECT id, uid, email, password_hash, tier, status, organization_id, team_ids, license_status, source_upid, profile_data, created_at, updated_at, last_login FROM users WHERE email = $1"
         )
             .bind(email)
             .fetch_optional(pool)
