@@ -14,7 +14,8 @@ ON CONFLICT (email) DO NOTHING;
 -- Org Bosses (premium tier)
 INSERT INTO users (uid, email, password_hash, tier, status, organization_id, team_ids, source_upid, profile_data, license_status, created_at, updated_at) VALUES
     ('UBOSS0001', 'boss1@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$F20jUfqy4qy4/6z6tOLBhg$Gl8U55p400Q0AXdl2TAWiYGcEWgGs5+4DqvagDNvJrc', 'premium', 'active', NULL, '[]'::jsonb, 'UALLOWANCE0001', '{"first_name": "Alice", "last_name": "Boss"}', 'valid', CURRENT_TIMESTAMP - INTERVAL '60 days', CURRENT_TIMESTAMP),
-    ('UBOSS0002', 'boss2@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$F20jUfqy4qy4/6z6tOLBhg$Gl8U55p400Q0AXdl2TAWiYGcEWgGs5+4DqvagDNvJrc', 'premium', 'active', NULL, '[]'::jsonb, 'UALLOWANCE0001', '{"first_name": "Bob", "last_name": "Manager"}', 'valid', CURRENT_TIMESTAMP - INTERVAL '55 days', CURRENT_TIMESTAMP)
+    ('UBOSS0002', 'boss2@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$F20jUfqy4qy4/6z6tOLBhg$Gl8U55p400Q0AXdl2TAWiYGcEWgGs5+4DqvagDNvJrc', 'premium', 'active', NULL, '[]'::jsonb, 'UALLOWANCE0001', '{"first_name": "Bob", "last_name": "Manager"}', 'valid', CURRENT_TIMESTAMP - INTERVAL '55 days', CURRENT_TIMESTAMP),
+    ('UPREM0001', 'premium@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$F20jUfqy4qy4/6z6tOLBhg$Gl8U55p400Q0AXdl2TAWiYGcEWgGs5+4DqvagDNvJrc', 'premium', 'active', NULL, '[]'::jsonb, 'UALLOWANCE0001', '{"first_name": "Premium", "last_name": "User"}', 'valid', CURRENT_TIMESTAMP - INTERVAL '52 days', CURRENT_TIMESTAMP)
 ON CONFLICT (email) DO NOTHING;
 
 -- Standard users (team members)
