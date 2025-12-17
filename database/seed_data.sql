@@ -19,6 +19,7 @@ ON CONFLICT (email) DO NOTHING;
 
 -- Standard users (team members)
 INSERT INTO users (uid, email, password_hash, tier, status, organization_id, team_ids, source_upid, profile_data, license_status, created_at, updated_at) VALUES
+    ('USTD00001', 'standard@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$F20jUfqy4qy4/6z6tOLBhg$Gl8U55p400Q0AXdl2TAWiYGcEWgGs5+4DqvagDNvJrc', 'standard', 'active', NULL, '[]'::jsonb, 'UALLOWANCE0001', '{"first_name": "Standard", "last_name": "User"}', 'valid', CURRENT_TIMESTAMP - INTERVAL '55 days', CURRENT_TIMESTAMP),
     ('ULEAD0001', 'leader1@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$F20jUfqy4qy4/6z6tOLBhg$Gl8U55p400Q0AXdl2TAWiYGcEWgGs5+4DqvagDNvJrc', 'standard', 'active', NULL, '[]'::jsonb, 'UALLOWANCE0001', '{"first_name": "Charlie", "last_name": "Leader"}', 'valid', CURRENT_TIMESTAMP - INTERVAL '50 days', CURRENT_TIMESTAMP),
     ('ULEAD0002', 'leader2@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$F20jUfqy4qy4/6z6tOLBhg$Gl8U55p400Q0AXdl2TAWiYGcEWgGs5+4DqvagDNvJrc', 'standard', 'active', NULL, '[]'::jsonb, 'UALLOWANCE0001', '{"first_name": "Diana", "last_name": "Team Leader"}', 'valid', CURRENT_TIMESTAMP - INTERVAL '45 days', CURRENT_TIMESTAMP),
     ('UMEM00001', 'member1@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$F20jUfqy4qy4/6z6tOLBhg$Gl8U55p400Q0AXdl2TAWiYGcEWgGs5+4DqvagDNvJrc', 'standard', 'active', NULL, '[]'::jsonb, 'UALLOWANCE0001', '{"first_name": "Eve", "last_name": "Developer"}', 'valid', CURRENT_TIMESTAMP - INTERVAL '40 days', CURRENT_TIMESTAMP),
