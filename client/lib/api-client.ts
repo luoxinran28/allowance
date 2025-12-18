@@ -269,6 +269,15 @@ class ApiClient {
     return this.client.delete(`/admin/users/${userId}/role/${roleCode}`);
   }
 
+  // Organization endpoints
+  async listOrganizations(page: number = 1, pageSize: number = 20) {
+    return this.client.get('/org', { params: { page, page_size: pageSize } });
+  }
+
+  async createOrganization(name: string, description?: string) {
+    return this.client.post('/org/create', { name, description });
+  }
+
   // Team Quota Admin endpoints
   async listTeamQuotas() {
     return this.client.get('/admin/team-quotas');
@@ -323,12 +332,12 @@ class ApiClient {
   }
 
   // Batch License endpoints
-  async generateBatchLicenses(productId: string, version: string, quantity: number, expirationDays: number) {
+  async generateBatchLicenses(productId: string, tier: string, quantity: number, daysValid: number) {
     return this.client.post('/licenses/batch/generate', {
       product_id: productId,
-      version_name: version,
+      tier,
       quantity,
-      expiration_days: expirationDays,
+      days_valid: daysValid,
     });
   }
 

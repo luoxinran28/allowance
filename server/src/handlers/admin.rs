@@ -116,9 +116,14 @@ pub async fn list_users(
         .fetch_one(&*state.pool)
         .await?;
 
-    let user_responses: Vec<UserResponse> = users.into_iter()
-        .map(|u| UserResponse::from(u))
-        .collect();
+    let mut user_responses: Vec<UserResponse> = Vec::new();
+    for user in users {
+        let user_id = user.id;
+        let mut response = UserResponse::from(user);
+        let roles = RbacService::get_user_roles(&state.pool, user_id).await?;
+        response.roles = Some(roles.iter().map(|r| r.code.clone()).collect());
+        user_responses.push(response);
+    }
 
     Ok(Json(serde_json::json!({
         "data": user_responses,
@@ -138,7 +143,10 @@ pub async fn get_user(
     check_admin_permission(&state, requester_id).await?;
 
     let user = AuthService::get_user_by_id(&state.pool, user_id).await?;
-    Ok(Json(UserResponse::from(user)))
+    let mut response = UserResponse::from(user);
+    let roles = RbacService::get_user_roles(&state.pool, user_id).await?;
+    response.roles = Some(roles.iter().map(|r| r.code.clone()).collect());
+    Ok(Json(response))
 }
 
 /// Assign role to user (admin only)

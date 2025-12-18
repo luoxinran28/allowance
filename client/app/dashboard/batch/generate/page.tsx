@@ -62,8 +62,8 @@ export default function BatchGeneratePage() {
           }
         }
 
-        const orgsList = Array.isArray(orgsResponse.data?.data)
-          ? orgsResponse.data.data
+        const orgsList = Array.isArray(orgsResponse.data?.organizations)
+          ? orgsResponse.data.organizations
           : Array.isArray(orgsResponse.data)
             ? orgsResponse.data
             : [];

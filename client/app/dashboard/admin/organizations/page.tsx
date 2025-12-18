@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { apiClient } from '@/lib/api-client';
 import { useConditionalProtectedRoute } from '@/lib/middleware/routeProtection';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -13,11 +14,12 @@ interface Organization {
   org_id: string;
   name: string;
   description?: string;
-  boss_count?: number;
-  team_count?: number;
-  member_count?: number;
-  product_count?: number;
   created_at: string;
+}
+
+interface CreateOrgFormData {
+  name: string;
+  description: string;
 }
 
 export default function AdminOrganizationsPage() {
@@ -34,26 +36,45 @@ export default function AdminOrganizationsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
+  const [createFormData, setCreateFormData] = useState<CreateOrgFormData>({
+    name: '',
+    description: '',
+  });
 
   useEffect(() => {
-    const loadOrganizations = async () => {
-      try {
-        setLoading(true);
-        // TODO: Implement API call to fetch organizations
-        // const response = await api.getOrganizations({ search: searchTerm });
-        // setOrganizations(response.data);
-        setOrganizations([]);
-      } catch (err) {
-        setError('Failed to load organizations');
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     loadOrganizations();
-  }, [searchTerm]);
+  }, []);
+
+  const loadOrganizations = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      const response = await apiClient.listOrganizations(1, 100);
+      
+      // Handle both response formats:
+      // 1. { organizations: [...], total: N }
+      // 2. { data: [...], total: N }
+      // 3. Array directly
+      let orgsData: Organization[] = [];
+      if (Array.isArray(response.data)) {
+        orgsData = response.data;
+      } else if (response.data?.organizations) {
+        orgsData = response.data.organizations;
+      } else if (response.data?.data) {
+        orgsData = response.data.data;
+      }
+      
+      setOrganizations(orgsData);
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to load organizations');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     // Sync selected org when selectedOrgId changes
@@ -67,13 +88,39 @@ export default function AdminOrganizationsPage() {
     }
   }, [selectedOrgId, organizations]);
 
-  const handleOpenOverlay = (org: Organization) => {
-    router.push(`?selected_id=${org.id}`);
+  const handleOpenOverlay = (org?: Organization) => {
+    if (org && org.id > 0) {
+      router.push(`?selected_id=${org.id}`);
+    } else {
+      // Create mode
+      setIsCreating(true);
+      setSelectedOrg(null);
+    }
   };
 
   const handleCloseOverlay = () => {
     router.push('');
     setSelectedOrg(null);
+    setIsCreating(false);
+    setCreateFormData({ name: '', description: '' });
+  };
+
+  const handleCreateOrganization = async () => {
+    try {
+      if (!createFormData.name.trim()) {
+        setError('Organization name is required');
+        return;
+      }
+      setError('');
+      setSuccess('');
+      await apiClient.createOrganization(createFormData.name, createFormData.description);
+      setSuccess('Organization created successfully');
+      setCreateFormData({ name: '', description: '' });
+      setIsCreating(false);
+      await loadOrganizations();
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to create organization');
+    }
   };
 
   return (
@@ -81,13 +128,24 @@ export default function AdminOrganizationsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Organizations</h1>
-        <Button asChild>
-          <button onClick={() => handleOpenOverlay({ id: 0, org_id: '', name: 'Create Organization', created_at: new Date().toISOString() })}>
-            <Plus className="h-4 w-4 mr-2" />
-            Create Organization
-          </button>
+        <Button onClick={() => handleOpenOverlay()}>
+          <Plus className="h-4 w-4 mr-2" />
+          Create Organization
         </Button>
       </div>
+
+      {/* Error/Success Messages */}
+      {error && (
+        <div className="rounded-md bg-destructive/10 p-4 text-sm text-destructive">
+          {error}
+        </div>
+      )}
+
+      {success && (
+        <div className="rounded-md bg-green-100 p-4 text-sm text-green-800">
+          {success}
+        </div>
+      )}
 
       {/* Search Bar */}
       <div className="flex gap-2">
@@ -102,23 +160,13 @@ export default function AdminOrganizationsPage() {
         </div>
       </div>
 
-      {/* Error Message */}
-      {error && (
-        <div className="rounded-md bg-destructive/10 p-4 text-sm text-destructive">
-          {error}
-        </div>
-      )}
-
       {/* Organizations Table */}
       <div className="border border-border rounded-lg overflow-hidden">
         <table className="w-full">
           <thead className="bg-muted border-b border-border">
             <tr>
               <th className="px-6 py-3 text-left text-sm font-semibold">Organization</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold">Boss</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold">Teams</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold">Members</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold">Products</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold">Description</th>
               <th className="px-6 py-3 text-left text-sm font-semibold">Created</th>
               <th className="px-6 py-3 text-left text-sm font-semibold">Actions</th>
             </tr>
@@ -126,13 +174,13 @@ export default function AdminOrganizationsPage() {
           <tbody className="divide-y divide-border">
             {loading ? (
               <tr>
-                <td colSpan={7} className="px-6 py-8 text-center text-muted-foreground">
+                <td colSpan={4} className="px-6 py-8 text-center text-muted-foreground">
                   Loading organizations...
                 </td>
               </tr>
             ) : organizations.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-6 py-8 text-center text-muted-foreground">
+                <td colSpan={4} className="px-6 py-8 text-center text-muted-foreground">
                   No organizations found
                 </td>
               </tr>
@@ -148,16 +196,7 @@ export default function AdminOrganizationsPage() {
                     </button>
                   </td>
                   <td className="px-6 py-4 text-sm text-muted-foreground">
-                    {org.boss_count || 0} boss(es)
-                  </td>
-                  <td className="px-6 py-4 text-sm text-muted-foreground">
-                    {org.team_count || 0}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-muted-foreground">
-                    {org.member_count || 0}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-muted-foreground">
-                    {org.product_count || 0}
+                    {org.description || '-'}
                   </td>
                   <td className="px-6 py-4 text-sm text-muted-foreground">
                     {new Date(org.created_at).toLocaleDateString()}
@@ -189,7 +228,7 @@ export default function AdminOrganizationsPage() {
             {/* Organization Info */}
             <div>
               <h3 className="text-lg font-semibold mb-4">Organization Info</h3>
-              <div className="grid grid-cols-2 gap-4 text-sm">
+              <div className="space-y-3 text-sm">
                 <div>
                   <p className="text-gray-600 font-medium">Organization ID</p>
                   <p className="text-gray-900 font-mono">{selectedOrg.org_id}</p>
@@ -205,31 +244,6 @@ export default function AdminOrganizationsPage() {
                 <div>
                   <p className="text-gray-600 font-medium">Created</p>
                   <p className="text-gray-900">{new Date(selectedOrg.created_at).toLocaleDateString()}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="border-t border-gray-200" />
-
-            {/* Statistics */}
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Statistics</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="p-3 rounded-lg bg-blue-50 border border-blue-200">
-                  <p className="text-sm text-gray-600">Bosses</p>
-                  <p className="text-2xl font-bold text-blue-600">{selectedOrg.boss_count || 0}</p>
-                </div>
-                <div className="p-3 rounded-lg bg-green-50 border border-green-200">
-                  <p className="text-sm text-gray-600">Teams</p>
-                  <p className="text-2xl font-bold text-green-600">{selectedOrg.team_count || 0}</p>
-                </div>
-                <div className="p-3 rounded-lg bg-yellow-50 border border-yellow-200">
-                  <p className="text-sm text-gray-600">Members</p>
-                  <p className="text-2xl font-bold text-yellow-600">{selectedOrg.member_count || 0}</p>
-                </div>
-                <div className="p-3 rounded-lg bg-purple-50 border border-purple-200">
-                  <p className="text-sm text-gray-600">Products</p>
-                  <p className="text-2xl font-bold text-purple-600">{selectedOrg.product_count || 0}</p>
                 </div>
               </div>
             </div>
@@ -250,6 +264,63 @@ export default function AdminOrganizationsPage() {
             </div>
           </div>
         )}
+      </AdminDetailOverlay>
+
+      {/* Create Organization Overlay */}
+      <AdminDetailOverlay
+        isOpen={isCreating}
+        title="Create Organization"
+        onClose={handleCloseOverlay}
+        size="md"
+      >
+        <div className="p-6 space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Organization Name *
+            </label>
+            <input
+              type="text"
+              value={createFormData.name}
+              onChange={(e) => setCreateFormData({ ...createFormData, name: e.target.value })}
+              placeholder="Enter organization name"
+              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Description
+            </label>
+            <textarea
+              value={createFormData.description}
+              onChange={(e) => setCreateFormData({ ...createFormData, description: e.target.value })}
+              placeholder="Enter organization description (optional)"
+              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              rows={4}
+            />
+          </div>
+
+          {error && (
+            <div className="rounded-md bg-red-50 p-3 text-sm text-red-800">
+              {error}
+            </div>
+          )}
+
+          <div className="flex gap-3 pt-4 border-t">
+            <button
+              onClick={handleCloseOverlay}
+              className="flex-1 rounded-lg border border-gray-300 px-4 py-2 font-medium text-gray-700 hover:bg-gray-50 transition"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleCreateOrganization}
+              className="flex-1 rounded-lg bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700 transition"
+            >
+              Create
+            </button>
+          </div>
+        </div>
       </AdminDetailOverlay>
     </div>
   );

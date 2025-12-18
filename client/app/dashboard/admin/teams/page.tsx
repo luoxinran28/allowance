@@ -49,8 +49,8 @@ export default function AdminTeamsPage() {
 
       // Load organizations for filter dropdown
       const orgsResponse = await apiClient.listOrganizations(1, 1000);
-      const orgsList = Array.isArray(orgsResponse.data?.data)
-        ? orgsResponse.data.data
+      const orgsList = Array.isArray(orgsResponse.data?.organizations)
+        ? orgsResponse.data.organizations
         : Array.isArray(orgsResponse.data)
           ? orgsResponse.data
           : [];
