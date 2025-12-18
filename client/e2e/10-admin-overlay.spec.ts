@@ -12,18 +12,18 @@ test.describe('Admin Pages - Overlay Mode', () => {
       await page.click('button[type="submit"]');
       console.log('Submitted login form');
 
-      // Wait for successful login - check for redirect to dashboard
-      await page.waitForURL('/dashboard', { timeout: 10000 });
-      console.log('Login successful, redirected to dashboard');
+      // Wait for successful login - check for redirect to user/profile (new route)
+      await page.waitForURL('/user/profile', { timeout: 10000 });
+      console.log('Login successful, redirected to /user/profile');
 
-      // Navigate to users page
-      await page.goto('/dashboard/admin/users');
+      // Navigate to users page (new route)
+      await page.goto('/admin/users');
       console.log('Navigated to admin users page');
 
       await page.waitForTimeout(2000);
 
       // Check if we're on the admin users page
-      await expect(page).toHaveURL('/dashboard/admin/users');
+      await expect(page).toHaveURL('/admin/users');
       console.log('Successfully navigated to admin users page');
     });
 
@@ -34,11 +34,11 @@ test.describe('Admin Pages - Overlay Mode', () => {
       await page.fill('input[type="password"]', 'Pass888999');
       await page.click('button[type="submit"]');
 
-      // Wait for successful login - check for redirect to dashboard
-      await page.waitForURL('/dashboard', { timeout: 10000 });
+      // Wait for successful login - check for redirect (new route)
+      await page.waitForURL('/user/profile', { timeout: 10000 });
 
-      // Navigate to users page
-      await page.goto('/dashboard/admin/users');
+      // Navigate to users page (new route)
+      await page.goto('/admin/users');
       await page.waitForTimeout(2000);
 
       // Wait for table and buttons to load
@@ -68,11 +68,11 @@ test.describe('Admin Pages - Overlay Mode', () => {
       await page.fill('input[type="password"]', 'Pass888999');
       await page.click('button[type="submit"]');
 
-      // Wait for successful login - check for redirect to dashboard
-      await page.waitForURL('/dashboard', { timeout: 10000 });
+      // Wait for successful login (new route)
+      await page.waitForURL('/user/profile', { timeout: 10000 });
 
-      // Navigate to users page
-      await page.goto('/dashboard/admin/users');
+      // Navigate to users page (new route)
+      await page.goto('/admin/users');
       await page.waitForTimeout(2000);
 
       // Wait for buttons to load

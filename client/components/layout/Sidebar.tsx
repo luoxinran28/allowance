@@ -36,12 +36,12 @@ interface NavSection {
 // Main Navigation (all users)
 const mainNavItems: NavItem[] = [
   {
-    href: '/dashboard/profile',
+    href: '/user/profile',
     label: 'Profile',
     icon: <User className="h-4 w-4" />,
   },
   {
-    href: '/dashboard/billing',
+    href: '/user/billing',
     label: 'Billing',
     icon: <CreditCard className="h-4 w-4" />,
   },
@@ -50,12 +50,12 @@ const mainNavItems: NavItem[] = [
 // Organization & License (premium/allstar)
 const orgLicenseItems: NavItem[] = [
   {
-    href: '/dashboard/org-license/products',
+    href: '/org-license/products',
     label: 'Products & Licenses',
     icon: <Package className="h-4 w-4" />,
   },
   {
-    href: '/dashboard/org-license/assign',
+    href: '/org-license/assign',
     label: 'Assign Licenses',
     icon: <Users className="h-4 w-4" />,
   },
@@ -64,12 +64,12 @@ const orgLicenseItems: NavItem[] = [
 // Team Management (standard/premium/allstar)
 const teamMgmtItems: NavItem[] = [
   {
-    href: '/dashboard/team-management/quotas',
+    href: '/team-management/quotas',
     label: 'Team & Quotas',
     icon: <BarChart3 className="h-4 w-4" />,
   },
   {
-    href: '/dashboard/team-management/members',
+    href: '/team-management/members',
     label: 'Team Members',
     icon: <Users className="h-4 w-4" />,
   },
@@ -78,37 +78,42 @@ const teamMgmtItems: NavItem[] = [
 // Admin Section (allstar only)
 const adminNavItems: NavItem[] = [
   {
-    href: '/dashboard/admin/dashboard',
+    href: '/admin/dashboard',
     label: 'Dashboard',
     icon: <LayoutDashboard className="h-4 w-4" />,
   },
   {
-    href: '/dashboard/admin/products',
+    href: '/admin/products',
     label: 'Products',
     icon: <Package className="h-4 w-4" />,
   },
   {
-    href: '/dashboard/admin/organizations',
+    href: '/admin/organizations',
     label: 'Organizations',
     icon: <Building2 className="h-4 w-4" />,
   },
   {
-    href: '/dashboard/admin/users',
+    href: '/admin/users',
     label: 'Users',
     icon: <Users className="h-4 w-4" />,
   },
   {
-    href: '/dashboard/admin/batch/generate',
+    href: '/admin/teams',
+    label: 'Teams',
+    icon: <Users className="h-4 w-4" />,
+  },
+  {
+    href: '/admin/batch/generate',
     label: 'Generate Licenses',
     icon: <Plus className="h-4 w-4" />,
   },
   {
-    href: '/dashboard/admin/batch/revoke',
+    href: '/admin/batch/revoke',
     label: 'Revoke Licenses',
     icon: <Trash2 className="h-4 w-4" />,
   },
   {
-    href: '/dashboard/admin/batch/export',
+    href: '/admin/batch/export',
     label: 'Export Licenses',
     icon: <Download className="h-4 w-4" />,
   },
