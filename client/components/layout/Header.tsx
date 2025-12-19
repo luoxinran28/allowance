@@ -25,6 +25,7 @@ export default function Header() {
     router.push('/auth/login');
   };
 
+  // Only render if authenticated
   if (!isAuthenticated || !user) {
     return null;
   }
@@ -33,7 +34,7 @@ export default function Header() {
     <header className="border-b border-border bg-background sticky top-0 z-50">
       <div className="container flex h-16 items-center justify-between">
         {/* Logo/Brand */}
-        <Link href="/dashboard" className="flex items-center gap-2">
+        <Link href="/user/profile" className="flex items-center gap-2">
           <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
             <span className="text-primary-foreground font-bold text-lg">A</span>
           </div>
@@ -67,13 +68,13 @@ export default function Header() {
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
-                <Link href="/dashboard/profile">
+                <Link href="/user/profile">
                   <Settings className="mr-2 h-4 w-4" />
                   View Profile
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/dashboard/billing">
+                <Link href="/user/billing">
                   <Settings className="mr-2 h-4 w-4" />
                   Billing & Plans
                 </Link>
@@ -102,26 +103,24 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Mobile Menu */}
-      {mobileMenuOpen && (
         <div className="md:hidden border-t border-border">
           <nav className="container py-4 space-y-2">
             <Link
-              href="/dashboard"
+              href="/user/profile"
               className="block px-4 py-2 rounded-md hover:bg-accent text-sm"
               onClick={() => setMobileMenuOpen(false)}
             >
               Dashboard
             </Link>
             <Link
-              href="/dashboard/profile"
+              href="/user/profile"
               className="block px-4 py-2 rounded-md hover:bg-accent text-sm"
               onClick={() => setMobileMenuOpen(false)}
             >
               Profile
             </Link>
             <Link
-              href="/dashboard/billing"
+              href="/user/billing"
               className="block px-4 py-2 rounded-md hover:bg-accent text-sm"
               onClick={() => setMobileMenuOpen(false)}
             >
@@ -129,7 +128,6 @@ export default function Header() {
             </Link>
           </nav>
         </div>
-      )}
     </header>
   );
 }

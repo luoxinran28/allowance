@@ -4,6 +4,7 @@ import { useAuthStore } from '@/lib/auth-store';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Sidebar from '@/components/layout/Sidebar';
+import Header from '@/components/layout/Header';
 
 export default function TeamManagementLayout({ children }: { children: React.ReactNode }) {
   const { user, isAuthenticated } = useAuthStore();
@@ -41,9 +42,12 @@ export default function TeamManagementLayout({ children }: { children: React.Rea
   }
 
   return (
-    <div className="flex">
-      <Sidebar isOpen={true} />
-      <main className="flex-1">{children}</main>
+    <div className="min-h-screen flex flex-col">
+      <Header />
+      <div className="flex flex-1">
+        <Sidebar isOpen={true} />
+        <main className="flex-1">{children}</main>
+      </div>
     </div>
   );
 }
