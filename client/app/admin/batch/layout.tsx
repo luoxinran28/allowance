@@ -3,7 +3,6 @@
 import { useAuthStore } from '@/lib/auth-store';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import Sidebar from '@/components/layout/Sidebar';
 
 export default function AdminBatchLayout({ children }: { children: React.ReactNode }) {
   const { user, isAuthenticated } = useAuthStore();

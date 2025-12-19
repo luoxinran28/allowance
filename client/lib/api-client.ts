@@ -269,15 +269,6 @@ class ApiClient {
     return this.client.delete(`/admin/users/${userId}/role/${roleCode}`);
   }
 
-  // Organization endpoints
-  async listOrganizations(page: number = 1, pageSize: number = 20) {
-    return this.client.get('/org', { params: { page, page_size: pageSize } });
-  }
-
-  async createOrganization(name: string, description?: string) {
-    return this.client.post('/org/create', { name, description });
-  }
-
   // Team Quota Admin endpoints
   async listTeamQuotas() {
     return this.client.get('/admin/team-quotas');
