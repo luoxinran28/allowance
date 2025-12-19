@@ -1,0 +1,161 @@
+# ========================================
+# Allowance Authorization System
+# Production Docker Compose Configuration
+# ========================================
+# Purpose: Production deployment with optimized settings
+# Usage: docker-compose -f docker-compose.prod.yml up -d
+# Note: All sensitive variables from .env.prod file
+# ========================================
+
+services:
+  # PostgreSQL Database (Production)
+  postgres:
+    image: postgres:15-alpine
+    container_name: allowance-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: ${DB_NAME:-allowance}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-allowance}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - allowance-network
+    # Security: PostgreSQL only accessible from within network
+    expose:
+      - "5432"
+
+  # Rust Axum Backend Server (Production)
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    image: allowance-server:latest
+    container_name: allowance-server
+    restart: always
+    environment:
+      # Server Configuration
+      - SERVER_HOST=0.0.0.0
+      - SERVER_PORT=${SERVER_PORT:-4040}
+      
+      # Database Configuration
+      - DATABASE_URL=postgres://${DB_USER:-postgres}:${DB_PASSWORD}@postgres:5432/${DB_NAME:-allowance}
+      
+      # JWT & API Security
+      - JWT_SECRET=${JWT_SECRET}
+      - API_SECRET=${API_SECRET}
+      - JWT_EXPIRATION_HOURS=${JWT_EXPIRATION_HOURS:-24}
+      - REFRESH_TOKEN_EXPIRATION_DAYS=${REFRESH_TOKEN_EXPIRATION_DAYS:-7}
+      - ACTIVATION_TOKEN_EXPIRATION_HOURS=${ACTIVATION_TOKEN_EXPIRATION_HOURS:-24}
+      - PASSWORD_RESET_TOKEN_EXPIRATION_HOURS=${PASSWORD_RESET_TOKEN_EXPIRATION_HOURS:-1}
+      
+      # Email Configuration (SMTP)
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - EMAIL_FROM=${EMAIL_FROM:-noreply@allowance.com}
+      
+      # Frontend Configuration
+      - FRONTEND_URL=${FRONTEND_URL}
+      
+      # Logging (Production: info level)
+      - RUST_LOG=${RUST_LOG:-info}
+      - RUST_BACKTRACE=${RUST_BACKTRACE:-1}
+      
+      # Optional: Redis for nonce caching (leave empty if not used)
+      - REDIS_URL=${REDIS_URL:-}
+    
+    expose:
+      - "4040"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4040/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - allowance-network
+    # Security: Only expose through reverse proxy
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 512M
+        reservations:
+          cpus: "0.5"
+          memory: 256M
+
+  # Next.js Frontend Client (Production)
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+        - NEXT_PUBLIC_API_SECRET=${API_SECRET}
+    image: allowance-client:latest
+    container_name: allowance-client
+    restart: always
+    environment:
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+      - NEXT_PUBLIC_API_SECRET=${API_SECRET}
+      - NEXT_PUBLIC_PRODUCT_UPID=${NEXT_PUBLIC_PRODUCT_UPID:-UALLOWANCE0001}
+      - NEXT_PUBLIC_PRODUCT_TIER=${NEXT_PUBLIC_PRODUCT_TIER:-free}
+    expose:
+      - "3030"
+    depends_on:
+      server:
+        condition: service_healthy
+    networks:
+      - allowance-network
+    # Security: Only expose through reverse proxy
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
+        reservations:
+          cpus: "0.25"
+          memory: 128M
+
+  # Optional: Nginx Reverse Proxy (uncomment if needed)
+  # nginx:
+  #   image: nginx:alpine
+  #   container_name: allowance-nginx
+  #   restart: always
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+  #     - ./nginx/ssl:/etc/nginx/ssl:ro
+  #   depends_on:
+  #     - server
+  #     - client
+  #   networks:
+  #     - allowance-network
+
+# ========================================
+# Network Configuration (Internal-only)
+# ========================================
+networks:
+  allowance-network:
+    driver: bridge
+
+# ========================================
+# Volume Configuration (Data Persistence)
+# ========================================
+volumes:
+  postgres_data:
+    driver: local
