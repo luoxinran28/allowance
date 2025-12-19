@@ -2,14 +2,24 @@
 
 import { useAuthStore } from '@/lib/auth-store';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Sidebar from '@/components/layout/Sidebar';
 
 export default function OrgLicenseLayout({ children }: { children: React.ReactNode }) {
   const { user, isAuthenticated } = useAuthStore();
   const router = useRouter();
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsInitialized(true);
+    }, 50);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (!isInitialized) return;
+
     if (!isAuthenticated || !user) {
       router.push('/auth/login');
       return;
@@ -20,7 +30,11 @@ export default function OrgLicenseLayout({ children }: { children: React.ReactNo
       router.push('/error/permission-denied');
       return;
     }
-  }, [isAuthenticated, user, router]);
+  }, [isAuthenticated, user, router, isInitialized]);
+
+  if (!isInitialized) {
+    return <div className="p-8 text-center">Loading...</div>;
+  }
 
   if (!isAuthenticated || !user || (user.tier !== 'premium' && user.tier !== 'allstar')) {
     return <div className="p-8 text-center">Redirecting...</div>;

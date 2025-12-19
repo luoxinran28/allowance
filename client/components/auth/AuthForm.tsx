@@ -57,15 +57,15 @@ export function AuthForm({ mode }: AuthFormProps) {
         const response = await apiClient.login(email, password);
         const { user, token } = response.data;
         
-        // Set auth state and ensure localStorage is written
-        localStorage.setItem('user', JSON.stringify(user));
-        localStorage.setItem('token', token);
+        // Set auth state in Zustand FIRST (which also sets localStorage)
         setAuth(user, token);
         
-        // Small delay to ensure state updates are processed before navigation
-        await new Promise(resolve => setTimeout(resolve, 50));
+        // Delay to ensure Zustand state is updated before navigation
+        // This is critical for client-side route protection to work correctly
+        await new Promise(resolve => setTimeout(resolve, 100));
         
-        // Use router.push for Next.js navigation since localStorage is now set
+        // Navigate to dashboard, which will redirect to /user/profile
+        // The auth state should now be ready for the Layout checks
         router.push('/dashboard');
       }
     } catch (err: any) {
