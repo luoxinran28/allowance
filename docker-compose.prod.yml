@@ -4,7 +4,7 @@
 # ========================================
 # Purpose: Production deployment with optimized settings
 # Usage: docker-compose -f docker-compose.prod.yml up -d
-# Note: All sensitive variables from .env.prod file
+# Note: Environment variables loaded from server/.env and client/.env files
 # ========================================
 
 services:
@@ -40,39 +40,8 @@ services:
     image: allowance-server:latest
     container_name: allowance-server
     restart: always
-    environment:
-      # Server Configuration
-      - SERVER_HOST=0.0.0.0
-      - SERVER_PORT=${SERVER_PORT:-4040}
-      
-      # Database Configuration
-      - DATABASE_URL=postgres://${DB_USER:-postgres}:${DB_PASSWORD}@postgres:5432/${DB_NAME:-allowance}
-      
-      # JWT & API Security
-      - JWT_SECRET=${JWT_SECRET}
-      - API_SECRET=${API_SECRET}
-      - JWT_EXPIRATION_HOURS=${JWT_EXPIRATION_HOURS:-24}
-      - REFRESH_TOKEN_EXPIRATION_DAYS=${REFRESH_TOKEN_EXPIRATION_DAYS:-7}
-      - ACTIVATION_TOKEN_EXPIRATION_HOURS=${ACTIVATION_TOKEN_EXPIRATION_HOURS:-24}
-      - PASSWORD_RESET_TOKEN_EXPIRATION_HOURS=${PASSWORD_RESET_TOKEN_EXPIRATION_HOURS:-1}
-      
-      # Email Configuration (SMTP)
-      - SMTP_HOST=${SMTP_HOST}
-      - SMTP_PORT=${SMTP_PORT:-587}
-      - SMTP_USER=${SMTP_USER}
-      - SMTP_PASSWORD=${SMTP_PASSWORD}
-      - EMAIL_FROM=${EMAIL_FROM:-noreply@allowance.com}
-      
-      # Frontend Configuration
-      - FRONTEND_URL=${FRONTEND_URL}
-      
-      # Logging (Production: info level)
-      - RUST_LOG=${RUST_LOG:-info}
-      - RUST_BACKTRACE=${RUST_BACKTRACE:-1}
-      
-      # Optional: Redis for nonce caching (leave empty if not used)
-      - REDIS_URL=${REDIS_URL:-}
-    
+    env_file:
+      - ./server/.env
     expose:
       - "4040"
     depends_on:
@@ -101,17 +70,11 @@ services:
     build:
       context: ./client
       dockerfile: Dockerfile
-      args:
-        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
-        - NEXT_PUBLIC_API_SECRET=${API_SECRET}
     image: allowance-client:latest
     container_name: allowance-client
     restart: always
-    environment:
-      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
-      - NEXT_PUBLIC_API_SECRET=${API_SECRET}
-      - NEXT_PUBLIC_PRODUCT_UPID=${NEXT_PUBLIC_PRODUCT_UPID:-UALLOWANCE0001}
-      - NEXT_PUBLIC_PRODUCT_TIER=${NEXT_PUBLIC_PRODUCT_TIER:-free}
+    env_file:
+      - ./client/.env
     expose:
       - "3030"
     depends_on:

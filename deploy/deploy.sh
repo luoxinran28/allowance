@@ -23,7 +23,7 @@ NC='\033[0m' # No Color
 # ========================================
 # 全局变量
 # ========================================
-PROJECT_DIR="/opt/allowance"
+PROJECT_DIR="/var/www/allowance"
 COMPOSE_FILE="docker-compose.prod.yml"
 ENV_FILE=".env.prod"
 
