@@ -166,11 +166,11 @@ check_ssl() {
             return 1
         fi
     else
-        print_warning "SSL 证书不存在"
+        print_info "SSL 证书不存在，使用 HTTP 模式"
         print_info "证书路径: $ssl_cert"
         print_info "私钥路径: $ssl_key"
-        print_info "如果使用 Nginx，需要配置 SSL 证书"
-        return 1
+        print_info "如需 HTTPS，请配置 SSL 证书"
+        return 0  # 不阻止部署，继续使用 HTTP
     fi
 }
 
@@ -180,16 +180,26 @@ check_env_file() {
     
     cd "$PROJECT_DIR"
     
-    if [ ! -f "$ENV_FILE" ]; then
-        print_error "环境变量文件不存在: $ENV_FILE"
-        
-        if [ -f "$ENV_FILE.example" ]; then
-            print_info "发现示例配置文件: $ENV_FILE.example"
-            print_info "请复制示例文件并填入真实配置: cp $ENV_FILE.example $ENV_FILE"
-            return 1
+    local env_files=("server/.env" "client/.env")
+    local missing_files=()
+    
+    for env_file in "${env_files[@]}"; do
+        if [ ! -f "$env_file" ]; then
+            missing_files+=("$env_file")
         fi
-    else
-        print_success "环境变量文件已配置"
+    done
+    
+    if [ ${#missing_files[@]} -ne 0 ]; then
+        print_error "以下环境变量文件不存在: ${missing_files[*]}"
+        
+        for env_file in "${missing_files[@]}"; do
+            local example_file="${env_file}.example"
+            if [ -f "$example_file" ]; then
+                print_info "发现示例配置文件: $example_file"
+                print_info "请复制并配置: cp $example_file $env_file"
+            fi
+        done
+        return 1
     fi
     
     print_success "环境变量配置检查通过"
@@ -318,8 +328,8 @@ show_access_info() {
     echo ""
     
     echo "🌐 网站访问地址："
-    echo "   后端 API: http://localhost:4040"
-    echo "   前端 UI:  http://localhost:3030"
+    echo "   后端 API: http://47.238.0.109:4040"
+    echo "   前端 UI:  http://47.238.0.109:3030"
     echo "   数据库:   localhost:5432（仅内部可访问）"
     echo ""
     
@@ -331,13 +341,13 @@ show_access_info() {
     echo ""
     
     echo "📝 环境变量配置："
-    echo "   配置文件: $PROJECT_DIR/$ENV_FILE"
+    echo "   配置文件: $PROJECT_DIR/server/.env 和 $PROJECT_DIR/client/.env"
     echo "   编辑配置后，运行: sudo bash deploy/deploy.sh rebuild"
     echo ""
     
     echo "🔒 重要提示："
-    echo "   • 服务仅在服务器内网可访问"
-    echo "   • 使用 Nginx 反向代理提供公网 HTTPS 访问"
+    echo "   • 当前使用 HTTP 模式访问（无 SSL 证书）"
+    echo "   • 购买域名和 SSL 证书后，可配置 Nginx 提供 HTTPS"
     echo "   • 数据库不暴露到互联网"
     echo ""
 }
@@ -380,8 +390,8 @@ Allowance 授权管理系统 - 部署脚本
 
 环境要求:
   - Docker 和 Docker Compose 已安装
-  - 代码已通过 git clone 到 /opt/allowance
-  - .env.prod 文件已创建并配置
+  - 代码已通过 git clone 到 /var/www/allowance
+  - server/.env 和 client/.env 文件已创建并配置
 
 权限说明:
   - 脚本需要在生产服务器上以 root 权限运行
@@ -389,7 +399,7 @@ Allowance 授权管理系统 - 部署脚本
   - 文件操作需要 root 权限
 
 环境变量配置:
-  - 配置文件: .env.prod (基于 .env.prod.example)
+  - 配置文件: server/.env 和 client/.env (基于对应的 .env.example)
   - 修改配置后，运行 'sudo bash deploy/deploy.sh rebuild' 以应用更改
 
 EOF
@@ -408,8 +418,10 @@ do_install() {
     if ! check_env_file; then
         print_error "环境变量配置不完整，请先配置"
         print_info "创建配置文件:"
-        print_info "  cp $PROJECT_DIR/$ENV_FILE.example $PROJECT_DIR/$ENV_FILE"
-        print_info "  nano $PROJECT_DIR/$ENV_FILE"
+        print_info "  cp server/.env.example server/.env"
+        print_info "  cp client/.env.example client/.env"
+        print_info "  vi server/.env  # 配置服务器环境变量"
+        print_info "  vi client/.env  # 配置客户端环境变量"
         print_info "然后编辑这些文件填入真实配置值"
         exit 1
     fi

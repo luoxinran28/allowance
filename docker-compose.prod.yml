@@ -42,6 +42,8 @@ services:
     restart: always
     env_file:
       - ./server/.env
+    ports:
+      - "4040:4040"
     expose:
       - "4040"
     depends_on:
@@ -75,6 +77,8 @@ services:
     restart: always
     env_file:
       - ./client/.env
+    ports:
+      - "3030:3030"
     expose:
       - "3030"
     depends_on:
