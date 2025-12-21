@@ -327,10 +327,17 @@ show_access_info() {
     echo "✅ Allowance 授权管理系统已部署完成"
     echo ""
     
-    echo "🌐 网站访问地址："
-    echo "   后端 API: http://47.238.0.109:4040"
-    echo "   前端 UI:  http://47.238.0.109:3030"
-    echo "   数据库:   localhost:5432（仅内部可访问）"
+    # 检查nginx服务是否运行
+    if docker compose -f "$COMPOSE_FILE" ps nginx --format json 2>/dev/null | grep -q '"State":"running"'; then
+        echo "🌐 网站访问地址（通过 Nginx 反向代理，绑定到 47.238.0.109:80）："
+        echo "   前端 UI: http://47.238.0.109"
+        echo "   后端 API: http://47.238.0.109/api/"
+        echo "   健康检查: http://47.238.0.109/health"
+    else
+        echo "🌐 网站访问地址（直接访问容器）："
+        echo "   后端 API: http://47.238.0.109:4040"
+        echo "   前端 UI:  http://47.238.0.109:3030"
+    fi
     echo ""
     
     echo "🛠️  常用管理命令："
@@ -392,6 +399,7 @@ Allowance 授权管理系统 - 部署脚本
   - Docker 和 Docker Compose 已安装
   - 代码已通过 git clone 到 /var/www/allowance
   - server/.env 和 client/.env 文件已创建并配置
+  - 可选: nginx/ssl/ 目录下有SSL证书（用于HTTPS）
 
 权限说明:
   - 脚本需要在生产服务器上以 root 权限运行
