@@ -13,6 +13,8 @@ services:
     image: postgres:15-alpine
     container_name: allowance-postgres
     restart: always
+    env_file:
+      - ./database/.env
     environment:
       POSTGRES_DB: ${DB_NAME:-allowance}
       POSTGRES_USER: ${DB_USER:-postgres}
