@@ -22,10 +22,6 @@ FROM node:18-alpine as runner
 # Set the working directory
 WORKDIR /app
 
-# Create a non-root user
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
-
 # Copy the built application from the builder stage
 COPY --from=builder /app/public ./public
 
@@ -36,6 +32,9 @@ RUN chown nextjs:nodejs .next
 # Copy the built application
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+# Ensure public directory exists
+RUN mkdir -p public
 
 # Switch to the non-root user
 USER nextjs
