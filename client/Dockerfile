@@ -22,6 +22,10 @@ FROM node:18-alpine as runner
 # Set the working directory
 WORKDIR /app
 
+# Create a non-root user
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
 # Set the correct permission for prerender cache
 RUN mkdir .next
 RUN chown nextjs:nodejs .next
