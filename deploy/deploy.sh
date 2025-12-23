@@ -225,8 +225,8 @@ git_pull() {
     local current_commit=$(git rev-parse --short HEAD)
     print_info "当前提交: $current_commit"
     
-    # 拉取代码
-    if git pull origin "$current_branch"; then
+    # 以普通用户身份运行 git pull，以确保 SSH 密钥可用
+    if su - admin -c "cd '$PROJECT_DIR' && git pull origin '$current_branch'"; then
         local new_commit=$(git rev-parse --short HEAD)
         
         if [ "$current_commit" = "$new_commit" ]; then
