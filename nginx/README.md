@@ -1,136 +1,113 @@
-# Nginx 多IP地址配置说明
+# Nginx 配置说明 - 单项目部署
 
-## 问题背景
+## 概述
 
-你询问如何通过不同的IP地址访问不同的nginx服务：
-- `8.218.151.90:80` → 使用 `/var/www/minerbond/` 下的nginx服务
-- `47.238.0.109:80` → 使用 `/var/www/allowance/` 下的nginx服务
+本项目现在配置为在单台服务器上部署单个项目（Allowance），项目目录位于 `/home/admin/allowance`，nginx监听端口80和443。
 
-## 解决方案
+## 配置说明
 
-### 方案1：单台服务器多IP地址（你当前使用的方案）
-
-这是成本最优化的方式，在同一台服务器上配置多个IP地址：
-
+### 项目结构
 ```
-单台服务器:
-├── IP 1: 8.218.151.90 → minerbond项目
-├── IP 2: 47.238.0.109 → allowance项目
-└── nginx配置: 分别监听不同IP的80端口
+/home/admin/allowance/
+├── server/          # Rust后端
+├── client/          # Next.js前端
+├── nginx/           # nginx配置
+└── docker-compose.prod.yml
 ```
 
-**nginx配置示例**：
+### Nginx配置
+
+nginx作为反向代理，监听80（HTTP）和443（HTTPS，如果配置SSL）端口：
+
+- **前端UI**: `http://your-server:80/` 或 `https://your-server:443/`
+- **后端API**: `http://your-server:80/api/` 或 `https://your-server:443/api/`
+
+#### nginx.conf 配置示例
 ```nginx
-# minerbond服务 (8.218.151.90)
 server {
-    listen 8.218.151.90:80;
-    root /var/www/minerbond;
-    # ... minerbond配置
+    listen 80;
+    server_name _;
+
+    # API代理到后端
+    location /api/ {
+        proxy_pass http://localhost:4040;
+        # ... 其他代理设置
+    }
+
+    # 前端代理到Next.js
+    location / {
+        proxy_pass http://localhost:3030;
+        # ... 其他代理设置
+    }
 }
 
-# allowance服务 (47.238.0.109)
+# HTTPS服务器（如果有SSL证书）
 server {
-    listen 47.238.0.109:80;
-    root /var/www/allowance;
-    # ... allowance配置
+    listen 443 ssl;
+    server_name _;
+    ssl_certificate /path/to/cert.pem;
+    ssl_certificate_key /path/to/key.pem;
+
+    # 相同代理配置
+    location /api/ {
+        proxy_pass http://localhost:4040;
+    }
+
+    location / {
+        proxy_pass http://localhost:3030;
+    }
 }
 ```
 
-### 方案2：不同服务器（推荐用于高可用性）
+## 部署步骤
 
-最简单和最安全的方式是使用两台不同的服务器。
-
-### 方案3：反向代理（最灵活）
-
-使用一个前端nginx根据域名或路径路由到不同的后端服务。
-
-## 当前Allowance项目的配置
-
-### Docker方式（当前配置）
-
-当前配置直接暴露容器端口：
-- 后端API: `47.238.0.109:4040`
-- 前端UI: `47.238.0.109:3030`
-
-### Nginx反向代理方式（单IP绑定）
-
-启用nginx服务后，通过 `47.238.0.109:80` 访问：
-- 前端UI: `http://47.238.0.109/`
-- 后端API: `http://47.238.0.109/api/`
-
-## 为Minerbond项目配置类似设置
-
-我已经创建了一个示例配置文件 `minerbond-example.conf`，你可以参考它来配置minerbond项目的nginx：
-
-1. **复制示例配置**：
+1. **安装nginx**（如果使用主机nginx）：
    ```bash
-   cp nginx/minerbond-example.conf /path/to/minerbond/nginx.conf
+   sudo apt update && sudo apt install nginx  # Ubuntu/Debian
    ```
 
-2. **修改配置**：
-   - 将 `8.218.151.90` 改为你的minerbond IP
-   - 调整upstream服务器端口以匹配你的minerbond容器
-   - 修改server_name和路径
-
-3. **启动minerbond的nginx**：
+2. **复制配置**：
    ```bash
-   docker run -d --name minerbond-nginx \
-     -p 8.218.151.90:80:80 \
-     -v /path/to/minerbond/nginx.conf:/etc/nginx/nginx.conf:ro \
-     nginx:alpine
+   sudo cp /home/admin/allowance/nginx/nginx.conf /etc/nginx/nginx.conf
    ```
 
-## 启用Nginx反向代理
-
-要启用nginx反向代理，请：
-
-1. **确保服务器有多个IP地址绑定**
-2. **编辑 `docker-compose.prod.yml`**，取消注释nginx服务部分
-3. **重新部署**：
+3. **测试并重载**：
    ```bash
-   sudo bash deploy/deploy.sh rebuild
+   sudo nginx -t
+   sudo systemctl reload nginx
    ```
 
-## 服务器多IP配置检查
+4. **启动应用服务**：
+   - 后端：`cd /home/admin/allowance/server && ./target/release/allowance-server`
+   - 前端：`cd /home/admin/allowance/client && npm start`
 
-在Linux服务器上检查IP配置：
+## SSL证书配置
 
+要启用HTTPS：
+
+1. 获取SSL证书（Let's Encrypt或其他）：
+   ```bash
+   sudo apt install certbot python3-certbot-nginx
+   sudo certbot --nginx -d your-domain.com
+   ```
+
+2. nginx会自动配置443端口。
+
+## 防火墙设置
+
+确保端口80和443开放：
 ```bash
-# 查看所有IP地址
-ip addr show
-
-# 或使用
-ifconfig -a
-
-# 查看路由表
-ip route show
+sudo ufw allow 80
+sudo ufw allow 443
 ```
 
-## SSL证书配置（多IP场景）
+## 监控和日志
 
-对于多IP配置，每个IP可以有独立的SSL证书：
+- nginx日志：`/var/log/nginx/`
+- 应用日志：检查各自服务的日志输出
 
-1. 为每个IP创建独立的证书目录：
-   ```
-   nginx/ssl/allowance/  # 47.238.0.109的证书
-   nginx/ssl/minerbond/  # 8.218.151.90的证书
-   ```
+## 故障排除
 
-2. nginx配置中指定对应的证书路径
-
-## Docker网络注意事项
-
-在单服务器多IP配置中，需要确保：
-- Docker容器可以绑定到特定的IP地址
-- 防火墙规则允许相应IP的流量
-- SELinux/AppArmor策略允许IP绑定（如果启用）
-
-## 总结
-
-你的单台服务器多IP配置是非常好的成本优化方案。Allowance项目已经配置为绑定到 `47.238.0.109:80`，而minerbond项目可以类似配置绑定到 `8.218.151.90:80`。
-
-这种配置的优势：
-- 节省服务器成本
-- 简化管理（单台服务器）
-- 每个服务独立配置
-- 便于扩展
+- 检查端口占用：`sudo netstat -tlnp | grep :80`
+- 测试配置：`sudo nginx -t`
+- 查看错误：`sudo systemctl status nginx`

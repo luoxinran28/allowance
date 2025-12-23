@@ -23,7 +23,7 @@ NC='\033[0m' # No Color
 # ========================================
 # 全局变量
 # ========================================
-PROJECT_DIR="/var/www/allowance"
+PROJECT_DIR="/home/admin/allowance"
 COMPOSE_FILE="docker-compose.prod.yml"
 ENV_FILE=".env.prod"
 
@@ -397,7 +397,7 @@ Allowance 授权管理系统 - 部署脚本
 
 环境要求:
   - Docker 和 Docker Compose 已安装
-  - 代码已通过 git clone 到 /var/www/allowance
+  - 代码已通过 git clone 到 /home/admin/allowance
   - server/.env 和 client/.env 文件已创建并配置
   - 可选: nginx/ssl/ 目录下有SSL证书（用于HTTPS）
 
