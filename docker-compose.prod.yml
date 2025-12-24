@@ -119,6 +119,23 @@ services:
           cpus: "0.25"
           memory: 128M
 
+  # Nginx Reverse Proxy (在服务器上映射到80和443)
+  nginx:
+    image: nginx:alpine
+    container_name: allowance-nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      # - ./nginx/ssl:/etc/nginx/ssl:ro  # Uncomment when SSL certificates are available
+    depends_on:
+      - server
+      - client
+    networks:
+      - allowance-network
+
 # ========================================
 # Network Configuration (Internal-only)
 # ========================================
