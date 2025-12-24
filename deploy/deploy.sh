@@ -329,14 +329,14 @@ show_access_info() {
     
     # 检查nginx服务是否运行
     if docker compose -f "$COMPOSE_FILE" ps nginx --format json 2>/dev/null | grep -q '"State":"running"'; then
-        echo "🌐 网站访问地址（通过 Nginx 反向代理，绑定到 47.238.0.109:80）："
-        echo "   前端 UI: http://47.238.0.109"
-        echo "   后端 API: http://47.238.0.109/api/"
-        echo "   健康检查: http://47.238.0.109/health"
+        echo "🌐 网站访问地址（通过 Nginx 反向代理，绑定到 47.79.78.229:80）："
+        echo "   前端 UI: http://47.79.78.229"
+        echo "   后端 API: http://47.79.78.229/api/"
+        echo "   健康检查: http://47.79.78.229/health"
     else
         echo "🌐 网站访问地址（直接访问容器）："
-        echo "   后端 API: http://47.238.0.109:4040"
-        echo "   前端 UI:  http://47.238.0.109:3030"
+        echo "   后端 API: http://47.79.78.229:4040"
+        echo "   前端 UI:  http://47.79.78.229:3030"
     fi
     echo ""
     
