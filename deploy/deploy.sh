@@ -371,6 +371,7 @@ Allowance 授权管理系统 - 部署脚本
   update        更新部署（拉取代码 + 重新构建）
   restart       重启服务（不拉取代码）
   rebuild       强制重新构建镜像（使用 --no-cache）
+  bootstrap     创建初始管理员用户（首次部署后运行）
   status        查看服务状态
   logs          查看服务日志
   help          显示此帮助信息
@@ -378,6 +379,9 @@ Allowance 授权管理系统 - 部署脚本
 示例:
   # 首次部署
   sudo bash deploy/deploy.sh install
+
+  # 创建管理员用户（部署后首次运行）
+  sudo bash deploy/deploy.sh bootstrap
 
   # 更新代码并重新部署
   sudo bash deploy/deploy.sh update
@@ -525,6 +529,35 @@ do_logs() {
 }
 
 # ========================================
+# Bootstrap Admin User (Production)
+# ========================================
+do_bootstrap() {
+    print_header "Bootstrap Admin User"
+    
+    check_project_exists
+    
+    print_step "检查数据库是否就绪..."
+    if ! docker compose -f "$COMPOSE_FILE" exec -T postgres pg_isready -U postgres > /dev/null 2>&1; then
+        print_error "数据库未就绪，请先运行 install 或 restart"
+        exit 1
+    fi
+    
+    print_step "执行 bootstrap_admin.sql 创建管理员用户..."
+    docker compose -f "$COMPOSE_FILE" exec -T postgres psql -U postgres -d allowance -f /dev/stdin < "$PROJECT_DIR/database/bootstrap_admin.sql"
+    
+    print_success "管理员用户创建成功！"
+    echo ""
+    echo "========================================"
+    echo -e "${GREEN}登录信息${NC}"
+    echo "========================================"
+    echo "邮箱: admin@allowance.test"
+    echo "密码: Pass88899"
+    echo ""
+    echo -e "${YELLOW}重要：请登录后立即修改密码！${NC}"
+    echo "========================================"
+}
+
+# ========================================
 # 主程序入口
 # ========================================
 main() {
@@ -542,6 +575,9 @@ main() {
             ;;
         rebuild)
             do_rebuild
+            ;;
+        bootstrap)
+            do_bootstrap
             ;;
         status)
             do_status
