@@ -534,7 +534,10 @@ do_logs() {
 do_bootstrap() {
     print_header "Bootstrap Admin User"
     
-    check_project_exists
+    check_root
+    check_project_dir
+    
+    cd "$PROJECT_DIR"
     
     print_step "检查数据库是否就绪..."
     if ! docker compose -f "$COMPOSE_FILE" exec -T postgres pg_isready -U postgres > /dev/null 2>&1; then
