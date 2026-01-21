@@ -1,28 +1,31 @@
+# UPID、Nonce、License 原始需求文档
 
-**⚠️ 重要说明（2025年11月28日更新）**
-
-本文档部分内容已被新的需求方案替代，请参考 `20251128-milestone-detailed-requirement.prompt.md` 获取最新的完整需求。
-
-**已更新的关键变更：**
-1. **License架构变更**：从"单个授权码"模式改为"三级配额池"模式
-   - 旧：License直接绑定org_id和用户
-   - 新：org_product_licenses（组织池）→ team_product_quotas（团队配额）→ team_member_license_assignments（个人JWT）
-
-2. **审批流程取消**：团队领导直接分配产品，不需要员工申请-审批流程
-
-3. **团队配额机制**：新增team_product_quotas表，管理员为团队分配配额，受严格约束验证
-
-**仍然有效的内容：**
-- ✅ UPID格式定义（UPID-{slug}-{tier}）
-- ✅ Nonce防重放机制（timestamp + nonce + sign）
-- ✅ 用户注册时UPID自动获取（meta标签）
-- ✅ 免费用户注册流程
-- ✅ JWT token验证机制
+**文档状态**: 📚 历史文档（仅供参考）  
+**创建日期**: 2025-11-12  
+**最后更新**: 2026-01-21
 
 ---
 
-2025年11月12日需求：
-需要一个产品的upid，用于表示某个产品的唯一标识符;
+## ⚠️ 重要说明
+
+**本文档为早期需求记录，大部分内容已被后续文档替代或实现。**
+
+### 已实现并被替代的内容：
+- ✅ **四层权限系统** → 参见 `20251205-refactor-four-tier.prompt.md`（已完成）
+- ✅ **前端路由重构** → 参见 `20251218-refactor-frontend-route.prompt.md`（已完成）
+- ✅ **Sidebar 权限菜单** → 参见 `20251210-refactor-four-tier-sidebar-and-pages.prompt.md`（已完成）
+- ✅ **License 三级配额池** → 参见 `20251128-milestone-detailed-requirement.prompt.md`
+
+### 仍然有效的核心概念：
+- ✅ UPID 格式定义（UPID-{slug}-{tier}）
+- ✅ Nonce 防重放机制（timestamp + nonce + sign）
+- ✅ 用户注册时 UPID 自动获取（meta标签）
+- ✅ 免费用户注册流程
+- ✅ JWT token 验证机制
+
+---
+
+## 📋 原始需求（2025年11月12日）
 
 用户注册时：
  - 用户在登陆页面登陆发现账号没有被注册，则进行账号密码的注册；

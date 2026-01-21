@@ -1,4 +1,34 @@
-# 用户与权限管理功能需求说明
+# 用户与权限管理功能需求说明（四层权限系统）
+
+**文档状态**: ✅ 需求已实施  
+**创建日期**: 2025-12-05  
+**最后更新**: 2026-01-21
+
+---
+
+## 📋 实施状态
+
+本文档中定义的四层权限系统（free/standard/premium/allstar）已完全实施。
+
+**实施详情请参考**：
+- `20251205-refactor-four-tier.prompt.md` - 技术实施方案（已完成）
+- `20251210-refactor-four-tier-sidebar-and-pages.prompt.md` - 前端重构（已完成）
+- `20251218-refactor-frontend-route.prompt.md` - 路由结构（已完成）
+
+---
+
+## 四层权限模型
+
+| Tier | 角色名称 | 权限范围 |
+|------|---------|---------|
+| free | 免费用户 | 个人 Profile、Billing |
+| standard | 普通员工/团队领导 | + Team Management |
+| premium | 组织老板 | + Organization & License |
+| allstar | 系统管理员 | 全部权限 |
+
+---
+
+## 原始需求文档
 
 **20251205新增**
  - 组织老板(Boss)角色org_boss，拥有组织级的最高权限，可管理组织内所有团队和成员，分担系统管理员的部分职责。

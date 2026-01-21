@@ -1,10 +1,30 @@
 # 前端页面和 Sidebar 重构计划
 
-**文档版本**: v1.0  
+**文档版本**: v1.1  
 **创建日期**: 2025-12-10  
-**状态**: 待实施  
+**状态**: ✅ 已完成  
+**最后更新**: 2026-01-21  
 **关键需求来源**: `20251205-four-tier-needs.prompt.md` 行 101-150  
-**前置条件**: 完成 `20251205-refactor-four-tier.prompt.md` 的 STEP 1-3  
+**前置条件**: 完成 `20251205-refactor-four-tier.prompt.md` 的 STEP 1-3
+
+---
+
+## 📋 实施状态摘要
+
+| 阶段 | 内容 | 状态 |
+|------|------|------|
+| PHASE 1 | Sidebar 组件重构 | ✅ 已完成 |
+| PHASE 2 | 新增页面创建 | ✅ 已完成 |
+| PHASE 3 | 旧页面与组件删除 | ✅ 已完成 |
+| PHASE 4 | 权限检查与路由保护 | ✅ 已完成 |
+| PHASE 5 | 测试与验证 | ✅ 已完成 |
+
+**已实现的关键文件**：
+- `client/components/layout/Sidebar.tsx` - 权限级联菜单
+- `client/lib/hooks/usePermission.ts` - 完整的权限检查 Hook
+- `client/app/user/profile/page.tsx` - Profile 页面
+- `client/app/admin/dashboard/page.tsx` - Admin Dashboard
+- `client/lib/middleware/routeProtection.tsx` - 路由保护中间件  
 
 ---
 

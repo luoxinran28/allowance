@@ -1,12 +1,43 @@
+# Allowance 系统 - 基础需求文档
+
+**文档状态**: 📚 历史文档（项目初始需求）  
+**创建日期**: 2025-11-08  
+**最后更新**: 2026-01-21
+
 ---
 
-agent: Plan
+## ⚠️ 重要说明
+
+**本文档为项目初始需求文档，后续需求演进请参考以下文档**：
+
+| 文档 | 内容 | 状态 |
+|------|------|------|
+| `20251205-four-tier-needs.prompt.md` | 四层权限需求 | ✅ 已实施 |
+| `20251205-refactor-four-tier.prompt.md` | 四层权限技术方案 | ✅ 已完成 |
+| `20251128-milestone-detailed-requirement.prompt.md` | 完整需求规格 | ✅ 核心已实施 |
+| `copilot-instructions.md` | AI 编码指南 | ✅ 当前有效 |
 
 ---
-我需要建立一个独立的用户注册授权管理系统，希望能够提供用户的免费注册登陆系统，并且能够让用户付费成为不同等级的用户，赋予不同的业务权限，同样付费的用户，也可能会有不同的RBAC角色管理，拥有不同的权限设置等。请分析以下我的需求，先不要生成代码，首先看看有没有需要补充的地方，然后告诉我方案。
 
-1. 业务需求
-2025年11月8日需求：
+## 项目当前状态（2026年1月）
+
+**已实现功能**：
+- ✅ 四层权限系统：free/standard/premium/allstar
+- ✅ 前端路由重构：/user, /admin, /org-license, /team-management
+- ✅ Sidebar 权限菜单：基于 tier 的菜单可见性
+- ✅ Auth 表单验证：OWASP Top 10 合规
+- ✅ 数据库四层迁移：PostgreSQL + SQLx
+- ✅ JWT 认证 + Nonce 防重放
+
+**技术栈**：
+- 前端：Next.js 14 + TypeScript + Tailwind CSS
+- 后端：Rust + Axum + SQLx + JWT + Redis
+- 数据库：PostgreSQL
+- 部署：Docker
+
+---
+
+## 原始需求（2025年11月8日）
 用户User管理，由RBAC系统管理产品使用权限:
 	用户登陆及授权，独立uid;
 	支持发送邮件链接激活或者验证码，暂时使用我的个人邮箱发送: luoxinran28@gmail.com
