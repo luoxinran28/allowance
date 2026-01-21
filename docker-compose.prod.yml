@@ -101,8 +101,6 @@ services:
     restart: always
     env_file:
       - ./database/.env
-    environment:
-      - SCRIPT_NAME=/admin
     ports:
       - "8080:80"
     volumes:
