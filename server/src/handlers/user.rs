@@ -26,6 +26,9 @@ fn extract_user_from_header(state: &AuthHandler, headers: &HeaderMap) -> AppResu
 }
 
 /// Get user profile
+/// 
+/// Returns the current user's profile with effective_tier based on roles.
+/// For product-specific tier, use login with `upid` parameter.
 pub async fn get_profile(
     State(state): State<Arc<AuthHandler>>,
     headers: HeaderMap,
@@ -33,7 +36,26 @@ pub async fn get_profile(
     let user_id = extract_user_from_header(&state, &headers)?;
     
     let user = AuthService::get_user_by_id(&state.pool, user_id).await?;
-    Ok(Json(UserResponse::from(user)))
+    
+    // Fetch user roles for tier determination
+    let roles = crate::services::RbacService::get_user_roles(&state.pool, user_id)
+        .await
+        .ok()
+        .map(|role_list| role_list.iter().map(|r| r.code.clone()).collect::<Vec<String>>());
+    
+    // Determine effective tier based on roles (no product context)
+    let effective_tier = AuthService::determine_user_tier(
+        &state.pool,
+        &user,
+        None,  // No product context - use role-based tier
+        roles.as_ref(),
+    ).await;
+    
+    let mut response = UserResponse::from(user);
+    response.roles = roles;
+    response.effective_tier = Some(effective_tier);
+    
+    Ok(Json(response))
 }
 
 #[derive(serde::Deserialize)]

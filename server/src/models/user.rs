@@ -106,6 +106,11 @@ pub struct UserResponse {
     pub uid: String,
     pub email: String,
     pub tier: UserTier,
+    /// Effective tier for the current product context (may differ from stored tier)
+    /// For external products: based on product-specific license
+    /// For Allowance: based on user roles
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub effective_tier: Option<String>,
     pub status: UserStatus,
     pub created_at: NaiveDateTime,
     pub roles: Option<Vec<String>>,
@@ -118,6 +123,7 @@ impl From<User> for UserResponse {
             uid: user.uid,
             email: user.email,
             tier: user.tier,
+            effective_tier: None,  // Will be set by handler if needed
             status: user.status,
             created_at: user.created_at,
             roles: None,
@@ -136,6 +142,9 @@ pub struct RegisterRequest {
 pub struct LoginRequest {
     pub email: String,
     pub password: String,
+    /// Product UPID for product-specific tier lookup (e.g., "UKWONGFU0001")
+    /// Used by external products like KwongFu to get product-specific tier
+    #[serde(alias = "source_upid")]
     pub upid: Option<String>,
 }
 

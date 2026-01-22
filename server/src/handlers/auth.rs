@@ -17,6 +17,7 @@ pub struct AuthHandler {
 /// Register new user
 /// 
 /// Creates a new user account with email and password. An activation email will be sent.
+/// Returns user info with effective_tier set to "free" for new registrations.
 pub async fn register(
     State(state): State<Arc<AuthHandler>>,
     Json(req): Json<RegisterRequest>,
@@ -33,13 +34,18 @@ pub async fn register(
     // TODO: Send activation email
     tracing::info!("User {} registered, activation token: {}", user.email, token);
 
-    Ok((StatusCode::CREATED, Json(user)))
+    // New users always start with "free" effective tier
+    let mut response = user;
+    response.effective_tier = Some("free".to_string());
+
+    Ok((StatusCode::CREATED, Json(response)))
 }
 
 /// User login
 /// 
 /// Authenticates user with email and password. Returns JWT token and refresh token.
-/// If UPID is provided, validates that the user has access to the product.
+/// If UPID is provided, validates that the user has access to the product and returns
+/// the product-specific tier in `effective_tier` field.
 pub async fn login(
     State(state): State<Arc<AuthHandler>>,
     Json(req): Json<LoginRequest>,
@@ -54,13 +60,22 @@ pub async fn login(
     let roles = crate::services::RbacService::get_user_roles(&state.pool, user.id)
         .await
         .ok()
-        .map(|role_list| role_list.iter().map(|r| r.code.clone()).collect());
+        .map(|role_list| role_list.iter().map(|r| r.code.clone()).collect::<Vec<String>>());
+
+    // Determine effective tier based on product context or roles
+    let effective_tier = AuthService::determine_user_tier(
+        &state.pool,
+        &user,
+        req.upid.as_deref(),
+        roles.as_ref(),
+    ).await;
 
     let token = state.jwt.generate_token(user.id, user.email.clone())?;
     let refresh_token = state.jwt.generate_refresh_token(user.id)?;
 
     let mut user_response = UserResponse::from(user);
     user_response.roles = roles;
+    user_response.effective_tier = Some(effective_tier);
 
     Ok(Json(AuthResponse {
         user: user_response,

@@ -311,4 +311,97 @@ impl AuthService {
             .await?
             .ok_or(AppError::UserNotFound)
     }
+
+    /// Determine user tier for a specific product (or global tier if no product specified)
+    /// 
+    /// When `source_upid` is provided (external product like KwongFu):
+    /// - Returns "premium" or "allstar" if user's global tier is premium/allstar
+    /// - Returns "standard" if user has team assignment for the product
+    /// - Returns "free" if user only has free_user_license for the product
+    /// 
+    /// When `source_upid` is None (Allowance's own frontend):
+    /// - Returns tier mapped from user's roles (admin->allstar, org_boss->premium, etc.)
+    pub async fn determine_user_tier(
+        pool: &PgPool,
+        user: &User,
+        source_upid: Option<&str>,
+        roles: Option<&Vec<String>>,
+    ) -> String {
+        match source_upid {
+            Some(upid) => Self::get_tier_for_product(pool, user, upid).await,
+            None => Self::get_tier_from_roles(user, roles),
+        }
+    }
+
+    /// Get tier for a specific product based on user's license
+    async fn get_tier_for_product(pool: &PgPool, user: &User, upid: &str) -> String {
+        // Premium and Allstar users have full access to all products
+        if user.tier == crate::models::UserTier::Premium || user.tier == crate::models::UserTier::Allstar {
+            return user.tier.to_string();
+        }
+
+        // Check if user has a team assignment for this product (standard tier)
+        let has_team_license = sqlx::query_scalar::<_, i64>(
+            r#"
+            SELECT COUNT(*) FROM team_member_license_assignments tmla
+            JOIN products p ON tmla.product_id = p.id
+            WHERE tmla.user_id = $1 AND p.upid = $2 AND tmla.status = 'active'
+            "#
+        )
+        .bind(user.id)
+        .bind(upid)
+        .fetch_one(pool)
+        .await
+        .unwrap_or(0);
+
+        if has_team_license > 0 {
+            return "standard".to_string();
+        }
+
+        // Check if user has a free license for this product
+        let has_free_license = sqlx::query_scalar::<_, i64>(
+            r#"
+            SELECT COUNT(*) FROM free_user_licenses ful
+            JOIN products p ON ful.product_id = p.id
+            WHERE ful.user_id = $1 AND p.upid = $2
+            "#
+        )
+        .bind(user.id)
+        .bind(upid)
+        .fetch_one(pool)
+        .await
+        .unwrap_or(0);
+
+        if has_free_license > 0 {
+            return "free".to_string();
+        }
+
+        // No license found - default to free
+        "free".to_string()
+    }
+
+    /// Get tier from user's roles (for Allowance's own frontend)
+    fn get_tier_from_roles(user: &User, roles: Option<&Vec<String>>) -> String {
+        // If user has explicit tier set, use it for global tier mapping
+        // But also check roles for more accurate tier
+        if let Some(role_list) = roles {
+            // Role hierarchy: admin > org_boss > team_leader > standard_employee > free_user
+            if role_list.contains(&"admin".to_string()) {
+                return "allstar".to_string();
+            }
+            if role_list.contains(&"org_boss".to_string()) {
+                return "premium".to_string();
+            }
+            if role_list.contains(&"team_leader".to_string()) 
+                || role_list.contains(&"standard_employee".to_string()) {
+                return "standard".to_string();
+            }
+            if role_list.contains(&"free_user".to_string()) {
+                return "free".to_string();
+            }
+        }
+
+        // Fall back to user's stored tier
+        user.tier.to_string()
+    }
 }

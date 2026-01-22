@@ -65,7 +65,8 @@ ON CONFLICT (team_id) DO NOTHING;
 INSERT INTO products (upid, product_slug, name, description) VALUES
     ('UALLOWANCE0001', 'allowance', 'Allowance System', 'Core allowance authorization management system'),
     ('UPROD000001', 'analytics-pro', 'Analytics Pro', 'Advanced analytics and reporting platform'),
-    ('UPROD000002', 'crm-suite', 'CRM Suite', 'Customer relationship management solution')
+    ('UPROD000002', 'crm-suite', 'CRM Suite', 'Customer relationship management solution'),
+    ('UKWONGFU0001', 'kwongfu', 'KwongFu Trading System', 'Automated Crypto Trading Platform for Binance.US Spot')
 ON CONFLICT (upid) DO NOTHING;
 
 -- ============================================================
@@ -92,6 +93,13 @@ INSERT INTO product_versions (product_id, version_name, description, features, t
     ((SELECT id FROM products WHERE upid = 'UPROD000002'), 'starter', 'Starter', '{"contacts": 100}'::jsonb, 'free'::user_tier, 20, 2000),
     ((SELECT id FROM products WHERE upid = 'UPROD000002'), 'business', 'Business', '{"contacts": 10000}'::jsonb, 'standard'::user_tier, 1000, 100000),
     ((SELECT id FROM products WHERE upid = 'UPROD000002'), 'enterprise', 'Enterprise', '{"contacts": "unlimited"}'::jsonb, 'premium'::user_tier, NULL, NULL)
+ON CONFLICT (product_id, version_name) DO NOTHING;
+
+-- KwongFu Trading System versions
+INSERT INTO product_versions (product_id, version_name, description, features, tier_required, daily_limit, monthly_limit) VALUES
+    ((SELECT id FROM products WHERE upid = 'UKWONGFU0001'), 'free', 'Free Tier - Dashboard Only', '{"dashboard": true, "trading": false, "validation_lab": false}'::jsonb, 'free'::user_tier, 10, 100),
+    ((SELECT id FROM products WHERE upid = 'UKWONGFU0001'), 'standard', 'Standard Tier - Full Trading', '{"dashboard": true, "trading": true, "validation_lab": false}'::jsonb, 'standard'::user_tier, 1000, 100000),
+    ((SELECT id FROM products WHERE upid = 'UKWONGFU0001'), 'premium', 'Premium Tier - All Features', '{"dashboard": true, "trading": true, "validation_lab": true}'::jsonb, 'premium'::user_tier, NULL, NULL)
 ON CONFLICT (product_id, version_name) DO NOTHING;
 
 -- ============================================================
