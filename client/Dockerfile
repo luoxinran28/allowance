@@ -1,22 +1,8 @@
-# =============================================================================
-# Allowance Client - Production Dockerfile (Multi-stage)
-# =============================================================================
-# Build args (passed via docker-compose.prod.yml):
-# - NEXT_PUBLIC_API_URL: Allowance API URL
-# - NEXT_PUBLIC_FRONTEND_URL: Allowance frontend URL
-# =============================================================================
-
+# Use the official Node.js image as the base image
 FROM node:18-alpine as builder
 
+# Set the working directory
 WORKDIR /app
-
-# Build arguments for Next.js (embedded at build time)
-ARG NEXT_PUBLIC_API_URL=http://localhost:4040
-ARG NEXT_PUBLIC_FRONTEND_URL=http://localhost:3030
-
-# Set as environment variables for the build
-ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
-ENV NEXT_PUBLIC_FRONTEND_URL=$NEXT_PUBLIC_FRONTEND_URL
 
 # Copy package.json and package-lock.json
 COPY package*.json ./
@@ -33,6 +19,7 @@ RUN npm run build
 # Use a smaller base image for the final stage
 FROM node:18-alpine as runner
 
+# Set the working directory
 WORKDIR /app
 
 # Create a non-root user
