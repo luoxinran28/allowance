@@ -35,23 +35,14 @@ function ProductsQuotasTab() {
         setLoading(true);
         setError('');
         
-        const [orgLicensesRes, productsRes] = await Promise.all([
-          apiClient.getOrgLicenses(1, 100),
-          apiClient.getProducts()
-        ]);
-
-        const productsMap = new Map();
-        if (productsRes.data && Array.isArray(productsRes.data)) {
-          productsRes.data.forEach((p: any) => productsMap.set(p.id, p.name));
-        }
-
-        const licensesList = Array.isArray(orgLicensesRes.data) 
-          ? orgLicensesRes.data 
-          : (orgLicensesRes.data?.data || []);
+        // Use the new endpoint for org members to get their org's licenses
+        const response = await apiClient.getMyOrgLicenses();
+        
+        const licensesList = response.data?.licenses || [];
 
         const realLicenses: OrgLicense[] = licensesList.map((l: any) => ({
           id: l.id,
-          productName: l.product_name || productsMap.get(l.product_id) || `Product #${l.product_id}`,
+          productName: l.product_name || `Product #${l.product_id}`,
           totalQuota: l.total_count,
           usedQuota: l.total_count - l.available_count,
           remainingQuota: l.available_count,

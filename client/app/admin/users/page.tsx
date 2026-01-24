@@ -135,7 +135,7 @@ export default function AdminUsersPage() {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-8">
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold mb-2 text-gray-900">User Management</h1>

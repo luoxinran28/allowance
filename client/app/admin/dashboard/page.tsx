@@ -72,7 +72,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="p-8">
+    <div className="space-y-6 p-8">
       {/* Breadcrumb Navigation */}
       <div className="mb-8">
         <Breadcrumb
@@ -126,7 +126,7 @@ export default function AdminDashboard() {
               </div>
               <div className="text-3xl">👥</div>
             </div>
-            <a href="/dashboard/admin/users" className="text-sm text-blue-600 hover:text-blue-700 mt-4 block">
+            <a href="/admin/users" className="text-sm text-blue-600 hover:text-blue-700 mt-4 block">
               View Teams →
             </a>
           </div>
@@ -140,7 +140,7 @@ export default function AdminDashboard() {
               </div>
               <div className="text-3xl">👤</div>
             </div>
-            <a href="/dashboard/admin/users" className="text-sm text-blue-600 hover:text-blue-700 mt-4 block">
+            <a href="/admin/users" className="text-sm text-blue-600 hover:text-blue-700 mt-4 block">
               View Users →
             </a>
           </div>
@@ -208,7 +208,7 @@ export default function AdminDashboard() {
               <p className="text-sm text-muted-foreground mt-1">Export license data</p>
             </a>
             <a 
-              href="/dashboard/admin/users" 
+              href="/admin/users" 
               className="border border-border rounded-lg p-4 hover:bg-accent transition-colors"
             >
               <p className="font-medium">Manage Users</p>

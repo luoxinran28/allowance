@@ -240,6 +240,10 @@ class ApiClient {
     return this.client.get('/org/my', { params: { page, page_size: pageSize } });
   }
 
+  async getMyOrgLicenses() {
+    return this.client.get('/org/my/licenses');
+  }
+
   async getOrganization(orgId: string) {
     return this.client.get(`/org/${orgId}`);
   }

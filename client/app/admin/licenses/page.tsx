@@ -973,7 +973,7 @@ export default function AdminLicensesPage() {
   }
 
   return (
-    <div className="p-8">
+    <div className="space-y-6 p-8">
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">License Management</h1>

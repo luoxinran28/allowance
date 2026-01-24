@@ -223,3 +223,73 @@ pub async fn delete_organization(
         "message": "Organization deleted successfully"
     })))
 }
+
+/// Get licenses for the user's organizations (Premium+ users)
+pub async fn get_my_org_licenses(
+    State(state): State<Arc<AuthHandler>>,
+    headers: HeaderMap,
+) -> AppResult<Json<serde_json::Value>> {
+    let user_id = extract_user_from_header(&state, &headers)?;
+    
+    // Check permission: only Premium and Allstar can view org licenses
+    let user = UserService::get_user(&state.pool, user_id).await?;
+    if !crate::services::PermissionService::can_access_org_license_section(&user.tier) {
+        return Err(AppError::PermissionDenied);
+    }
+
+    // Get all organizations the user belongs to
+    let orgs = OrganizationService::get_user_organizations(&state.pool, user_id).await?;
+    
+    let mut all_licenses: Vec<serde_json::Value> = Vec::new();
+    
+    for org in &orgs {
+        let licenses = sqlx::query(
+            r#"
+            SELECT 
+                opl.id,
+                opl.organization_id,
+                opl.product_id,
+                opl.total_count,
+                opl.available_count,
+                opl.assigned_count,
+                opl.expires_at,
+                p.upid,
+                p.name as product_name,
+                p.description as product_description
+            FROM org_product_licenses opl
+            INNER JOIN products p ON opl.product_id = p.id
+            WHERE opl.organization_id = $1 AND opl.expires_at > NOW()
+            ORDER BY opl.created_at DESC
+            "#
+        )
+            .bind(org.id)
+            .fetch_all(&*state.pool)
+            .await?;
+        
+        for row in licenses {
+            all_licenses.push(serde_json::json!({
+                "id": row.get::<i64, _>("id"),
+                "organization_id": row.get::<i64, _>("organization_id"),
+                "organization_name": org.name,
+                "product_id": row.get::<i64, _>("product_id"),
+                "upid": row.get::<String, _>("upid"),
+                "product_name": row.get::<String, _>("product_name"),
+                "product_description": row.get::<Option<String>, _>("product_description"),
+                "total_count": row.get::<i32, _>("total_count"),
+                "available_count": row.get::<i32, _>("available_count"),
+                "assigned_count": row.get::<i32, _>("assigned_count"),
+                "expires_at": row.get::<chrono::NaiveDateTime, _>("expires_at").to_string(),
+            }));
+        }
+    }
+    
+    Ok(Json(serde_json::json!({
+        "licenses": all_licenses,
+        "total": all_licenses.len(),
+        "organizations": orgs.iter().map(|o| serde_json::json!({
+            "id": o.id,
+            "org_id": o.org_id,
+            "name": o.name
+        })).collect::<Vec<_>>()
+    })))
+}

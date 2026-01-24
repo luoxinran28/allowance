@@ -462,7 +462,7 @@ test.describe('Issue Fixes - Team Details, Team Creation, Batch Generation', () 
     await page.click('button:has-text("Sign in")');
     
     // Navigate to admin users
-    await page.goto(`${baseUrl}/dashboard/admin/users`, { waitUntil: 'networkidle', timeout: 30000 });
+    await page.goto(`${baseUrl}/admin/users`, { waitUntil: 'networkidle', timeout: 30000 });
     
     // Should not see infinite loading
     await page.waitForTimeout(3000);

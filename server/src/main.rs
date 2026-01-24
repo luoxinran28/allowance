@@ -139,6 +139,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .route("/org", get(handlers::organization::list_organizations))
         .route("/org/search", get(handlers::organization::search_organizations))
         .route("/org/my", get(handlers::organization::get_user_organizations))
+        .route("/org/my/licenses", get(handlers::organization::get_my_org_licenses))
         .route("/org/:org_id", get(handlers::organization::get_organization).put(handlers::organization::update_organization).delete(handlers::organization::delete_organization))
         .route("/licenses/batch/generate", post(handlers::batch_licenses::generate_batch_licenses))
         .route("/licenses/batch/generate-org", post(handlers::batch_licenses::generate_batch_org_licenses))
