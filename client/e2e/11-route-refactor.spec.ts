@@ -35,10 +35,10 @@ test.describe('Frontend Route Refactor - New URL Structure', () => {
 
   // ============ Organization & License (/org-license) - premium+ ============
 
-  test('premium user should access /org-license/products', async ({ page }) => {
+  test('premium user should access /org-license', async ({ page }) => {
     // 这需要一个 premium 用户的登录凭证
     // 为了这个测试，我们直接访问并验证重定向行为
-    await page.goto('http://localhost:3030/org-license/products');
+    await page.goto('http://localhost:3030/org-license');
     
     // Premium 用户应该可以访问
     // Free 用户应该被重定向到 /error/permission-denied
@@ -46,11 +46,11 @@ test.describe('Frontend Route Refactor - New URL Structure', () => {
     if (url.includes('permission-denied')) {
       expect(true).toBe(true); // 这说明用户没有权限
     } else {
-      expect(url).toContain('/org-license/products');
+      expect(url).toContain('/org-license');
     }
   });
 
-  test('free user should be redirected from /org-license/products to /error/permission-denied', async ({ page }) => {
+  test('free user should be redirected from /org-license to /error/permission-denied', async ({ page }) => {
     // 登录为 free 用户
     await page.goto('http://localhost:3030/auth/login');
     await page.fill('input[placeholder*="email"]', 'free@test.com');
@@ -58,8 +58,8 @@ test.describe('Frontend Route Refactor - New URL Structure', () => {
     await page.click('button:has-text("Login")');
     await page.waitForURL('**/user/profile', { timeout: 5000 });
 
-    // 尝试访问 /org-license/products
-    await page.goto('http://localhost:3030/org-license/products');
+    // 尝试访问 /org-license
+    await page.goto('http://localhost:3030/org-license');
     
     // 应该被重定向到权限错误页面
     await page.waitForURL('**/error/permission-denied', { timeout: 5000 });
@@ -225,7 +225,7 @@ test.describe('Frontend Route Refactor - New URL Structure', () => {
     await page.waitForURL('**/user/profile', { timeout: 5000 });
 
     // 尝试访问需要更高权限的页面
-    await page.goto('http://localhost:3030/org-license/products');
+    await page.goto('http://localhost:3030/org-license');
     
     // 应该看到权限拒绝页面
     await page.waitForURL('**/error/permission-denied', { timeout: 5000 });
@@ -250,8 +250,7 @@ test.describe('Route Structure Verification', () => {
     const requiredRoutes = [
       '/user/profile',
       '/user/billing',
-      '/org-license/products',
-      '/org-license/assign',
+      '/org-license',
       '/team-management/quotas',
       '/team-management/members',
       '/admin/dashboard',
@@ -259,12 +258,10 @@ test.describe('Route Structure Verification', () => {
       '/admin/organizations',
       '/admin/users',
       '/admin/teams',
-      '/admin/batch/generate',
-      '/admin/batch/revoke',
-      '/admin/batch/export',
+      '/admin/licenses',
     ];
 
     // 验证所有路由都已定义
-    expect(requiredRoutes.length).toBe(14);
+    expect(requiredRoutes.length).toBe(11);
   });
 });

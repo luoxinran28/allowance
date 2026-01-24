@@ -24,6 +24,7 @@ interface Organization {
 
 export default function AdminTeamsPage() {
   const { isAdmin } = usePermission();
+  const isUserAdmin = isAdmin();
   const [teams, setTeams] = useState<Team[]>([]);
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [page, setPage] = useState(1);
@@ -35,12 +36,12 @@ export default function AdminTeamsPage() {
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    if (!isAdmin()) {
+    if (!isUserAdmin) {
       setError('You do not have permission to access this page');
       return;
     }
     loadData();
-  }, [page, selectedOrgId, isAdmin]);
+  }, [page, selectedOrgId, isUserAdmin]);
 
   const loadData = async () => {
     try {

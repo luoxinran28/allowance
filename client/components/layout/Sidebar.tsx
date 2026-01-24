@@ -10,13 +10,11 @@ import {
   Building2,
   Package,
   CreditCard,
-  Download,
   HelpCircle,
   FileText,
   User,
   BarChart3,
-  Plus,
-  Trash2,
+  KeyRound,
 } from 'lucide-react';
 
 interface NavItem {
@@ -47,17 +45,12 @@ const mainNavItems: NavItem[] = [
   },
 ];
 
-// Organization & License (premium/allstar)
+// Organization & License (premium/allstar) - Consolidated
 const orgLicenseItems: NavItem[] = [
   {
-    href: '/org-license/products',
-    label: 'Products & Licenses',
-    icon: <Package className="h-4 w-4" />,
-  },
-  {
-    href: '/org-license/assign',
-    label: 'Assign Licenses',
-    icon: <Users className="h-4 w-4" />,
+    href: '/org-license',
+    label: 'License Management',
+    icon: <KeyRound className="h-4 w-4" />,
   },
 ];
 
@@ -75,7 +68,7 @@ const teamMgmtItems: NavItem[] = [
   },
 ];
 
-// Admin Section (allstar only)
+// Admin Section (allstar only) - Consolidated
 const adminNavItems: NavItem[] = [
   {
     href: '/admin/dashboard',
@@ -103,19 +96,9 @@ const adminNavItems: NavItem[] = [
     icon: <Users className="h-4 w-4" />,
   },
   {
-    href: '/admin/batch/generate',
-    label: 'Generate Licenses',
-    icon: <Plus className="h-4 w-4" />,
-  },
-  {
-    href: '/admin/batch/revoke',
-    label: 'Revoke Licenses',
-    icon: <Trash2 className="h-4 w-4" />,
-  },
-  {
-    href: '/admin/batch/export',
-    label: 'Export Licenses',
-    icon: <Download className="h-4 w-4" />,
+    href: '/admin/licenses',
+    label: 'Licenses',
+    icon: <KeyRound className="h-4 w-4" />,
   },
 ];
 

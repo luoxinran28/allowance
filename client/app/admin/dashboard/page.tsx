@@ -154,7 +154,7 @@ export default function AdminDashboard() {
               </div>
               <div className="text-3xl">🎫</div>
             </div>
-            <a href="/dashboard/admin/batch/generate" className="text-sm text-blue-600 hover:text-blue-700 mt-4 block">
+            <a href="/admin/licenses?tab=assign" className="text-sm text-blue-600 hover:text-blue-700 mt-4 block">
               Manage Licenses →
             </a>
           </div>
@@ -187,21 +187,21 @@ export default function AdminDashboard() {
           <h2 className="text-2xl font-bold mb-6">Quick Actions</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <a 
-              href="/dashboard/admin/batch/generate" 
+              href="/admin/licenses?tab=assign" 
               className="border border-border rounded-lg p-4 hover:bg-accent transition-colors"
             >
               <p className="font-medium">Generate Licenses</p>
               <p className="text-sm text-muted-foreground mt-1">Create new batch licenses</p>
             </a>
             <a 
-              href="/dashboard/admin/batch/revoke" 
+              href="/admin/licenses?tab=revoke" 
               className="border border-border rounded-lg p-4 hover:bg-accent transition-colors"
             >
               <p className="font-medium">Revoke Licenses</p>
               <p className="text-sm text-muted-foreground mt-1">Revoke existing licenses</p>
             </a>
             <a 
-              href="/dashboard/admin/batch/export" 
+              href="/admin/licenses?tab=export" 
               className="border border-border rounded-lg p-4 hover:bg-accent transition-colors"
             >
               <p className="font-medium">Export Licenses</p>

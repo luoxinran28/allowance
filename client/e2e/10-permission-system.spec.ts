@@ -57,7 +57,7 @@ test.describe('Permission System - Free User', () => {
     const page = await authenticatedPage('free@allowance.test');
     
     // Try to access org-license (new route)
-    await page.goto('/org-license/products');
+    await page.goto('/org-license');
     
     // Should show access denied
     const accessDenied = await page.locator('text=Access Denied').isVisible();
@@ -133,7 +133,7 @@ test.describe('Permission System - Premium User', () => {
   test('premium user can access organization license section', async ({ authenticatedPage }) => {
     const page = await authenticatedPage('premium@allowance.test');
     
-    await page.goto('/org-license/products');
+    await page.goto('/org-license?tab=products');
     
     // Should see the org license page
     const title = await page.locator('text=Products').isVisible();
@@ -153,7 +153,7 @@ test.describe('Permission System - Premium User', () => {
   test('premium user can access batch generate page', async ({ authenticatedPage }) => {
     const page = await authenticatedPage('premium@allowance.test');
     
-    await page.goto('/admin/batch/generate');
+    await page.goto('/admin/licenses?tab=assign');
     
     // Should show access denied (batch is admin-only)
     const accessDenied = await page.locator('text=Access Denied').isVisible();
@@ -210,10 +210,10 @@ test.describe('Permission System - Admin User', () => {
   });
 
   test('admin user can access batch generate page', async ({ adminPage }) => {
-    await adminPage.goto('/admin/batch/generate');
+    await adminPage.goto('/admin/licenses?tab=assign');
     
     // Should see batch generate page without access denied
-    const title = await adminPage.locator('text=Generate').isVisible();
+    const title = await adminPage.locator('text=Assign to Organization').isVisible();
     expect(title).toBe(true);
     
     // Should not see access denied message
@@ -222,10 +222,10 @@ test.describe('Permission System - Admin User', () => {
   });
 
   test('admin user can access batch revoke page', async ({ adminPage }) => {
-    await adminPage.goto('/admin/batch/revoke');
+    await adminPage.goto('/admin/licenses?tab=revoke');
     
     // Should see batch revoke page without access denied
-    const title = await adminPage.locator('text=Revoke').isVisible();
+    const title = await adminPage.locator('text=Revoke Licenses').isVisible();
     expect(title).toBe(true);
     
     // Should not see access denied message
@@ -234,7 +234,7 @@ test.describe('Permission System - Admin User', () => {
   });
 
   test('admin user can access batch export page', async ({ adminPage }) => {
-    await adminPage.goto('/admin/batch/export');
+    await adminPage.goto('/admin/licenses?tab=export');
     
     // Should see batch export page without access denied
     const title = await adminPage.locator('text=Export').isVisible();
@@ -295,7 +295,7 @@ test.describe('Permission UI Elements', () => {
     const page = await authenticatedPage('premium@allowance.test');
     
     // Should be able to access org-license
-    await page.goto('/org-license/products');
+    await page.goto('/org-license?tab=products');
     const orgPage = await page.locator('text=Products').isVisible();
     expect(orgPage).toBe(true);
     
