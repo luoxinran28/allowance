@@ -2,14 +2,35 @@
 
 import { useEffect, useState } from 'react';
 import { useConditionalProtectedRoute } from '@/lib/middleware/routeProtection';
+import { apiClient } from '@/lib/api-client';
+import { useAuthStore } from '@/lib/auth-store';
+import { Plus, Edit2 } from 'lucide-react';
 
-interface TeamQuota {
+interface Team {
   id: number;
   name: string;
+  team_id: string;
+  organization_id: number;
+}
+
+interface OrgLicense {
+  id: number;
+  productId: number;
+  upid: string;
   productName: string;
   totalQuota: number;
   usedQuota: number;
   remainingQuota: number;
+}
+
+interface TeamQuota {
+  team_id: number;
+  team_name: string;
+  product_id: number;
+  upid: string;
+  product_name: string;
+  allocated_count: number;
+  used_count: number;
 }
 
 export default function TeamQuotasPage() {
@@ -17,57 +38,123 @@ export default function TeamQuotasPage() {
     (perms) => perms.canAccessTeamManagement(),
     '/error/permission-denied'
   );
+  const { user } = useAuthStore();
+  const canAllocateQuotas = user?.tier === 'premium' || user?.tier === 'allstar';
+  
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [licenses, setLicenses] = useState<OrgLicense[]>([]);
   const [quotas, setQuotas] = useState<TeamQuota[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  
+  // Form state
+  const [selectedTeam, setSelectedTeam] = useState<number | ''>('');
+  const [selectedProduct, setSelectedProduct] = useState<string>('');
+  const [quotaAmount, setQuotaAmount] = useState<number>(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Edit mode
+  const [editingQuota, setEditingQuota] = useState<TeamQuota | null>(null);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      
+      const [teamsRes, quotasRes] = await Promise.all([
+        apiClient.listTeams(),
+        apiClient.listTeamQuotas(),
+      ]);
+      
+      // Process teams
+      const teamsList = Array.isArray(teamsRes.data) ? teamsRes.data : (teamsRes.data?.teams || []);
+      setTeams(teamsList);
+      
+      // Process team quotas
+      const quotasList = Array.isArray(quotasRes.data) ? quotasRes.data : (quotasRes.data?.quotas || []);
+      setQuotas(quotasList);
+      
+      // Load org licenses if user can allocate
+      if (canAllocateQuotas) {
+        try {
+          const orgLicensesRes = await apiClient.getMyOrgLicenses();
+          const licensesList = orgLicensesRes.data?.licenses || [];
+          const realLicenses: OrgLicense[] = licensesList.map((l: any) => ({
+            id: l.id,
+            productId: l.product_id,
+            upid: l.upid,
+            productName: l.product_name || `Product #${l.product_id}`,
+            totalQuota: l.total_count,
+            usedQuota: l.total_count - l.available_count,
+            remainingQuota: l.available_count,
+          }));
+          setLicenses(realLicenses);
+        } catch {
+          // Non-fatal - user might not have org licenses
+        }
+      }
+      
+    } catch (err: any) {
+      setError('Failed to load data');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (!hasAccess) return;
-
-    const loadQuotas = async () => {
-      try {
-        setLoading(true);
-        setError('');
-        
-        // Mock data
-        const mockQuotas: TeamQuota[] = [
-          {
-            id: 1,
-            name: 'Development Team',
-            productName: 'Allowance Pro',
-            totalQuota: 50,
-            usedQuota: 30,
-            remainingQuota: 20,
-          },
-          {
-            id: 2,
-            name: 'Design Team',
-            productName: 'Allowance Pro',
-            totalQuota: 30,
-            usedQuota: 15,
-            remainingQuota: 15,
-          },
-          {
-            id: 3,
-            name: 'Marketing Team',
-            productName: 'Form Builder',
-            totalQuota: 25,
-            usedQuota: 10,
-            remainingQuota: 15,
-          },
-        ];
-
-        setQuotas(mockQuotas);
-      } catch (err: any) {
-        setError('Failed to load team quotas');
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadQuotas();
+    loadData();
   }, [hasAccess]);
+
+  const handleAllocateQuota = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedTeam || !selectedProduct || quotaAmount <= 0) {
+      setError('Please fill in all fields');
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      setError('');
+      setSuccess('');
+
+      if (editingQuota) {
+        await apiClient.updateQuota(Number(selectedTeam), selectedProduct, quotaAmount);
+        setSuccess('Team quota updated successfully');
+      } else {
+        await apiClient.allocateQuota(Number(selectedTeam), selectedProduct, quotaAmount);
+        setSuccess('Team quota allocated successfully');
+      }
+
+      // Reset form and reload data
+      setSelectedTeam('');
+      setSelectedProduct('');
+      setQuotaAmount(0);
+      setEditingQuota(null);
+      await loadData();
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to allocate quota');
+      console.error(err);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleEditQuota = (quota: TeamQuota) => {
+    setEditingQuota(quota);
+    setSelectedTeam(quota.team_id);
+    setSelectedProduct(quota.upid);
+    setQuotaAmount(quota.allocated_count);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingQuota(null);
+    setSelectedTeam('');
+    setSelectedProduct('');
+    setQuotaAmount(0);
+  };
 
   if (loading) {
     return (
@@ -81,93 +168,190 @@ export default function TeamQuotasPage() {
     return null;
   }
 
-  if (error) {
-    return (
-      <div className="p-8">
-        <div className="border border-red-200 bg-red-50 text-red-700 rounded-lg p-4">
-          {error}
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="p-8">
-      <div>
+      <div className="max-w-6xl mx-auto">
         <h1 className="text-3xl font-bold mb-2">Team & Quotas</h1>
         <p className="text-muted-foreground mb-8">
-          Manage team quota allocations and monitor usage
+          {canAllocateQuotas 
+            ? 'Manage team quota allocations from your organization\'s license pool'
+            : 'View team quota allocations and monitor usage'}
         </p>
 
-        {quotas.length === 0 ? (
-          <div className="border border-dashed border-border rounded-lg p-8 text-center">
-            <p className="text-muted-foreground">No teams with quotas</p>
-          </div>
-        ) : (
-          <div className="grid gap-6">
-            {quotas.map((quota) => {
-              const usagePercent = (quota.usedQuota / quota.totalQuota) * 100;
-              const isNearCapacity = usagePercent >= 80;
-              
-              return (
-                <div
-                  key={quota.id}
-                  className="border border-border rounded-lg p-6 bg-card hover:shadow-lg transition-shadow"
-                >
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <h3 className="text-lg font-semibold">{quota.name}</h3>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Product: {quota.productName}
-                      </p>
-                    </div>
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                      isNearCapacity
-                        ? 'bg-red-100 text-red-800'
-                        : 'bg-green-100 text-green-800'
-                    }`}>
-                      {Math.round(usagePercent)}% Used
-                    </span>
-                  </div>
-
-                  {/* Progress Bar */}
-                  <div className="mb-4">
-                    <div className="flex justify-between text-sm mb-2">
-                      <span className="text-muted-foreground">Quota Usage</span>
-                      <span className="font-medium">
-                        {quota.usedQuota} / {quota.totalQuota}
-                      </span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div
-                        className={`h-2 rounded-full transition-all ${
-                          isNearCapacity ? 'bg-red-500' : 'bg-blue-500'
-                        }`}
-                        style={{ width: `${Math.min(usagePercent, 100)}%` }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Stats */}
-                  <div className="grid grid-cols-3 gap-4 pt-4 border-t border-border">
-                    <div>
-                      <p className="text-xs text-muted-foreground">Allocated</p>
-                      <p className="text-lg font-bold mt-1">{quota.totalQuota}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Used</p>
-                      <p className="text-lg font-bold text-blue-600 mt-1">{quota.usedQuota}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Available</p>
-                      <p className="text-lg font-bold text-green-600 mt-1">{quota.remainingQuota}</p>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+        {error && (
+          <div className="border border-red-200 bg-red-50 text-red-700 rounded-lg p-4 mb-6">
+            {error}
           </div>
         )}
+        
+        {success && (
+          <div className="border border-green-200 bg-green-50 text-green-700 rounded-lg p-4 mb-6">
+            {success}
+          </div>
+        )}
+
+        {/* Allocation Form - Only for premium/allstar */}
+        {canAllocateQuotas && (
+          <div className="border border-border rounded-lg p-6 bg-card mb-8">
+            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              {editingQuota ? <Edit2 className="h-5 w-5" /> : <Plus className="h-5 w-5" />}
+              {editingQuota ? 'Edit Team Quota' : 'Allocate Quota to Team'}
+            </h3>
+            
+            {licenses.length === 0 ? (
+              <p className="text-muted-foreground">No organization licenses available. Contact your administrator to assign products to your organization.</p>
+            ) : teams.length === 0 ? (
+              <p className="text-muted-foreground">No teams available. Create teams first.</p>
+            ) : (
+              <form onSubmit={handleAllocateQuota} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Team</label>
+                    <select
+                      value={selectedTeam}
+                      onChange={(e) => setSelectedTeam(e.target.value ? Number(e.target.value) : '')}
+                      className="w-full border border-border rounded-md px-3 py-2 bg-background"
+                      disabled={!!editingQuota}
+                    >
+                      <option value="">Select team...</option>
+                      {teams.map((team) => (
+                        <option key={team.id} value={team.id}>
+                          {team.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Product</label>
+                    <select
+                      value={selectedProduct}
+                      onChange={(e) => setSelectedProduct(e.target.value)}
+                      className="w-full border border-border rounded-md px-3 py-2 bg-background"
+                      disabled={!!editingQuota}
+                    >
+                      <option value="">Select product...</option>
+                      {licenses.map((license) => (
+                        <option key={license.upid} value={license.upid}>
+                          {license.productName} (Available: {license.remainingQuota})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Quota Amount</label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={quotaAmount || ''}
+                      onChange={(e) => setQuotaAmount(Number(e.target.value))}
+                      className="w-full border border-border rounded-md px-3 py-2 bg-background"
+                      placeholder="Enter quota..."
+                    />
+                  </div>
+                </div>
+                
+                <div className="flex gap-2">
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                  >
+                    {isSubmitting ? 'Processing...' : (editingQuota ? 'Update Quota' : 'Allocate Quota')}
+                  </button>
+                  {editingQuota && (
+                    <button
+                      type="button"
+                      onClick={handleCancelEdit}
+                      className="px-4 py-2 border border-border rounded-md hover:bg-muted"
+                    >
+                      Cancel
+                    </button>
+                  )}
+                </div>
+              </form>
+            )}
+          </div>
+        )}
+
+        {/* Teams List with Quotas */}
+        <div className="border border-border rounded-lg p-6 bg-card">
+          <h3 className="text-lg font-semibold mb-4">Teams & Quota Usage</h3>
+          
+          {teams.length === 0 ? (
+            <p className="text-muted-foreground">No teams in your organization yet.</p>
+          ) : (
+            <div className="space-y-4">
+              {teams.map((team) => {
+                const teamQuotas = quotas.filter(q => q.team_id === team.id);
+                
+                return (
+                  <div key={team.id} className="border border-border rounded-lg p-4">
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <h4 className="font-semibold">{team.name}</h4>
+                        <p className="text-sm text-muted-foreground">ID: {team.team_id}</p>
+                      </div>
+                    </div>
+                    
+                    {teamQuotas.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">No quotas allocated to this team</p>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="border-b border-border">
+                              <th className="text-left py-2 px-2 font-medium">Product</th>
+                              <th className="text-right py-2 px-2 font-medium">Allocated</th>
+                              <th className="text-right py-2 px-2 font-medium">Used</th>
+                              <th className="text-right py-2 px-2 font-medium">Available</th>
+                              {canAllocateQuotas && (
+                                <th className="text-right py-2 px-2 font-medium">Actions</th>
+                              )}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {teamQuotas.map((quota, idx) => {
+                              const usagePercent = quota.allocated_count > 0 
+                                ? (quota.used_count / quota.allocated_count) * 100 
+                                : 0;
+                              
+                              return (
+                                <tr key={`${quota.upid}-${idx}`} className="border-b border-border last:border-0">
+                                  <td className="py-2 px-2">{quota.product_name || quota.upid}</td>
+                                  <td className="py-2 px-2 text-right">{quota.allocated_count}</td>
+                                  <td className="py-2 px-2 text-right">
+                                    <span className={usagePercent >= 80 ? 'text-red-600' : ''}>
+                                      {quota.used_count}
+                                    </span>
+                                  </td>
+                                  <td className="py-2 px-2 text-right text-green-600">
+                                    {quota.allocated_count - quota.used_count}
+                                  </td>
+                                  {canAllocateQuotas && (
+                                    <td className="py-2 px-2 text-right">
+                                      <button
+                                        onClick={() => handleEditQuota(quota)}
+                                        className="text-blue-600 hover:text-blue-800 text-sm"
+                                      >
+                                        Edit
+                                      </button>
+                                    </td>
+                                  )}
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -137,48 +137,48 @@
   - License Management 
     - My Licenses, Assign Licenses
   - Batch Operations
-    - Generate Licenses, Revoke Licenses, Export Licenses
+    - Generate Licenses, Revoke Licenses,1 Export Licenses
   - Admin Section
     - Manage Products, Manage Users, Team Quotas
   - Help Section
     - Support, Documentation
 
-需要调整为：
-  - Main Navigation ("free", "standard", "premium", "allstar" tier users can see the menu)
-    - "Profile"：added, it shows the current user info, id, license validity, belonging organization and teams, product tier, etc.
-    - "Users" needs to be moved to Admin Section
-    - "Teams" removed from Main Navigation. The logic is handled in "Team Management" section.
-    - "Organizations" needs to be moved to Admin Section
-    - "Products" needs to be moved to Admin Section
-    - Billing 
+**20260124 Update: Simplified & Optimized Structure**
+The menu structure has been optimized to reduce clutter and consolidate related functions (see #file:20260124-license-page-optimization.prompt.md).
 
-  - Admin Section ("allstar" tier users can see the menu)
-    - "Dashboard" from Main Navigation moved here, includes:
-      * Overview of Products, Organizations, Teams, Users, licenses.
-    - Products: It shows all products in the system with their product details. It has a detailes page for each product to show associated organizations and license pools.
-      * List shows attributes: upid, name, description, created_at
-    - Organizations: It shows all organizations in the system with their details, including associated products and license pools. It has detailes page for each organization to show teams and license quota assignments. The "allstar" tier users can assign a boss to the organization in the details page.
-      * List shows attributes: first boss account (email), teams amount, members amount, products amount.
-      * Detail page shows: List of product name, license pools, total quota, used quota, remaining quota, expiration date; List of org bosses.
-    - Users: It shows all registered users in the system with their roles and organizations with filtering options. It has a detailes page for each user to show their assigned organization and team memberships. The "allstar" tier users can change the user role in the details page, and assign the user to an organization and team.
-      * List shows attributes: account, email, role, organization, team(s), license status.
-    - "Generate Licenses": from "Batch Operations" moved here, the "allstar" tier users can generate licenses for any organization.
-    - "Revoke Licenses": from "Batch Operations" moved here, the "allstar" tier users can revoke licenses for any organization.
-    - "Export Licenses": from "Batch Operations" moved here, the "allstar" tier users can export licenses for any organization.
+调整后的结构为：
 
-  - "License Management" changes to "Organization & License" ("allstar", "premium" tier users can see the menu)
-    - Products & Licenses: "allstar", "premium" tier users can see all products assigned to the organization, license pool status (total, used, remaining), and license expiration.
-    - Assign Licenses: "allstar", "premium" tier users can assign licenses to the team within the organization. The assigned licenses should reflect the team quotas and organization license pool. The assigned team member become the team leader if they are assigned as such.
+  - **Main Navigation** ("free", "standard", "premium", "allstar" tier users can see the menu)
+    - "Profile": Shows user info, ID, license validity, organization/team info, product tier.
+    - "Billing": Viewing billing information.
+    - (Users, Teams, Organizations, Products moved to specific sections below)
 
-  - "Team Management" added as new  ("allstar", "premium", "standard" tier users can see the menu)
-    -" Team & Quotas": "allstar", "premium" tier users can see. It shows all teams list and their quota usage belonging to the organization. In the same organization, the different boses can see all teams. In the same organzation, the different team leaders can only see their own teams. The sys admin, and org boss has the right to create new teams and assign team leaders. The team leader cannot create teams.
-    - "Team Members": "allstar", "premium", "standard" tier users can see. It shows all team members list belonging to the teams. In the same organization, the different boses can see all members. In the same organzation, the different team leaders can only see their own team members. The sys admin, org boss, and team leader can add or remove members from their own teams, and move the memeber to other teams within the same organization.
+  - **Organization & License** ("allstar", "premium" tier users can see the menu)
+    - **"Organization Licenses"** (Consolidated Page `/org-license`)
+      * **Tab 1: Products & Quotas**: View organization's assigned products, license pool status (Total/Used/Remaining), and expiration dates.
+      * **Tab 2: Assign to Members**: Assign available license quotas to team members within the organization.
 
-  - "Batch Operations" removed
-  - "Help Section" Keeps unchanged
+  - **Team Management** ("allstar", "premium", "standard" tier users can see the menu)
+    - **"Team & Quotas"**: Shows team list and quota usage. 
+      * Standard (Team Leader): View their own team's quotas.
+      * Premium (Org Boss) / Allstar (Admin): View all teams in org, create teams (Admin/Boss), assign leaders.
+    - **"Team Members"**: Shows team members list.
+      * Standard (Team Leader): Manage their own team members.
+      * Premium (Org Boss) / Allstar (Admin): Manage all members in the organization.
+
+  - **Admin Section** ("allstar" tier users only)
+    - **"Dashboard"**: Overview of Products, Organizations, Teams, Users, Licenses.
+    - **"Products"**: Manage system products.
+    - **"Organizations"**: Manage organizations and assign Org Bosses.
+    - **"Users"**: Manage all users, roles, and memberships.
+    - **"License Management"** (Consolidated Page `/admin/licenses`)
+      * **Tab 1: Assign to Organization**: (Formerly "Generate Licenses") Allocate product quotas to organizations.
+      * **Tab 2: Revoke Licenses**: (Formerly "Revoke Licenses") Revoke licenses by key or batch.
+      * **Tab 3: Export & Reports**: (Formerly "Export Licenses") Export license data and view reports.
+
+  - **Help Section** (All users)
     - Support
     - Documentation
-
 
 **20251205 AI问题细节补充回答**
 1. 四层角色体系的权限划分
