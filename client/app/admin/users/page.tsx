@@ -8,6 +8,7 @@ import { StatusBadge } from '@/components/common/StatusBadge';
 import { PaginationNav } from '@/components/common/PaginationNav';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { AdminDetailOverlay } from '@/components/admin/AdminDetailOverlay';
+import { Plus } from 'lucide-react';
 
 interface User {
   id: number;
@@ -19,11 +20,24 @@ interface User {
   roles?: string[];
 }
 
+interface Organization {
+  id: number;
+  name: string;
+}
+
 interface PaginatedResponse {
   data: User[];
   page: number;
   page_size: number;
   total: number;
+}
+
+interface CreateUserFormData {
+  email: string;
+  password: string;
+  tier: string;
+  organizationId: number | '';
+  activate: boolean;
 }
 
 const AVAILABLE_ROLES = [
@@ -33,12 +47,20 @@ const AVAILABLE_ROLES = [
   { code: 'free_user', label: 'Free User' },
 ];
 
+const AVAILABLE_TIERS = [
+  { code: 'free', label: 'Free' },
+  { code: 'standard', label: 'Standard' },
+  { code: 'premium', label: 'Premium' },
+  { code: 'allstar', label: 'Allstar (Admin)' },
+];
+
 export default function AdminUsersPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const selectedUserId = searchParams.get('selected_id') ? parseInt(searchParams.get('selected_id')!) : null;
 
   const [users, setUsers] = useState<User[]>([]);
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [page, setPage] = useState(1);
   const pageSize = 20;
   const [total, setTotal] = useState(0);
@@ -51,6 +73,16 @@ export default function AdminUsersPage() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [selectedRole, setSelectedRole] = useState('');
 
+  // Create user overlay state
+  const [isCreating, setIsCreating] = useState(false);
+  const [createFormData, setCreateFormData] = useState<CreateUserFormData>({
+    email: '',
+    password: '',
+    tier: 'free',
+    organizationId: '',
+    activate: true,
+  });
+
   // Confirm dialog state
   const [showConfirm, setShowConfirm] = useState(false);
   const [confirmAction, setConfirmAction] = useState<{
@@ -61,6 +93,7 @@ export default function AdminUsersPage() {
 
   useEffect(() => {
     loadUsers();
+    loadOrganizations();
   }, [page]);
 
   useEffect(() => {
@@ -91,6 +124,23 @@ export default function AdminUsersPage() {
     }
   };
 
+  const loadOrganizations = async () => {
+    try {
+      const response = await apiClient.listOrganizations(1, 1000);
+      let orgsData: Organization[] = [];
+      if (Array.isArray(response.data)) {
+        orgsData = response.data;
+      } else if (response.data?.organizations) {
+        orgsData = response.data.organizations;
+      } else if (response.data?.data) {
+        orgsData = response.data.data;
+      }
+      setOrganizations(orgsData);
+    } catch (err) {
+      console.error('Failed to load organizations:', err);
+    }
+  };
+
   const handleOpenRoleModal = (user: User) => {
     router.push(`?selected_id=${user.id}`);
   };
@@ -99,6 +149,39 @@ export default function AdminUsersPage() {
     router.push('');
     setSelectedUser(null);
     setSelectedRole('');
+    setIsCreating(false);
+    setCreateFormData({
+      email: '',
+      password: '',
+      tier: 'free',
+      organizationId: '',
+      activate: true,
+    });
+  };
+
+  const handleCreateUser = async () => {
+    try {
+      if (!createFormData.email.trim() || !createFormData.password.trim()) {
+        setError('Email and password are required');
+        return;
+      }
+      setError('');
+      setSuccess('');
+      
+      await apiClient.adminCreateUser(
+        createFormData.email,
+        createFormData.password,
+        createFormData.tier,
+        createFormData.organizationId === '' ? undefined : createFormData.organizationId,
+        createFormData.activate
+      );
+      
+      setSuccess('User created successfully');
+      handleCloseOverlay();
+      await loadUsers();
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to create user');
+    }
   };
 
   const handleRemoveRole = (userId: number, role: string) => {
@@ -137,9 +220,18 @@ export default function AdminUsersPage() {
   return (
     <div className="space-y-6 p-8">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold mb-2 text-gray-900">User Management</h1>
-        <p className="text-gray-600">Manage system users and assign roles</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold mb-2 text-gray-900">User Management</h1>
+          <p className="text-gray-600">Manage system users and assign roles</p>
+        </div>
+        <button
+          onClick={() => setIsCreating(true)}
+          className="inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700 transition"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Create User
+        </button>
       </div>
 
       {/* Error/Success Messages */}
@@ -351,6 +443,111 @@ export default function AdminUsersPage() {
               className="flex-1 rounded-lg bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700 transition"
             >
               Assign
+            </button>
+          </div>
+        </div>
+      </AdminDetailOverlay>
+
+      {/* Create User Overlay */}
+      <AdminDetailOverlay
+        isOpen={isCreating}
+        title="Create User"
+        onClose={handleCloseOverlay}
+        size="md"
+      >
+        <div className="p-6 space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Email *
+            </label>
+            <input
+              type="email"
+              value={createFormData.email}
+              onChange={(e) => setCreateFormData({ ...createFormData, email: e.target.value })}
+              placeholder="Enter email address"
+              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Password *
+            </label>
+            <input
+              type="password"
+              value={createFormData.password}
+              onChange={(e) => setCreateFormData({ ...createFormData, password: e.target.value })}
+              placeholder="Enter password"
+              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Tier
+            </label>
+            <select
+              value={createFormData.tier}
+              onChange={(e) => setCreateFormData({ ...createFormData, tier: e.target.value })}
+              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+            >
+              {AVAILABLE_TIERS.map((tier) => (
+                <option key={tier.code} value={tier.code}>
+                  {tier.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Organization (Optional)
+            </label>
+            <select
+              value={createFormData.organizationId}
+              onChange={(e) => setCreateFormData({ ...createFormData, organizationId: e.target.value === '' ? '' : Number(e.target.value) })}
+              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+            >
+              <option value="">Not Assigned</option>
+              {organizations.map((org) => (
+                <option key={org.id} value={org.id}>
+                  {org.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="activate"
+              checked={createFormData.activate}
+              onChange={(e) => setCreateFormData({ ...createFormData, activate: e.target.checked })}
+              className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+            />
+            <label htmlFor="activate" className="text-sm font-medium text-gray-700">
+              Activate user immediately (skip email verification)
+            </label>
+          </div>
+
+          {error && (
+            <div className="rounded-md bg-red-50 p-3 text-sm text-red-800">
+              {error}
+            </div>
+          )}
+
+          <div className="flex gap-3 pt-4 border-t">
+            <button
+              onClick={handleCloseOverlay}
+              className="flex-1 rounded-lg border border-gray-300 px-4 py-2 font-medium text-gray-700 hover:bg-gray-50 transition"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleCreateUser}
+              className="flex-1 rounded-lg bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700 transition"
+            >
+              Create
             </button>
           </div>
         </div>

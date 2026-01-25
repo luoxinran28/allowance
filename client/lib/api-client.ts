@@ -261,6 +261,16 @@ class ApiClient {
     return this.client.get('/admin/users', { params: { page, page_size: pageSize } });
   }
 
+  async adminCreateUser(email: string, password: string, tier?: string, organizationId?: number, activate?: boolean) {
+    return this.client.post('/admin/users', { 
+      email, 
+      password, 
+      tier, 
+      organization_id: organizationId,
+      activate 
+    });
+  }
+
   async getUser(userId: number) {
     return this.client.get(`/admin/users/${userId}`);
   }

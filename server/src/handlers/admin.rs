@@ -26,6 +26,15 @@ pub struct ApprovalActionRequest {
     pub reason: Option<String>,
 }
 
+#[derive(Deserialize)]
+pub struct AdminCreateUserRequest {
+    pub email: String,
+    pub password: String,
+    pub tier: Option<String>,
+    pub organization_id: Option<i64>,
+    pub activate: Option<bool>,
+}
+
 #[derive(Serialize)]
 pub struct AdminResponse {
     pub success: bool,
@@ -131,6 +140,76 @@ pub async fn list_users(
         "page": page,
         "page_size": page_size
     })))
+}
+
+/// Create user (admin only)
+/// Admin can create users directly without requiring email activation
+pub async fn create_user(
+    State(state): State<Arc<AuthHandler>>,
+    headers: HeaderMap,
+    Json(req): Json<AdminCreateUserRequest>,
+) -> AppResult<(axum::http::StatusCode, Json<UserResponse>)> {
+    let requester_id = extract_user_from_header(&state, &headers)?;
+    check_admin_permission(&state, requester_id).await?;
+
+    // Validate email format
+    if !req.email.contains('@') {
+        return Err(AppError::BadRequest("Invalid email format".to_string()));
+    }
+
+    // Check if email already exists
+    let existing = sqlx::query_scalar::<_, i64>(
+        "SELECT COUNT(*) FROM users WHERE email = $1"
+    )
+        .bind(&req.email)
+        .fetch_one(&*state.pool)
+        .await?;
+
+    if existing > 0 {
+        return Err(AppError::EmailAlreadyRegistered);
+    }
+
+    // Generate uid and hash password
+    let uid = format!("U{}", uuid::Uuid::new_v4().simple().to_string()[..15].to_uppercase());
+    let password_hash = crate::utils::crypto::hash_password(&req.password)?;
+
+    // Determine tier (default to free)
+    let tier = req.tier.as_deref().unwrap_or("free");
+    
+    // Determine status (admin can directly activate)
+    let status = if req.activate.unwrap_or(true) { "active" } else { "inactive" };
+
+    // Create user
+    let user = sqlx::query_as::<_, User>(
+        r#"
+        INSERT INTO users (uid, email, password_hash, status, tier, organization_id, source_upid)
+        VALUES ($1, $2, $3, $4, $5, $6, 'UALLOWANCE0001')
+        RETURNING id, uid, email, password_hash, tier, status, organization_id, team_ids, license_status, source_upid, profile_data, created_at, updated_at, last_login
+        "#
+    )
+        .bind(&uid)
+        .bind(&req.email)
+        .bind(&password_hash)
+        .bind(status)
+        .bind(tier)
+        .bind(req.organization_id)
+        .fetch_one(&*state.pool)
+        .await?;
+
+    // Assign default role based on tier
+    let role_code = match tier {
+        "allstar" => "admin",
+        "premium" => "org_boss",
+        "standard" => "standard_employee",
+        _ => "free_user",
+    };
+    let _ = RbacService::assign_role(&state.pool, user.id, role_code).await;
+
+    let mut response = UserResponse::from(user);
+    let roles = RbacService::get_user_roles(&state.pool, response.id).await?;
+    response.roles = Some(roles.iter().map(|r| r.code.clone()).collect());
+
+    Ok((axum::http::StatusCode::CREATED, Json(response)))
 }
 
 /// Get user details by ID (admin only)

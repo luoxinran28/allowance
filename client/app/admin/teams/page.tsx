@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { apiClient } from '@/lib/api-client';
 import { usePermission } from '@/lib/hooks/usePermission';
 import { PaginationNav } from '@/components/common/PaginationNav';
+import { AdminDetailOverlay } from '@/components/admin/AdminDetailOverlay';
+import { Plus } from 'lucide-react';
 
 interface Team {
   id: number;
@@ -22,6 +24,12 @@ interface Organization {
   name: string;
 }
 
+interface CreateTeamFormData {
+  name: string;
+  description: string;
+  organizationId: number | '';
+}
+
 export default function AdminTeamsPage() {
   const { isAdmin } = usePermission();
   const isUserAdmin = isAdmin();
@@ -32,9 +40,17 @@ export default function AdminTeamsPage() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [selectedOrgId, setSelectedOrgId] = useState<number | ''>('');
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Create team overlay state
+  const [isCreating, setIsCreating] = useState(false);
+  const [createFormData, setCreateFormData] = useState<CreateTeamFormData>({
+    name: '',
+    description: '',
+    organizationId: '',
+  });
   useEffect(() => {
     if (!isUserAdmin) {
       setError('You do not have permission to access this page');
@@ -95,6 +111,43 @@ export default function AdminTeamsPage() {
     setPage(1);
   };
 
+  const handleCloseOverlay = () => {
+    setIsCreating(false);
+    setCreateFormData({
+      name: '',
+      description: '',
+      organizationId: '',
+    });
+    setError('');
+  };
+
+  const handleCreateTeam = async () => {
+    try {
+      if (!createFormData.name.trim()) {
+        setError('Team name is required');
+        return;
+      }
+      if (createFormData.organizationId === '') {
+        setError('Organization is required');
+        return;
+      }
+      setError('');
+      setSuccess('');
+
+      await apiClient.createTeam(
+        createFormData.name,
+        createFormData.description || undefined,
+        createFormData.organizationId as number
+      );
+
+      setSuccess('Team created successfully');
+      handleCloseOverlay();
+      await loadData();
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to create team');
+    }
+  };
+
   const totalPages = Math.ceil(total / pageSize);
 
   if (!isAdmin()) {
@@ -110,15 +163,30 @@ export default function AdminTeamsPage() {
   return (
     <div className="space-y-6 p-8">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Team Management</h1>
-        <p className="mt-1 text-gray-600">Manage teams, members, and assign team leaders</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Team Management</h1>
+          <p className="mt-1 text-gray-600">Manage teams, members, and assign team leaders</p>
+        </div>
+        <button
+          onClick={() => setIsCreating(true)}
+          className="inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700 transition"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Create Team
+        </button>
       </div>
 
-      {/* Error Message */}
-      {error && (
+      {/* Error/Success Messages */}
+      {error && !isCreating && (
         <div className="rounded-lg border border-red-200 bg-red-50 p-4">
           <p className="text-sm text-red-800">{error}</p>
+        </div>
+      )}
+
+      {success && (
+        <div className="rounded-lg border border-green-200 bg-green-50 p-4">
+          <p className="text-sm text-green-800">{success}</p>
         </div>
       )}
 
@@ -247,6 +315,81 @@ export default function AdminTeamsPage() {
           onPageChange={setPage}
         />
       )}
+
+      {/* Create Team Overlay */}
+      <AdminDetailOverlay
+        isOpen={isCreating}
+        title="Create Team"
+        onClose={handleCloseOverlay}
+        size="md"
+      >
+        <div className="p-6 space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Team Name *
+            </label>
+            <input
+              type="text"
+              value={createFormData.name}
+              onChange={(e) => setCreateFormData({ ...createFormData, name: e.target.value })}
+              placeholder="Enter team name"
+              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Organization *
+            </label>
+            <select
+              value={createFormData.organizationId}
+              onChange={(e) => setCreateFormData({ ...createFormData, organizationId: e.target.value === '' ? '' : Number(e.target.value) })}
+              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+            >
+              <option value="">Select Organization</option>
+              {organizations.map((org) => (
+                <option key={org.id} value={org.id}>
+                  {org.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Description (Optional)
+            </label>
+            <textarea
+              value={createFormData.description}
+              onChange={(e) => setCreateFormData({ ...createFormData, description: e.target.value })}
+              placeholder="Enter team description"
+              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              rows={3}
+            />
+          </div>
+
+          {error && (
+            <div className="rounded-md bg-red-50 p-3 text-sm text-red-800">
+              {error}
+            </div>
+          )}
+
+          <div className="flex gap-3 pt-4 border-t">
+            <button
+              onClick={handleCloseOverlay}
+              className="flex-1 rounded-lg border border-gray-300 px-4 py-2 font-medium text-gray-700 hover:bg-gray-50 transition"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleCreateTeam}
+              className="flex-1 rounded-lg bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700 transition"
+            >
+              Create
+            </button>
+          </div>
+        </div>
+      </AdminDetailOverlay>
     </div>
   );
 }
