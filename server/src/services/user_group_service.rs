@@ -1,5 +1,5 @@
 use sqlx::PgPool;
-use crate::models::TeamMemberResponse;
+use crate::models::{TeamMemberResponse, UserTier};
 use crate::services::{TeamQuotaService, FreeUserService, LicenseHistoryService};
 use crate::utils::{AppResult, AppError};
 
@@ -20,23 +20,33 @@ impl UserGroupService {
 
         let mut tx = pool.begin().await?;
 
-        let user: (String, String) = sqlx::query_as("SELECT tier, source_upid FROM users WHERE id = $1")
+        let user: (String, Option<String>) = sqlx::query_as("SELECT tier::text, source_upid FROM users WHERE id = $1")
             .bind(user_id)
             .fetch_one(&mut *tx)
             .await?;
-        let (tier, source_upid) = (user.0, user.1);
+        let (tier_str, source_upid) = (user.0, user.1);
+        
+        let tier = match tier_str.as_str() {
+            "free" => UserTier::Free,
+            "standard" => UserTier::Standard,
+            "premium" => UserTier::Premium,
+            "allstar" => UserTier::Allstar,
+            _ => return Err(AppError::BadRequest(format!("Unknown tier: {}", tier_str))),
+        };
 
-        if !source_upid.is_empty() && !selected_upids.contains(&source_upid) {
-            let has_quota: bool = sqlx::query_scalar(
-                "SELECT EXISTS(SELECT 1 FROM team_product_quotas WHERE team_id = $1 AND upid = $2 AND used_count < allocated_count)"
-            )
-            .bind(team_id)
-            .bind(&source_upid)
-            .fetch_one(&mut *tx)
-            .await?;
+        if let Some(ref upid) = source_upid {
+            if !upid.is_empty() && !selected_upids.contains(upid) {
+                let has_quota: bool = sqlx::query_scalar(
+                    "SELECT EXISTS(SELECT 1 FROM team_product_quotas WHERE team_id = $1 AND upid = $2 AND used_count < allocated_count)"
+                )
+                .bind(team_id)
+                .bind(upid)
+                .fetch_one(&mut *tx)
+                .await?;
 
-            if !has_quota {
-                return Err(AppError::BadRequest(format!("Team does not have quota for source product {}", source_upid)));
+                if !has_quota {
+                    return Err(AppError::BadRequest(format!("Team does not have quota for source product {}", upid)));
+                }
             }
         }
 
@@ -53,14 +63,14 @@ impl UserGroupService {
             TeamQuotaService::consume_quota(&mut *tx, team_id, product_id).await?;
         }
 
-        sqlx::query("INSERT INTO user_teams (user_id, team_id, role) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING")
+        sqlx::query("INSERT INTO user_teams (user_id, team_id, role) VALUES ($1, $2, $3::organization_role) ON CONFLICT DO NOTHING")
             .bind(user_id)
             .bind(team_id)
             .bind(role)
             .execute(&mut *tx)
             .await?;
 
-        if tier == "free" {
+        if tier == UserTier::Free {
             sqlx::query("UPDATE users SET tier = 'standard' WHERE id = $1")
                 .bind(user_id)
                 .execute(&mut *tx)
@@ -133,9 +143,9 @@ impl UserGroupService {
     }
 
     pub async fn list_team_members(pool: &PgPool, team_id: i64) -> AppResult<Vec<TeamMemberResponse>> {
-        let mut members = sqlx::query_as::<_, (i64, String, String)>(
+        let members = sqlx::query_as::<_, (i64, String, String, String, String)>(
             r#"
-            SELECT u.id, u.uid, u.email
+            SELECT u.id, u.uid, u.email, u.tier::text, ut.role::text
             FROM users u
             JOIN user_teams ut ON u.id = ut.user_id
             WHERE ut.team_id = $1
@@ -147,7 +157,7 @@ impl UserGroupService {
         .await?;
 
         let mut result = Vec::new();
-        for (user_id, uid, email) in members {
+        for (user_id, uid, email, tier, role) in members {
             let products: Vec<String> = sqlx::query_scalar(
                 "SELECT upid FROM team_product_quotas WHERE team_id = $1"
             )
@@ -159,8 +169,8 @@ impl UserGroupService {
                 user_id,
                 uid,
                 email,
-                tier: "unknown".to_string(),  // TODO: Fix
-                role: "unknown".to_string(),  // TODO: Fix
+                tier,
+                role,
                 products,
             });
         }

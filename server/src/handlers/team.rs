@@ -120,7 +120,7 @@ pub async fn get_team(
     Ok(Json(team))
 }
 
-/// Add member to team (Premium+ only)
+/// Add member to team (Standard+ with team access, or Premium+ for any team in org)
 pub async fn add_member(
     State(state): State<Arc<AuthHandler>>,
     headers: HeaderMap,
@@ -129,17 +129,23 @@ pub async fn add_member(
 ) -> AppResult<Json<serde_json::Value>> {
     let user_id = extract_user_from_header(&state, &headers)?;
 
-    // Check permission: only Premium and Allstar can add members
+    // Get the team to check organization_id
+    let team = TeamService::get_team(&state.pool, team_id).await?;
+
+    // Check permission using can_add_team_member
     let user = UserService::get_user(&state.pool, user_id).await?;
     let team_ids = get_team_ids(user.team_ids.as_ref());
-    let ctx = PermissionContext::new(
+    let mut ctx = PermissionContext::new(
         user_id,
         user.tier.clone(),
         user.organization_id,
         team_ids,
     );
+    // Set target team and org for permission check
+    ctx.target_team_id = Some(team_id);
+    ctx.target_org_id = Some(team.organization_id);
     
-    if !PermissionService::can_manage_organization(&ctx) {
+    if !PermissionService::can_add_team_member(&ctx) {
         return Err(AppError::PermissionDenied);
     }
 
@@ -161,7 +167,7 @@ pub async fn list_members(
     Ok(Json(members))
 }
 
-/// Remove member from team (Premium+ only)
+/// Remove member from team (Standard+ with team access, or Premium+ for any team in org)
 pub async fn remove_member(
     State(state): State<Arc<AuthHandler>>,
     headers: HeaderMap,
@@ -169,17 +175,23 @@ pub async fn remove_member(
 ) -> AppResult<Json<serde_json::Value>> {
     let requester_id = extract_user_from_header(&state, &headers)?;
 
-    // Check permission: only Premium and Allstar can remove members
+    // Get the team to check organization_id
+    let team = TeamService::get_team(&state.pool, team_id).await?;
+
+    // Check permission using can_remove_team_member
     let user = UserService::get_user(&state.pool, requester_id).await?;
     let team_ids = get_team_ids(user.team_ids.as_ref());
-    let ctx = PermissionContext::new(
+    let mut ctx = PermissionContext::new(
         requester_id,
         user.tier.clone(),
         user.organization_id,
         team_ids,
     );
+    // Set target team and org for permission check
+    ctx.target_team_id = Some(team_id);
+    ctx.target_org_id = Some(team.organization_id);
     
-    if !PermissionService::can_manage_organization(&ctx) {
+    if !PermissionService::can_remove_team_member(&ctx) {
         return Err(AppError::PermissionDenied);
     }
 

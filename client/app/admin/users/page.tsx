@@ -18,6 +18,10 @@ interface User {
   status: string;
   created_at: string;
   roles?: string[];
+  organization_id?: number;
+  organization_name?: string;
+  team_ids?: number[];
+  team_names?: string[];
 }
 
 interface Organization {
@@ -292,7 +296,10 @@ export default function AdminUsersPage() {
                     Status
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                    Actions
+                    Organization
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    Teams
                   </th>
                 </tr>
               </thead>
@@ -300,7 +307,8 @@ export default function AdminUsersPage() {
                 {filteredUsers.map((user) => (
                   <tr
                     key={user.id}
-                    className="hover:bg-gray-50 transition"
+                    className="hover:bg-gray-50 transition cursor-pointer"
+                    onClick={() => handleOpenRoleModal(user)}
                   >
                     <td className="px-6 py-4 text-sm font-medium text-gray-900">
                       {user.email}
@@ -317,14 +325,24 @@ export default function AdminUsersPage() {
                     <td className="px-6 py-4 text-sm">
                       <StatusBadge status={user.status} />
                     </td>
-                    <td className="px-6 py-4 text-sm space-x-3 flex">
-                      <button
-                        onClick={() => handleOpenRoleModal(user)}
-                        className="text-blue-600 hover:text-blue-800 font-medium transition"
-                        title="Assign role"
-                      >
-                        👤
-                      </button>
+                    <td className="px-6 py-4 text-sm text-gray-600">
+                      {user.organization_name || '-'}
+                    </td>
+                    <td className="px-6 py-4 text-sm">
+                      {user.team_names && user.team_names.length > 0 ? (
+                        <div className="flex flex-wrap gap-1">
+                          {user.team_names.map((team, index) => (
+                            <span
+                              key={index}
+                              className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                            >
+                              {team}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      )}
                     </td>
                   </tr>
                 ))}

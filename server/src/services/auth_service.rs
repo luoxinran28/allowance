@@ -114,8 +114,27 @@ impl AuthService {
             return Ok(user);
         }
 
-        // For other tiers, validate UPID access - check if user has free license for this product
-        let license_count = sqlx::query_scalar::<_, i64>(
+        // For standard users, check if they have team membership with quota for this product
+        if user.tier == crate::models::UserTier::Standard {
+            let team_license_count = sqlx::query_scalar::<_, i64>(
+                r#"
+                SELECT COUNT(*) FROM user_teams ut
+                JOIN team_product_quotas tpq ON ut.team_id = tpq.team_id
+                WHERE ut.user_id = $1 AND tpq.upid = $2
+                "#
+            )
+            .bind(user.id)
+            .bind(upid)
+            .fetch_one(pool)
+            .await?;
+
+            if team_license_count > 0 {
+                return Ok(user);
+            }
+        }
+
+        // For free users, check if they have free license for this product
+        let free_license_count = sqlx::query_scalar::<_, i64>(
             r#"
             SELECT COUNT(*) FROM free_user_licenses ful
             JOIN products p ON ful.product_id = p.id
@@ -127,7 +146,7 @@ impl AuthService {
         .fetch_one(pool)
         .await?;
 
-        if license_count == 0 {
+        if free_license_count == 0 {
             return Err(AppError::BadRequest("No valid license found for this product".to_string()));
         }
 
@@ -334,28 +353,32 @@ impl AuthService {
     }
 
     /// Get tier for a specific product based on user's license
+    /// Checks user_teams + team_product_quotas for standard tier (four-tier system)
     async fn get_tier_for_product(pool: &PgPool, user: &User, upid: &str) -> String {
         // Premium and Allstar users have full access to all products
         if user.tier == crate::models::UserTier::Premium || user.tier == crate::models::UserTier::Allstar {
             return user.tier.to_string();
         }
 
-        // Check if user has a team assignment for this product (standard tier)
-        let has_team_license = sqlx::query_scalar::<_, i64>(
-            r#"
-            SELECT COUNT(*) FROM team_member_license_assignments tmla
-            JOIN products p ON tmla.product_id = p.id
-            WHERE tmla.user_id = $1 AND p.upid = $2 AND tmla.status = 'active'
-            "#
-        )
-        .bind(user.id)
-        .bind(upid)
-        .fetch_one(pool)
-        .await
-        .unwrap_or(0);
+        // For standard users: check if they are in a team with quota for this product
+        // This is the new four-tier system based on team membership
+        if user.tier == crate::models::UserTier::Standard {
+            let has_team_quota = sqlx::query_scalar::<_, i64>(
+                r#"
+                SELECT COUNT(*) FROM user_teams ut
+                JOIN team_product_quotas tpq ON ut.team_id = tpq.team_id
+                WHERE ut.user_id = $1 AND tpq.upid = $2
+                "#
+            )
+            .bind(user.id)
+            .bind(upid)
+            .fetch_one(pool)
+            .await
+            .unwrap_or(0);
 
-        if has_team_license > 0 {
-            return "standard".to_string();
+            if has_team_quota > 0 {
+                return "standard".to_string();
+            }
         }
 
         // Check if user has a free license for this product

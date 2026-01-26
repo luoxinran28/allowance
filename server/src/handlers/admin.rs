@@ -72,6 +72,22 @@ async fn check_admin_permission(
     Ok(())
 }
 
+/// Extended user response with organization and team info for admin list
+#[derive(Serialize)]
+pub struct AdminUserResponse {
+    pub id: i64,
+    pub uid: String,
+    pub email: String,
+    pub tier: String,
+    pub status: String,
+    pub created_at: chrono::NaiveDateTime,
+    pub roles: Option<Vec<String>>,
+    pub organization_id: Option<i64>,
+    pub organization_name: Option<String>,
+    pub team_ids: Option<Vec<i64>>,
+    pub team_names: Option<Vec<String>>,
+}
+
 /// List users with role-based filtering
 /// - Admin: sees all users
 /// - Team Leader: sees only members of teams they lead
@@ -106,7 +122,7 @@ pub async fn list_users(
         return Err(AppError::PermissionDenied);
     }
 
-    // Admin: Return all users
+    // Admin: Return all users with organization and team info
     let users = sqlx::query_as::<_, User>(
         r#"
         SELECT id, uid, email, password_hash, tier, status, organization_id, team_ids, license_status, source_upid,
@@ -125,13 +141,57 @@ pub async fn list_users(
         .fetch_one(&*state.pool)
         .await?;
 
-    let mut user_responses: Vec<UserResponse> = Vec::new();
+    // Pre-fetch all organizations and teams for efficient lookup
+    let all_orgs: Vec<(i64, String)> = sqlx::query_as(
+        "SELECT id, name FROM organizations"
+    )
+        .fetch_all(&*state.pool)
+        .await?;
+    
+    let all_teams: Vec<(i64, String)> = sqlx::query_as(
+        "SELECT id, name FROM teams"
+    )
+        .fetch_all(&*state.pool)
+        .await?;
+    
+    let org_map: std::collections::HashMap<i64, String> = all_orgs.into_iter().collect();
+    let team_map: std::collections::HashMap<i64, String> = all_teams.into_iter().collect();
+
+    let mut user_responses: Vec<AdminUserResponse> = Vec::new();
     for user in users {
-        let user_id = user.id;
-        let mut response = UserResponse::from(user);
-        let roles = RbacService::get_user_roles(&state.pool, user_id).await?;
-        response.roles = Some(roles.iter().map(|r| r.code.clone()).collect());
-        user_responses.push(response);
+        let uid = user.id;
+        let roles = RbacService::get_user_roles(&state.pool, uid).await?;
+        
+        // Get organization name
+        let org_name = user.organization_id.and_then(|oid| org_map.get(&oid).cloned());
+        
+        // Parse team_ids from JSON value to Vec<i64>
+        let team_ids_vec: Option<Vec<i64>> = user.team_ids.as_ref().and_then(|json_val| {
+            json_val.as_array().map(|arr| {
+                arr.iter().filter_map(|v| v.as_i64()).collect()
+            })
+        });
+        
+        // Get team names
+        let team_names: Option<Vec<String>> = team_ids_vec.as_ref().map(|ids| {
+            ids.iter()
+                .filter_map(|tid| team_map.get(tid).cloned())
+                .collect()
+        });
+        
+        user_responses.push(AdminUserResponse {
+            id: user.id,
+            uid: user.uid,
+            email: user.email,
+            tier: format!("{:?}", user.tier).to_lowercase(),
+            status: format!("{:?}", user.status).to_lowercase(),
+            created_at: user.created_at,
+            roles: Some(roles.iter().map(|r| r.code.clone()).collect()),
+            organization_id: user.organization_id,
+            organization_name: org_name,
+            team_ids: team_ids_vec,
+            team_names,
+        });
     }
 
     Ok(Json(serde_json::json!({
