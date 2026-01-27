@@ -52,6 +52,11 @@ const orgLicenseItems: NavItem[] = [
     label: 'License Management',
     icon: <KeyRound className="h-4 w-4" />,
   },
+  {
+    href: '/org-license/bosses',
+    label: 'Organization Bosses',
+    icon: <Users className="h-4 w-4" />,
+  },
 ];
 
 // Team Management (standard/premium/allstar)

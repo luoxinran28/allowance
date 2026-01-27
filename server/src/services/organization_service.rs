@@ -175,9 +175,255 @@ impl OrganizationService {
 
         Ok(())
     }
-}
 
-#[cfg(test)]
+    // ============================================================
+    // Organization Boss Management
+    // ============================================================
+
+    /// List all bosses for an organization
+    pub async fn list_organization_bosses(
+        pool: &PgPool,
+        org_id: i64,
+    ) -> AppResult<Vec<crate::models::OrganizationBoss>> {
+        let bosses = sqlx::query_as::<_, crate::models::OrganizationBoss>(
+            r#"
+            SELECT ob.id, ob.organization_id, ob.user_id, ob.assigned_by, ob.assigned_at, ob.notes,
+                   u.uid, u.email, u.tier::text as tier
+            FROM organization_bosses ob
+            JOIN users u ON ob.user_id = u.id
+            WHERE ob.organization_id = $1
+            ORDER BY ob.assigned_at DESC
+            "#
+        )
+            .bind(org_id)
+            .fetch_all(pool)
+            .await?;
+
+        Ok(bosses)
+    }
+
+    /// Add a boss to an organization
+    /// The user must not already be a boss of another organization
+    pub async fn add_organization_boss(
+        pool: &PgPool,
+        org_id: i64,
+        user_id: i64,
+        assigned_by: i64,
+        notes: Option<&str>,
+    ) -> AppResult<crate::models::OrganizationBoss> {
+        let mut tx = pool.begin().await?;
+
+        // Check if user is already a boss of another organization
+        let existing_boss: Option<(i64,)> = sqlx::query_as(
+            "SELECT organization_id FROM organization_bosses WHERE user_id = $1"
+        )
+            .bind(user_id)
+            .fetch_optional(&mut *tx)
+            .await?;
+
+        if let Some((existing_org_id,)) = existing_boss {
+            if existing_org_id != org_id {
+                return Err(AppError::BadRequest(
+                    "User is already a boss of another organization".to_string()
+                ));
+            }
+            // Already boss of this org, return error
+            return Err(AppError::BadRequest(
+                "User is already a boss of this organization".to_string()
+            ));
+        }
+
+        // Insert into organization_bosses
+        sqlx::query(
+            r#"
+            INSERT INTO organization_bosses (organization_id, user_id, assigned_by, notes)
+            VALUES ($1, $2, $3, $4)
+            "#
+        )
+            .bind(org_id)
+            .bind(user_id)
+            .bind(assigned_by)
+            .bind(notes)
+            .execute(&mut *tx)
+            .await?;
+
+        // Update user's tier to premium and organization_id
+        sqlx::query(
+            r#"
+            UPDATE users 
+            SET tier = 'premium', organization_id = $1, updated_at = NOW()
+            WHERE id = $2
+            "#
+        )
+            .bind(org_id)
+            .bind(user_id)
+            .execute(&mut *tx)
+            .await?;
+
+        // Add user to default team if not already a member
+        let default_team_id: Option<(i64,)> = sqlx::query_as(
+            "SELECT id FROM teams WHERE organization_id = $1 AND is_default = true"
+        )
+            .bind(org_id)
+            .fetch_optional(&mut *tx)
+            .await?;
+
+        if let Some((team_id,)) = default_team_id {
+            // Check if user is already in the team
+            let exists: bool = sqlx::query_scalar(
+                "SELECT EXISTS(SELECT 1 FROM user_teams WHERE user_id = $1 AND team_id = $2)"
+            )
+                .bind(user_id)
+                .bind(team_id)
+                .fetch_one(&mut *tx)
+                .await?;
+
+            if !exists {
+                sqlx::query(
+                    r#"
+                    INSERT INTO user_teams (user_id, team_id, role)
+                    VALUES ($1, $2, 'admin')
+                    ON CONFLICT (user_id, team_id) DO NOTHING
+                    "#
+                )
+                    .bind(user_id)
+                    .bind(team_id)
+                    .execute(&mut *tx)
+                    .await?;
+            }
+        }
+
+        tx.commit().await?;
+
+        // Fetch and return the created boss record
+        let boss = sqlx::query_as::<_, crate::models::OrganizationBoss>(
+            r#"
+            SELECT ob.id, ob.organization_id, ob.user_id, ob.assigned_by, ob.assigned_at, ob.notes,
+                   u.uid, u.email, u.tier::text as tier
+            FROM organization_bosses ob
+            JOIN users u ON ob.user_id = u.id
+            WHERE ob.organization_id = $1 AND ob.user_id = $2
+            "#
+        )
+            .bind(org_id)
+            .bind(user_id)
+            .fetch_one(pool)
+            .await?;
+
+        Ok(boss)
+    }
+
+    /// Remove a boss from an organization
+    /// Cannot remove if this is the only boss
+    pub async fn remove_organization_boss(
+        pool: &PgPool,
+        org_id: i64,
+        user_id: i64,
+    ) -> AppResult<()> {
+        let mut tx = pool.begin().await?;
+
+        // Count bosses for this organization
+        let boss_count: i64 = sqlx::query_scalar(
+            "SELECT COUNT(*) FROM organization_bosses WHERE organization_id = $1"
+        )
+            .bind(org_id)
+            .fetch_one(&mut *tx)
+            .await?;
+
+        if boss_count <= 1 {
+            return Err(AppError::BadRequest(
+                "Cannot remove the only boss of an organization".to_string()
+            ));
+        }
+
+        // Remove from organization_bosses
+        let result = sqlx::query(
+            "DELETE FROM organization_bosses WHERE organization_id = $1 AND user_id = $2"
+        )
+            .bind(org_id)
+            .bind(user_id)
+            .execute(&mut *tx)
+            .await?;
+
+        if result.rows_affected() == 0 {
+            return Err(AppError::NotFound("Boss not found in this organization".to_string()));
+        }
+
+        // Downgrade user's tier to free (or keep as standard if still in teams)
+        // Check if user is in any teams other than default team
+        let team_count: i64 = sqlx::query_scalar(
+            r#"
+            SELECT COUNT(*) FROM user_teams ut
+            JOIN teams t ON ut.team_id = t.id
+            WHERE ut.user_id = $1 AND t.is_default = false
+            "#
+        )
+            .bind(user_id)
+            .fetch_one(&mut *tx)
+            .await?;
+
+        if team_count > 0 {
+            // User is still in other teams, downgrade to standard
+            sqlx::query("UPDATE users SET tier = 'standard', updated_at = NOW() WHERE id = $1")
+                .bind(user_id)
+                .execute(&mut *tx)
+                .await?;
+        } else {
+            // User is not in any non-default teams, downgrade to free
+            sqlx::query(
+                "UPDATE users SET tier = 'free', organization_id = NULL, updated_at = NOW() WHERE id = $1"
+            )
+                .bind(user_id)
+                .execute(&mut *tx)
+                .await?;
+
+            // Remove from default team
+            sqlx::query(
+                r#"
+                DELETE FROM user_teams 
+                WHERE user_id = $1 AND team_id IN (
+                    SELECT id FROM teams WHERE organization_id = $2 AND is_default = true
+                )
+                "#
+            )
+                .bind(user_id)
+                .bind(org_id)
+                .execute(&mut *tx)
+                .await?;
+        }
+
+        tx.commit().await?;
+        Ok(())
+    }
+
+    /// Get available users who can be made bosses (not already boss of another org)
+    pub async fn get_available_boss_candidates(
+        pool: &PgPool,
+        org_id: i64,
+    ) -> AppResult<Vec<crate::models::BossCandidate>> {
+        // Get users who:
+        // 1. Are not already bosses of another organization
+        // 2. Are not allstar (admins don't need to be bosses)
+        // 3. Either have no organization or belong to this organization
+        let users = sqlx::query_as::<_, crate::models::BossCandidate>(
+            r#"
+            SELECT u.id, u.uid, u.email, u.tier::text as tier, u.status::text as status,
+                   u.organization_id
+            FROM users u
+            WHERE u.tier != 'allstar'
+              AND u.status = 'active'
+              AND u.id NOT IN (SELECT user_id FROM organization_bosses WHERE organization_id != $1)
+              AND (u.organization_id IS NULL OR u.organization_id = $1)
+            ORDER BY u.email
+            "#
+        )
+            .bind(org_id)
+            .fetch_all(pool)
+            .await?;
+
+        Ok(users)
+    }
+}
 mod tests {
 
     #[test]

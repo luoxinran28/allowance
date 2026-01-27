@@ -6,7 +6,7 @@ use axum::{
 use serde::Deserialize;
 use sqlx::Row;
 
-use crate::models::Organization;
+use crate::models::{Organization, AddOrganizationBossRequest};
 use crate::services::{OrganizationService, UserService};
 use crate::utils::{AppResult, AppError};
 use crate::utils::tier_helper::get_team_ids;
@@ -291,5 +291,108 @@ pub async fn get_my_org_licenses(
             "org_id": o.org_id,
             "name": o.name
         })).collect::<Vec<_>>()
+    })))
+}
+
+// ============================================================
+// Organization Boss Management Handlers
+// ============================================================
+
+/// List all bosses for an organization (Premium/Allstar only)
+pub async fn list_organization_bosses(
+    State(state): State<Arc<AuthHandler>>,
+    headers: HeaderMap,
+    Path(org_id): Path<i64>,
+) -> AppResult<Json<serde_json::Value>> {
+    let user_id = extract_user_from_header(&state, &headers)?;
+    
+    // Check permission: only Premium and Allstar can view org bosses
+    let user = UserService::get_user(&state.pool, user_id).await?;
+    if !crate::services::PermissionService::can_access_org_license_section(&user.tier) {
+        return Err(AppError::PermissionDenied);
+    }
+
+    // For premium users, verify they belong to this organization
+    if user.tier == crate::models::UserTier::Premium {
+        if user.organization_id != Some(org_id) {
+            return Err(AppError::PermissionDenied);
+        }
+    }
+
+    let bosses = OrganizationService::list_organization_bosses(&state.pool, org_id).await?;
+
+    Ok(Json(serde_json::json!({
+        "bosses": bosses,
+        "total": bosses.len()
+    })))
+}
+
+/// Add a boss to an organization (Allstar only)
+pub async fn add_organization_boss(
+    State(state): State<Arc<AuthHandler>>,
+    headers: HeaderMap,
+    Path(org_id): Path<i64>,
+    Json(req): Json<AddOrganizationBossRequest>,
+) -> AppResult<Json<crate::models::OrganizationBoss>> {
+    let user_id = extract_user_from_header(&state, &headers)?;
+    
+    // Check permission: only Allstar can add org bosses
+    let user = UserService::get_user(&state.pool, user_id).await?;
+    if user.tier != crate::models::UserTier::Allstar {
+        return Err(AppError::PermissionDenied);
+    }
+
+    let boss = OrganizationService::add_organization_boss(
+        &state.pool,
+        org_id,
+        req.user_id,
+        user_id,
+        req.notes.as_deref(),
+    ).await?;
+
+    Ok(Json(boss))
+}
+
+/// Remove a boss from an organization (Allstar only)
+pub async fn remove_organization_boss(
+    State(state): State<Arc<AuthHandler>>,
+    headers: HeaderMap,
+    Path((org_id, boss_user_id)): Path<(i64, i64)>,
+) -> AppResult<Json<serde_json::Value>> {
+    let user_id = extract_user_from_header(&state, &headers)?;
+    
+    // Check permission: only Allstar can remove org bosses
+    let user = UserService::get_user(&state.pool, user_id).await?;
+    if user.tier != crate::models::UserTier::Allstar {
+        return Err(AppError::PermissionDenied);
+    }
+
+    OrganizationService::remove_organization_boss(&state.pool, org_id, boss_user_id).await?;
+
+    Ok(Json(serde_json::json!({
+        "success": true,
+        "message": "Boss removed successfully"
+    })))
+}
+
+/// Get available users who can be made bosses (Allstar only)
+pub async fn get_boss_candidates(
+    State(state): State<Arc<AuthHandler>>,
+    headers: HeaderMap,
+    Path(org_id): Path<i64>,
+) -> AppResult<Json<serde_json::Value>> {
+    let user_id = extract_user_from_header(&state, &headers)?;
+    
+    // Check permission: only Allstar can view boss candidates
+    let user = UserService::get_user(&state.pool, user_id).await?;
+    if user.tier != crate::models::UserTier::Allstar {
+        return Err(AppError::PermissionDenied);
+    }
+
+    let candidates = OrganizationService::get_available_boss_candidates(&state.pool, org_id).await?;
+
+    Ok(Json(serde_json::json!({
+        "candidates": candidates,
+        "total": candidates.len()
     })))
 }

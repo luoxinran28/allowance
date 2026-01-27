@@ -256,6 +256,23 @@ class ApiClient {
     return this.client.delete(`/org/${orgId}`);
   }
 
+  // Organization Boss Management
+  async listOrganizationBosses(orgId: number) {
+    return this.client.get(`/org/${orgId}/bosses`);
+  }
+
+  async addOrganizationBoss(orgId: number, userId: number, notes?: string) {
+    return this.client.post(`/org/${orgId}/bosses`, { user_id: userId, notes });
+  }
+
+  async removeOrganizationBoss(orgId: number, userId: number) {
+    return this.client.delete(`/org/${orgId}/bosses/${userId}`);
+  }
+
+  async getBossCandidates(orgId: number) {
+    return this.client.get(`/org/${orgId}/boss-candidates`);
+  }
+
   // Admin endpoints
   async listUsers(page?: number, pageSize?: number) {
     return this.client.get('/admin/users', { params: { page, page_size: pageSize } });

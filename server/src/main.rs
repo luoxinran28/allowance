@@ -141,6 +141,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .route("/org/my", get(handlers::organization::get_user_organizations))
         .route("/org/my/licenses", get(handlers::organization::get_my_org_licenses))
         .route("/org/:org_id", get(handlers::organization::get_organization).put(handlers::organization::update_organization).delete(handlers::organization::delete_organization))
+        // Organization boss management routes
+        .route("/org/:org_id/bosses", get(handlers::organization::list_organization_bosses).post(handlers::organization::add_organization_boss))
+        .route("/org/:org_id/bosses/:boss_user_id", delete(handlers::organization::remove_organization_boss))
+        .route("/org/:org_id/boss-candidates", get(handlers::organization::get_boss_candidates))
         .route("/licenses/batch/generate", post(handlers::batch_licenses::generate_batch_licenses))
         .route("/licenses/batch/generate-org", post(handlers::batch_licenses::generate_batch_org_licenses))
         .route("/licenses/batch/revoke", post(handlers::batch_licenses::revoke_batch_licenses))

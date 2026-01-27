@@ -40,6 +40,38 @@ pub struct UserTeam {
 // Backward compatibility alias
 pub type UserGroup = UserTeam;
 
+/// Organization boss relationship (premium tier users who manage an organization)
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct OrganizationBoss {
+    pub id: i64,
+    pub organization_id: i64,
+    pub user_id: i64,
+    pub assigned_by: Option<i64>,
+    pub assigned_at: NaiveDateTime,
+    pub notes: Option<String>,
+    // Joined user fields
+    pub uid: String,
+    pub email: String,
+    pub tier: String,
+}
+
+/// Simplified user info for boss candidate selection
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct BossCandidate {
+    pub id: i64,
+    pub uid: String,
+    pub email: String,
+    pub tier: String,
+    pub status: String,
+    pub organization_id: Option<i64>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct AddOrganizationBossRequest {
+    pub user_id: i64,
+    pub notes: Option<String>,
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CreateTeamRequest {
     pub name: String,

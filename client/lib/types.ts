@@ -77,3 +77,23 @@ export interface ApprovalRequest {
   rejection_reason?: string;
   created_at: string;
 }
+
+export interface OrganizationBoss {
+  id: number;
+  organization_id: number;
+  user_id: number;
+  notes: string | null;
+  assigned_at: string;
+  assigned_by: number | null;
+  user_email: string;
+  user_uid: string;
+  user_tier: string;
+}
+
+export interface BossCandidate {
+  id: number;
+  uid: string;
+  email: string;
+  tier: string;
+  organization_id: number | null;
+}
