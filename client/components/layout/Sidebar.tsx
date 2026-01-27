@@ -62,7 +62,7 @@ const orgLicenseItems: NavItem[] = [
 // Team Management (standard/premium/allstar)
 const teamMgmtItems: NavItem[] = [
   {
-    href: '/team-management/quotas',
+    href: '/team-management',
     label: 'Team & Quotas',
     icon: <BarChart3 className="h-4 w-4" />,
   },
@@ -174,16 +174,15 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
         </Button>
       </a>
     ) : (
-      <Button
-        variant={isActive(item.href) ? 'default' : 'ghost'}
-        className="w-full justify-start gap-3"
-        asChild
-      >
-        <Link href={item.href}>
+      <Link href={item.href}>
+        <Button
+          variant={isActive(item.href) ? 'default' : 'ghost'}
+          className="w-full justify-start gap-3"
+        >
           {item.icon}
           <span>{item.label}</span>
-        </Link>
-      </Button>
+        </Button>
+      </Link>
     );
   };
 
@@ -191,7 +190,7 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
     <aside
       className={`${
         isOpen ? 'block' : 'hidden'
-      } w-64 border-r border-border bg-card p-4 space-y-6 overflow-y-auto h-[calc(100vh-64px)] sticky top-16`}
+      } w-64 border-r border-border bg-card p-4 space-y-6 overflow-y-auto h-[calc(100vh-64px)] fixed top-16 left-0 z-40`}
     >
       {sections.map((section) =>
         !section.visible(perms) ? null : (

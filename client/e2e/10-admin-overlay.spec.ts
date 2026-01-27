@@ -8,7 +8,7 @@ test.describe('Admin Pages - Overlay Mode', () => {
       console.log('Navigated to login page');
 
       await page.fill('input[type="email"]', 'admin@allowance.test');
-      await page.fill('input[type="password"]', 'Pass888999');
+      await page.fill('input[type="password"]', 'Pass88899');
       await page.click('button[type="submit"]');
       console.log('Submitted login form');
 
@@ -31,7 +31,7 @@ test.describe('Admin Pages - Overlay Mode', () => {
       // Login manually
       await page.goto('/auth/login');
       await page.fill('input[type="email"]', 'admin@allowance.test');
-      await page.fill('input[type="password"]', 'Pass888999');
+      await page.fill('input[type="password"]', 'Pass88899');
       await page.click('button[type="submit"]');
 
       // Wait for successful login - check for redirect (new route)
@@ -65,7 +65,7 @@ test.describe('Admin Pages - Overlay Mode', () => {
       // Login manually
       await page.goto('/auth/login');
       await page.fill('input[type="email"]', 'admin@allowance.test');
-      await page.fill('input[type="password"]', 'Pass888999');
+      await page.fill('input[type="password"]', 'Pass88899');
       await page.click('button[type="submit"]');
 
       // Wait for successful login (new route)

@@ -29,7 +29,7 @@ export const test = base.extend({
           
           // Fill and submit login form
           await page.fill('input[type="email"]', email);
-          await page.fill('input[type="password"]', 'Pass888999');
+          await page.fill('input[type="password"]', 'Pass88899');
           await page.click('button:has-text("Sign in")');
           
           // Wait for navigation to dashboard (wait for redirect to complete)
@@ -80,7 +80,7 @@ export const test = base.extend({
       await page.goto('/auth/login');
 
       await page.fill('input[type="email"]', 'admin@allowance.test');
-      await page.fill('input[type="password"]', 'Pass888999');
+      await page.fill('input[type="password"]', 'Pass88899');
       await page.click('button:has-text("Sign in")');
 
       // Wait for login to complete - check for redirect or success
@@ -106,7 +106,7 @@ export const test = base.extend({
       await page.goto('/auth/login');
       
       await page.fill('input[type="email"]', 'leader1@allowance.test');
-      await page.fill('input[type="password"]', 'Pass888999');
+      await page.fill('input[type="password"]', 'Pass88899');
       await page.click('button:has-text("Sign in")');
       
       // Wait for navigation to dashboard

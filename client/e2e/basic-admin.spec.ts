@@ -14,7 +14,7 @@ test.describe('Basic Admin Tests', () => {
     await page.goto('/auth/login');
 
     await page.fill('input[type="email"]', 'admin@allowance.test');
-    await page.fill('input[type="password"]', 'Pass888999');
+    await page.fill('input[type="password"]', 'Pass88899');
     await page.click('button[type="submit"]');
 
     // Wait and check if we navigated away from login

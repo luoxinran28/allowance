@@ -22,7 +22,7 @@ test.describe('Authentication', () => {
   test('should login with valid credentials', async ({ page }) => {
     await page.goto('/auth/login');
     await page.fill('input[type="email"]', 'free@allowance.test');
-    await page.fill('input[type="password"]', 'Pass888999');
+    await page.fill('input[type="password"]', 'Pass88899');
     await page.click('button:has-text("Sign in")');
     await page.waitForURL('/dashboard', { timeout: 15000 });
     expect(page).toHaveURL(/\/dashboard/);
@@ -31,7 +31,7 @@ test.describe('Authentication', () => {
   test('should persist token in localStorage after login', async ({ page }) => {
     await page.goto('/auth/login');
     await page.fill('input[type="email"]', 'free@allowance.test');
-    await page.fill('input[type="password"]', 'Pass888999');
+    await page.fill('input[type="password"]', 'Pass88899');
     await page.click('button:has-text("Sign in")');
     await page.waitForURL('/dashboard', { timeout: 15000 });
     try {
@@ -48,7 +48,7 @@ test.describe('Authentication', () => {
   test('should allow navigation when authenticated', async ({ page }) => {
     await page.goto('/auth/login');
     await page.fill('input[type="email"]', 'free@allowance.test');
-    await page.fill('input[type="password"]', 'Pass888999');
+    await page.fill('input[type="password"]', 'Pass88899');
     await page.click('button:has-text("Sign in")');
     await page.waitForURL('/dashboard', { timeout: 15000 });
     await page.waitForTimeout(800);

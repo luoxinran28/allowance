@@ -13,7 +13,7 @@ test.describe('Frontend Route Refactor - New URL Structure', () => {
     // 登录为 free 用户
     await page.goto('http://localhost:3030/auth/login');
     await page.fill('input[placeholder*="email"]', 'free@test.com');
-    await page.fill('input[placeholder*="password"]', 'Pass888999');
+    await page.fill('input[placeholder*="password"]', 'Pass88899');
     await page.click('button:has-text("Login")');
     
     // 等待重定向到 /user/profile
@@ -54,7 +54,7 @@ test.describe('Frontend Route Refactor - New URL Structure', () => {
     // 登录为 free 用户
     await page.goto('http://localhost:3030/auth/login');
     await page.fill('input[placeholder*="email"]', 'free@test.com');
-    await page.fill('input[placeholder*="password"]', 'Pass888999');
+    await page.fill('input[placeholder*="password"]', 'Pass88899');
     await page.click('button:has-text("Login")');
     await page.waitForURL('**/user/profile', { timeout: 5000 });
 
@@ -85,7 +85,7 @@ test.describe('Frontend Route Refactor - New URL Structure', () => {
     // 登录为 free 用户
     await page.goto('http://localhost:3030/auth/login');
     await page.fill('input[placeholder*="email"]', 'free@test.com');
-    await page.fill('input[placeholder*="password"]', 'Pass888999');
+    await page.fill('input[placeholder*="password"]', 'Pass88899');
     await page.click('button:has-text("Login")');
     await page.waitForURL('**/user/profile', { timeout: 5000 });
 
@@ -103,7 +103,7 @@ test.describe('Frontend Route Refactor - New URL Structure', () => {
     // 登录为 free 用户
     await page.goto('http://localhost:3030/auth/login');
     await page.fill('input[placeholder*="email"]', 'free@test.com');
-    await page.fill('input[placeholder*="password"]', 'Pass888999');
+    await page.fill('input[placeholder*="password"]', 'Pass88899');
     await page.click('button:has-text("Login")');
     await page.waitForURL('**/user/profile', { timeout: 5000 });
 
@@ -147,7 +147,7 @@ test.describe('Frontend Route Refactor - New URL Structure', () => {
     // 登录为 free 用户
     await page.goto('http://localhost:3030/auth/login');
     await page.fill('input[placeholder*="email"]', 'free@test.com');
-    await page.fill('input[placeholder*="password"]', 'Pass888999');
+    await page.fill('input[placeholder*="password"]', 'Pass88899');
     await page.click('button:has-text("Login")');
     
     // 等待重定向
@@ -167,7 +167,7 @@ test.describe('Frontend Route Refactor - New URL Structure', () => {
     // 登录为 free 用户
     await page.goto('http://localhost:3030/auth/login');
     await page.fill('input[placeholder*="email"]', 'free@test.com');
-    await page.fill('input[placeholder*="password"]', 'Pass888999');
+    await page.fill('input[placeholder*="password"]', 'Pass88899');
     await page.click('button:has-text("Login")');
     await page.waitForURL('**/user/profile', { timeout: 5000 });
 
@@ -187,7 +187,7 @@ test.describe('Frontend Route Refactor - New URL Structure', () => {
     // 登录为 free 用户
     await page.goto('http://localhost:3030/auth/login');
     await page.fill('input[placeholder*="email"]', 'free@test.com');
-    await page.fill('input[placeholder*="password"]', 'Pass888999');
+    await page.fill('input[placeholder*="password"]', 'Pass88899');
     await page.click('button:has-text("Login")');
     await page.waitForURL('**/user/profile', { timeout: 5000 });
 
@@ -202,7 +202,7 @@ test.describe('Frontend Route Refactor - New URL Structure', () => {
     // 登录为 free 用户
     await page.goto('http://localhost:3030/auth/login');
     await page.fill('input[placeholder*="email"]', 'free@test.com');
-    await page.fill('input[placeholder*="password"]', 'Pass888999');
+    await page.fill('input[placeholder*="password"]', 'Pass88899');
     await page.click('button:has-text("Login")');
     await page.waitForURL('**/user/profile', { timeout: 5000 });
 
@@ -220,7 +220,7 @@ test.describe('Frontend Route Refactor - New URL Structure', () => {
     // 登录为 free 用户
     await page.goto('http://localhost:3030/auth/login');
     await page.fill('input[placeholder*="email"]', 'free@test.com');
-    await page.fill('input[placeholder*="password"]', 'Pass888999');
+    await page.fill('input[placeholder*="password"]', 'Pass88899');
     await page.click('button:has-text("Login")');
     await page.waitForURL('**/user/profile', { timeout: 5000 });
 

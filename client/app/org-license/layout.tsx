@@ -46,7 +46,7 @@ export default function OrgLicenseLayout({ children }: { children: React.ReactNo
       <Header />
       <div className="flex flex-1">
         <Sidebar isOpen={true} />
-        <main className="flex-1">{children}</main>
+        <main className="flex-1 ml-64">{children}</main>
       </div>
     </div>
   );

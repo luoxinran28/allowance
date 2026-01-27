@@ -4,7 +4,7 @@ test.describe('Workflows', () => {
   test('should complete auth workflow', async ({ page }) => {
     await page.goto('/auth/login');
     await page.fill('input[type="email"]', 'free@allowance.test');
-    await page.fill('input[type="password"]', 'Pass888999');
+    await page.fill('input[type="password"]', 'Pass88899');
     await page.click('button:has-text("Sign in")');
     await page.waitForTimeout(2000);
     expect(page.url()).toContain('/dashboard');
@@ -20,7 +20,7 @@ test.describe('Workflows', () => {
     for (const email of users) {
       await page.goto('/auth/login');
       await page.fill('input[type="email"]', email);
-      await page.fill('input[type="password"]', 'Pass888999');
+      await page.fill('input[type="password"]', 'Pass88899');
       await page.click('button:has-text("Sign in")');
       await page.waitForTimeout(2000);
       expect(!page.url().includes('/auth/login')).toBeTruthy();

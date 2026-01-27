@@ -5,7 +5,7 @@ const apiUrl = 'http://localhost:4040';
 
 // Test credentials
 const adminEmail = 'admin@allowance.test';
-const adminPassword = 'Pass888999';
+const adminPassword = 'Pass88899';
 
 test.describe('Issue Fixes - Team Details, Team Creation, Batch Generation', () => {
   /**

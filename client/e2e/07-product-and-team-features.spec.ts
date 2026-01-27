@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Advanced Features - Product & Team Management', () => {
   const baseUrl = 'http://localhost:3030';
   const adminEmail = 'admin@allowance.test';
-  const adminPassword = 'Pass888999';
+  const adminPassword = 'Pass88899';
 
   /**
    * Feature 1: Product Management - Create product and verify UPID display

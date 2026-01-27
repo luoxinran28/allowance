@@ -4,7 +4,7 @@ test.describe('Admin Pages', () => {
   test('should allow admin access', async ({ page }) => {
     await page.goto('/auth/login');
     await page.fill('input[type="email"]', 'admin@allowance.test');
-    await page.fill('input[type="password"]', 'Pass888999');
+    await page.fill('input[type="password"]', 'Pass88899');
     await page.click('button:has-text("Sign in")');
     await page.waitForTimeout(3000);
     expect(page.url().includes('/dashboard')).toBeTruthy();
@@ -13,7 +13,7 @@ test.describe('Admin Pages', () => {
   test('should access admin panel', async ({ page }) => {
     await page.goto('/auth/login');
     await page.fill('input[type="email"]', 'admin@allowance.test');
-    await page.fill('input[type="password"]', 'Pass888999');
+    await page.fill('input[type="password"]', 'Pass88899');
     await page.click('button:has-text("Sign in")');
     await page.waitForTimeout(3000);
     
