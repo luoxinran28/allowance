@@ -7,6 +7,14 @@ import { usePermission } from '@/lib/hooks/usePermission';
 import { PaginationNav } from '@/components/common/PaginationNav';
 import { AdminDetailOverlay } from '@/components/admin/AdminDetailOverlay';
 import { Plus } from 'lucide-react';
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from '@/components/ui/table';
 
 interface Team {
   id: number;
@@ -229,82 +237,70 @@ export default function AdminTeamsPage() {
       </div>
 
       {/* Teams Table */}
-      <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
-        {loading ? (
-          <div className="flex justify-center items-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          </div>
-        ) : teams.length === 0 ? (
-          <div className="py-12 text-center">
-            <p className="text-gray-500">
-              {total === 0 ? 'No teams found' : 'No teams on this page'}
-            </p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="border-b border-gray-200 bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                    Team Name
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                    Team ID
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                    Organization
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                    Created
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {teams.map((team) => {
-                  const org = organizations.find((o) => o.id === team.organization_id);
-                  return (
-                    <tr key={team.id} className="hover:bg-gray-50 transition">
-                      <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                        {team.name}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-600 font-mono">
-                        {team.group_id}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
-                        {org?.name || `Org #${team.organization_id}`}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
-                        {team.created_at
-                          ? new Date(team.created_at).toLocaleDateString()
-                          : 'N/A'}
-                      </td>
-                      <td className="px-6 py-4 text-sm space-x-3 flex">
-                        <Link
-                          href={`/dashboard/admin/teams/${team.id}`}
-                          className="text-blue-600 hover:text-blue-800 font-medium transition"
-                          title="View team details"
-                        >
-                          👁️
-                        </Link>
-                        <Link
-                          href={`/dashboard/admin/teams/${team.id}/members`}
-                          className="text-indigo-600 hover:text-indigo-800 font-medium transition"
-                          title="Manage members"
-                        >
-                          👥
-                        </Link>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+      {loading ? (
+        <div className="flex justify-center items-center py-12 border border-gray-200 rounded-lg">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>
+      ) : teams.length === 0 ? (
+        <div className="py-12 text-center border border-gray-200 rounded-lg">
+          <p className="text-gray-500">
+            {total === 0 ? 'No teams found' : 'No teams on this page'}
+          </p>
+        </div>
+      ) : (
+        <Table>
+          <TableHeader>
+            <TableRow className="hover:bg-transparent">
+              <TableHead>Team Name</TableHead>
+              <TableHead>Team ID</TableHead>
+              <TableHead>Organization</TableHead>
+              <TableHead>Created</TableHead>
+              <TableHead>Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {teams.map((team) => {
+              const org = organizations.find((o) => o.id === team.organization_id);
+              return (
+                <TableRow key={team.id}>
+                  <TableCell className="font-medium text-gray-900">
+                    {team.name}
+                  </TableCell>
+                  <TableCell className="text-gray-600 font-mono">
+                    {team.group_id}
+                  </TableCell>
+                  <TableCell className="text-gray-600">
+                    {org?.name || `Org #${team.organization_id}`}
+                  </TableCell>
+                  <TableCell className="text-gray-600">
+                    {team.created_at
+                      ? new Date(team.created_at).toLocaleDateString()
+                      : 'N/A'}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex space-x-3">
+                      <Link
+                        href={`/dashboard/admin/teams/${team.id}`}
+                        className="text-blue-600 hover:text-blue-800 font-medium transition"
+                        title="View team details"
+                      >
+                        👁️
+                      </Link>
+                      <Link
+                        href={`/dashboard/admin/teams/${team.id}/members`}
+                        className="text-indigo-600 hover:text-indigo-800 font-medium transition"
+                        title="Manage members"
+                      >
+                        👥
+                      </Link>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      )}
 
       {/* Pagination */}
       {totalPages > 1 && (

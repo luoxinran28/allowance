@@ -6,6 +6,14 @@ import { apiClient } from '@/lib/api-client';
 import { UserPlus } from 'lucide-react';
 import { AddMemberModal } from '@/components/team-management/AddMemberModal';
 import { EditMemberModal } from '@/components/team-management/EditMemberModal';
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from '@/components/ui/table';
 
 // ============================================
 // Types
@@ -242,84 +250,88 @@ export default function TeamMembersPage() {
 
       {/* Members Table */}
       {!loading && selectedTeamId && (
-        <div className="bg-white rounded-lg shadow">
-          <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
             <h3 className="text-lg font-medium">Team Members</h3>
-            <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" onClick={handleAddMember}>
+            <button
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              onClick={handleAddMember}
+            >
               <UserPlus className="w-4 h-4 mr-2" />
               Add Member
             </button>
           </div>
-          <div className="p-6">
-            {membersLoading ? (
-              <div>Loading members...</div>
-            ) : members.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                No team members found
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        User
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Role
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Products
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {members.map((member) => (
-                      <tr key={member.user_id}>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <div>
-                              <div className="text-sm font-medium text-gray-900">
-                                {member.uid}
-                              </div>
-                              <div className="text-sm text-gray-500">
-                                {member.email}
-                              </div>
-                            </div>
+
+          {membersLoading ? (
+            <div className="flex justify-center items-center py-12 border border-gray-200 rounded-lg">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+            </div>
+          ) : members.length === 0 ? (
+            <div className="py-12 text-center border border-gray-200 rounded-lg">
+              <p className="text-gray-500">No team members found</p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow className="hover:bg-transparent">
+                  <TableHead>User</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Products</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {members.map((member) => (
+                  <TableRow key={member.user_id}>
+                    <TableCell>
+                      <div className="flex items-center">
+                        <div>
+                          <div className="font-medium text-gray-900">
+                            {member.uid}
                           </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                            member.role === 'team_leader'
-                              ? 'bg-blue-100 text-blue-800'
-                              : 'bg-gray-100 text-gray-800'
-                          }`}>
-                            {member.role === 'team_leader' ? 'Team Leader' : 'Member'}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {member.products.join(', ')}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <div className="flex space-x-2">
-                            <button className="text-indigo-600 hover:text-indigo-900" onClick={() => handleEditMember(member)}>
-                              Edit
-                            </button>
-                            <button className="text-red-600 hover:text-red-900" onClick={() => handleRemoveMember(member)}>
-                              Remove
-                            </button>
+                          <div className="text-sm text-gray-500">
+                            {member.email}
                           </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span
+                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          member.role === 'team_leader'
+                            ? 'bg-blue-100 text-blue-800'
+                            : 'bg-gray-100 text-gray-800'
+                        }`}
+                      >
+                        {member.role === 'team_leader'
+                          ? 'Team Leader'
+                          : 'Member'}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-gray-500">
+                      {member.products.join(', ')}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex space-x-2">
+                        <button
+                          className="text-indigo-600 hover:text-indigo-900 font-medium"
+                          onClick={() => handleEditMember(member)}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          className="text-red-600 hover:text-red-900 font-medium"
+                          onClick={() => handleRemoveMember(member)}
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </div>
       )}
 

@@ -4,6 +4,14 @@ import { useEffect, useState, useCallback } from 'react';
 import { apiClient } from '@/lib/api-client';
 import { useAuthStore } from '@/lib/auth-store';
 import { UserPlus, UserMinus, X, Crown, Building2 } from 'lucide-react';
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from '@/components/ui/table';
 
 // ============================================
 // Types
@@ -414,33 +422,24 @@ export default function OrganizationBossesPage() {
         </div>
       </div>
 
-      {/* Boss Count Summary */}
-      {selectedOrgId && bosses.length > 0 && (
-        <div className="mb-6 border border-border rounded-lg p-4 bg-muted/30">
-          <h3 className="text-sm font-semibold mb-2 flex items-center gap-2">
-            <Building2 className="h-4 w-4" />
-            {selectedOrg?.name}
-          </h3>
-          <p className="text-sm text-muted-foreground">
-            {bosses.length} boss{bosses.length !== 1 ? 'es' : ''} assigned
-          </p>
-        </div>
-      )}
-
       {/* Bosses List */}
       {loading ? (
-        <div className="flex justify-center items-center py-12">
+        <div className="flex justify-center items-center py-12 border border-gray-200 rounded-lg">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
         </div>
       ) : !selectedOrgId ? (
-        <div className="border border-dashed border-border rounded-lg p-8 text-center">
-          <Building2 className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-          <p className="text-muted-foreground">Select an organization to view its bosses</p>
+        <div className="border border-dashed border-gray-200 rounded-lg p-8 text-center bg-gray-50">
+          <Building2 className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+          <p className="text-gray-500">
+            Select an organization to view its bosses
+          </p>
         </div>
       ) : bosses.length === 0 ? (
-        <div className="border border-dashed border-border rounded-lg p-8 text-center">
-          <Crown className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-          <p className="text-muted-foreground mb-4">No bosses assigned to this organization</p>
+        <div className="border border-dashed border-gray-200 rounded-lg p-8 text-center bg-gray-50">
+          <Crown className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+          <p className="text-gray-500 mb-4">
+            No bosses assigned to this organization
+          </p>
           {isAllstar && (
             <button
               onClick={() => setShowAddModal(true)}
@@ -452,61 +451,69 @@ export default function OrganizationBossesPage() {
           )}
         </div>
       ) : (
-        <div className="border border-border rounded-lg overflow-hidden">
-          <table className="w-full">
-            <thead className="bg-muted border-b border-border">
-              <tr>
-                <th className="text-left px-6 py-3 font-semibold text-sm">Email</th>
-                <th className="text-left px-6 py-3 font-semibold text-sm">UID</th>
-                <th className="text-left px-6 py-3 font-semibold text-sm">Tier</th>
-                <th className="text-left px-6 py-3 font-semibold text-sm">Assigned Date</th>
-                <th className="text-left px-6 py-3 font-semibold text-sm">Notes</th>
+        <Table>
+          <TableHeader>
+            <TableRow className="hover:bg-transparent">
+              <TableHead>Email</TableHead>
+              <TableHead>UID</TableHead>
+              <TableHead>Tier</TableHead>
+              <TableHead>Assigned Date</TableHead>
+              <TableHead>Notes</TableHead>
+              {isAllstar && <TableHead>Actions</TableHead>}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {bosses.map((boss) => (
+              <TableRow key={boss.id}>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    <Crown className="h-4 w-4 text-purple-500" />
+                    <p className="font-medium text-gray-900">
+                      {boss.user_email}
+                    </p>
+                  </div>
+                </TableCell>
+                <TableCell className="text-gray-500 font-mono">
+                  {boss.user_uid}
+                </TableCell>
+                <TableCell>
+                  <span
+                    className={`px-3 py-1 rounded-full text-xs font-medium ${getTierColor(
+                      boss.user_tier
+                    )}`}
+                  >
+                    {boss.user_tier}
+                  </span>
+                </TableCell>
+                <TableCell className="text-gray-500">
+                  {formatDate(boss.assigned_at)}
+                </TableCell>
+                <TableCell className="text-gray-500">
+                  {boss.notes || '-'}
+                </TableCell>
                 {isAllstar && (
-                  <th className="text-left px-6 py-3 font-semibold text-sm">Actions</th>
+                  <TableCell>
+                    <button
+                      onClick={() => handleRemoveBoss(boss.user_id)}
+                      disabled={
+                        removingBossId === boss.user_id || bosses.length <= 1
+                      }
+                      className="text-red-600 hover:text-red-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                      title={
+                        bosses.length <= 1
+                          ? 'Cannot remove the last boss'
+                          : 'Remove boss'
+                      }
+                    >
+                      <UserMinus className="h-4 w-4" />
+                      {removingBossId === boss.user_id ? '...' : 'Remove'}
+                    </button>
+                  </TableCell>
                 )}
-              </tr>
-            </thead>
-            <tbody>
-              {bosses.map((boss) => (
-                <tr key={boss.id} className="border-b border-border hover:bg-muted/50 transition-colors">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-2">
-                      <Crown className="h-4 w-4 text-purple-500" />
-                      <p className="text-sm font-medium">{boss.user_email}</p>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <p className="text-sm text-muted-foreground font-mono">{boss.user_uid}</p>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${getTierColor(boss.user_tier)}`}>
-                      {boss.user_tier}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <p className="text-sm text-muted-foreground">{formatDate(boss.assigned_at)}</p>
-                  </td>
-                  <td className="px-6 py-4">
-                    <p className="text-sm text-muted-foreground">{boss.notes || '-'}</p>
-                  </td>
-                  {isAllstar && (
-                    <td className="px-6 py-4">
-                      <button
-                        onClick={() => handleRemoveBoss(boss.user_id)}
-                        disabled={removingBossId === boss.user_id || bosses.length <= 1}
-                        className="text-sm text-red-600 hover:text-red-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-                        title={bosses.length <= 1 ? 'Cannot remove the last boss' : 'Remove boss'}
-                      >
-                        <UserMinus className="h-4 w-4" />
-                        {removingBossId === boss.user_id ? '...' : 'Remove'}
-                      </button>
-                    </td>
-                  )}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       )}
 
       {/* Permission Note */}

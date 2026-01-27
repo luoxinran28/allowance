@@ -8,6 +8,14 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, Plus } from 'lucide-react';
 import { AdminDetailOverlay } from '@/components/admin/AdminDetailOverlay';
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from '@/components/ui/table';
 
 interface Organization {
   id: number;
@@ -161,60 +169,54 @@ export default function AdminOrganizationsPage() {
       </div>
 
       {/* Organizations Table */}
-      <div className="border border-border rounded-lg overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-muted border-b border-border">
-            <tr>
-              <th className="px-6 py-3 text-left text-sm font-semibold">Organization</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold">Description</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold">Created</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {loading ? (
-              <tr>
-                <td colSpan={4} className="px-6 py-8 text-center text-muted-foreground">
-                  Loading organizations...
-                </td>
-              </tr>
-            ) : organizations.length === 0 ? (
-              <tr>
-                <td colSpan={4} className="px-6 py-8 text-center text-muted-foreground">
-                  No organizations found
-                </td>
-              </tr>
-            ) : (
-              organizations.map((org) => (
-                <tr key={org.id} className="hover:bg-muted/50">
-                  <td className="px-6 py-4">
-                    <button
-                      onClick={() => handleOpenOverlay(org)}
-                      className="font-medium hover:underline text-blue-600"
-                    >
-                      {org.name}
-                    </button>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-muted-foreground">
-                    {org.description || '-'}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-muted-foreground">
-                    {new Date(org.created_at).toLocaleDateString()}
-                  </td>
-                  <td className="px-6 py-4 text-sm">
-                    <button
-                      onClick={() => handleOpenOverlay(org)}
-                      className="px-3 py-1 rounded hover:bg-gray-100 text-blue-600 hover:text-blue-800"
-                    >
-                      View
-                    </button>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+      {loading ? (
+        <div className="flex justify-center items-center py-12 border border-gray-200 rounded-lg">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>
+      ) : organizations.length === 0 ? (
+        <div className="py-12 text-center border border-gray-200 rounded-lg">
+          <p className="text-gray-500">No organizations found</p>
+        </div>
+      ) : (
+        <Table>
+          <TableHeader>
+            <TableRow className="hover:bg-transparent">
+              <TableHead>Organization</TableHead>
+              <TableHead>Description</TableHead>
+              <TableHead>Created</TableHead>
+              <TableHead>Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {organizations.map((org) => (
+              <TableRow key={org.id}>
+                <TableCell>
+                  <button
+                    onClick={() => handleOpenOverlay(org)}
+                    className="font-medium hover:underline text-blue-600"
+                  >
+                    {org.name}
+                  </button>
+                </TableCell>
+                <TableCell className="text-sm text-muted-foreground">
+                  {org.description || '-'}
+                </TableCell>
+                <TableCell className="text-sm text-muted-foreground">
+                  {new Date(org.created_at).toLocaleDateString()}
+                </TableCell>
+                <TableCell>
+                  <button
+                    onClick={() => handleOpenOverlay(org)}
+                    className="px-3 py-1 rounded hover:bg-gray-100 text-blue-600 hover:text-blue-800"
+                  >
+                    View
+                  </button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      )}
 
       {/* Organization Detail Overlay */}
       <AdminDetailOverlay

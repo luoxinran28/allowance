@@ -9,6 +9,14 @@ import { PaginationNav } from '@/components/common/PaginationNav';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { AdminDetailOverlay } from '@/components/admin/AdminDetailOverlay';
 import { Plus } from 'lucide-react';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 interface User {
   id: number;
@@ -266,91 +274,73 @@ export default function AdminUsersPage() {
       </div>
 
       {/* Table */}
-      <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
-        {loading ? (
-          <div className="flex justify-center items-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          </div>
-        ) : filteredUsers.length === 0 ? (
-          <div className="py-12 text-center">
-            <p className="text-gray-500">No users found</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="border-b border-gray-200 bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                    Email
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                    UID
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                    Tier
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                    Role
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                    Organization
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                    Teams
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {filteredUsers.map((user) => (
-                  <tr
-                    key={user.id}
-                    className="hover:bg-gray-50 transition cursor-pointer"
-                    onClick={() => handleOpenRoleModal(user)}
-                  >
-                    <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                      {user.email}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-600 font-mono">
-                      {user.uid}
-                    </td>
-                    <td className="px-6 py-4 text-sm">
-                      <StatusBadge status={user.tier} />
-                    </td>
-                    <td className="px-6 py-4 text-sm">
-                      <RoleTag role={user.roles?.[0] || 'free_user'} />
-                    </td>
-                    <td className="px-6 py-4 text-sm">
-                      <StatusBadge status={user.status} />
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
-                      {user.organization_name || '-'}
-                    </td>
-                    <td className="px-6 py-4 text-sm">
-                      {user.team_names && user.team_names.length > 0 ? (
-                        <div className="flex flex-wrap gap-1">
-                          {user.team_names.map((team, index) => (
-                            <span
-                              key={index}
-                              className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
-                            >
-                              {team}
-                            </span>
-                          ))}
-                        </div>
-                      ) : (
-                        <span className="text-gray-400">-</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+      {loading ? (
+        <div className="flex justify-center items-center py-12 border border-gray-200 rounded-lg">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>
+      ) : filteredUsers.length === 0 ? (
+        <div className="py-12 text-center border border-gray-200 rounded-lg">
+          <p className="text-gray-500">No users found</p>
+        </div>
+      ) : (
+        <Table>
+          <TableHeader>
+            <TableRow className="hover:bg-transparent">
+              <TableHead>Email</TableHead>
+              <TableHead>UID</TableHead>
+              <TableHead>Tier</TableHead>
+              <TableHead>Role</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Organization</TableHead>
+              <TableHead>Teams</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredUsers.map((user) => (
+              <TableRow
+                key={user.id}
+                className="cursor-pointer"
+                onClick={() => handleOpenRoleModal(user)}
+              >
+                <TableCell className="font-medium text-gray-900">
+                  {user.email}
+                </TableCell>
+                <TableCell className="text-gray-600 font-mono">
+                  {user.uid}
+                </TableCell>
+                <TableCell>
+                  <StatusBadge status={user.tier} />
+                </TableCell>
+                <TableCell>
+                  <RoleTag role={user.roles?.[0] || 'free_user'} />
+                </TableCell>
+                <TableCell>
+                  <StatusBadge status={user.status} />
+                </TableCell>
+                <TableCell className="text-gray-600">
+                  {user.organization_name || '-'}
+                </TableCell>
+                <TableCell>
+                  {user.team_names && user.team_names.length > 0 ? (
+                    <div className="flex flex-wrap gap-1">
+                      {user.team_names.map((team, index) => (
+                        <span
+                          key={index}
+                          className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                        >
+                          {team}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <span className="text-gray-400">-</span>
+                  )}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      )}
 
       {/* Pagination */}
       {totalPages > 1 && (
