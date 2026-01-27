@@ -147,7 +147,7 @@ impl TeamService {
         new_role: &str,
     ) -> AppResult<()> {
         let result = sqlx::query(
-            "UPDATE user_teams SET role = $1 WHERE user_id = $2 AND team_id = $3"
+            "UPDATE user_teams SET role = $1::organization_role WHERE user_id = $2 AND team_id = $3"
         )
             .bind(new_role)
             .bind(user_id)

@@ -28,3 +28,14 @@ export { Tabs, TabsList, TabsTrigger, TabsContent } from "./tabs"
 export { Badge, badgeVariants } from "./badge"
 export { Skeleton } from "./skeleton"
 export { Separator } from "./separator"
+export { 
+  Select,
+  SelectGroup,
+  SelectValue,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectSeparator,
+  SelectScrollUpButton,
+  SelectScrollDownButton,
+} from "./select"
