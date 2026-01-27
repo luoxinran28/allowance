@@ -188,7 +188,7 @@ impl OrganizationService {
         let bosses = sqlx::query_as::<_, crate::models::OrganizationBoss>(
             r#"
             SELECT ob.id, ob.organization_id, ob.user_id, ob.assigned_by, ob.assigned_at, ob.notes,
-                   u.uid, u.email, u.tier::text as tier
+                   u.uid as user_uid, u.email as user_email, u.tier::text as user_tier
             FROM organization_bosses ob
             JOIN users u ON ob.user_id = u.id
             WHERE ob.organization_id = $1

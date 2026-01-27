@@ -50,9 +50,9 @@ pub struct OrganizationBoss {
     pub assigned_at: NaiveDateTime,
     pub notes: Option<String>,
     // Joined user fields
-    pub uid: String,
-    pub email: String,
-    pub tier: String,
+    pub user_uid: String,
+    pub user_email: String,
+    pub user_tier: String,
 }
 
 /// Simplified user info for boss candidate selection
