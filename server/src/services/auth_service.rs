@@ -36,17 +36,25 @@ impl AuthService {
         let uid = format!("U{}", Uuid::new_v4().simple().to_string()[..15].to_uppercase());
         let password_hash = hash_password(password)?;
 
-        // Create user (starts as inactive, tier=free)
+        // KwongFu users are auto-activated, others need email activation
+        let initial_status = if source_upid.starts_with("UKWONGFU") {
+            "active"
+        } else {
+            "inactive"
+        };
+
+        // Create user (tier=free, status based on source)
         let user = sqlx::query_as::<_, User>(
             r#"
             INSERT INTO users (uid, email, password_hash, status, tier, source_upid)
-            VALUES ($1, $2, $3, 'inactive', 'free', $4)
+            VALUES ($1, $2, $3, $4, 'free', $5)
             RETURNING id, uid, email, password_hash, tier, status, organization_id, team_ids, license_status, source_upid, profile_data, created_at, updated_at, last_login
             "#
         )
             .bind(&uid)
             .bind(email)
             .bind(password_hash)
+            .bind(initial_status)
             .bind(source_upid)
             .fetch_one(pool)
             .await?;

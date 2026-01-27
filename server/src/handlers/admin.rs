@@ -243,7 +243,7 @@ pub async fn create_user(
     let user = sqlx::query_as::<_, User>(
         r#"
         INSERT INTO users (uid, email, password_hash, status, tier, organization_id, source_upid)
-        VALUES ($1, $2, $3, $4, $5, $6, 'UALLOWANCE0001')
+        VALUES ($1, $2, $3, $4::user_status, $5::user_tier, $6, 'UALLOWANCE0001')
         RETURNING id, uid, email, password_hash, tier, status, organization_id, team_ids, license_status, source_upid, profile_data, created_at, updated_at, last_login
         "#
     )
