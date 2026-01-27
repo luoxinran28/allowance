@@ -129,10 +129,8 @@ export default function Sidebar({ isOpen = true }: { isOpen?: boolean }) {
   const perms = usePermission();
 
   const isActive = (href: string): boolean => {
-    if (href === '/dashboard') {
-      return pathname === href;
-    }
-    return pathname === href || pathname.startsWith(href + '/');
+    // Exact match only - no hierarchical matching
+    return pathname === href;
   };
 
   // Define all sections - Updated order as per requirements
