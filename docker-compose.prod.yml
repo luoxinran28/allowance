@@ -102,7 +102,7 @@ services:
     env_file:
       - ./database/.env
     environment:
-      - SCRIPT_NAME=/admin
+      - SCRIPT_NAME=/pgadmin
     ports:
       - "8080:80"
     volumes:
