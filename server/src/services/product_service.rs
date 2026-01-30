@@ -177,8 +177,14 @@ impl ProductService {
         description: Option<&str>,
         owner_id: i64,
     ) -> AppResult<Product> {
-        // Generate UPID: UPID-{slug}-{tier} format
-        let upid = format!("UPID-{}-basic", product_slug);
+        // Generate UPID: UPID-{slug}-{tier} format, but ensure total length <= 16
+        // Take first 8 chars of slug to fit within 16 char limit: UPID-{8chars}-b = 16 chars
+        let slug_prefix = if product_slug.len() > 8 {
+            &product_slug[..8]
+        } else {
+            product_slug
+        };
+        let upid = format!("UPID-{}-b", slug_prefix);
 
         let product = sqlx::query_as::<_, Product>(
             r#"
