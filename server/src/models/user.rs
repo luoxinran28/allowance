@@ -142,7 +142,7 @@ pub struct RegisterRequest {
 pub struct LoginRequest {
     pub email: String,
     pub password: String,
-    /// Product UPID for product-specific tier lookup (e.g., "UKWONGFU0001")
+    /// Product UPID for product-specific tier lookup (e.g., "UPID-kwongfu-basic")
     /// Used by external products like KwongFu to get product-specific tier
     #[serde(alias = "source_upid")]
     pub upid: Option<String>,

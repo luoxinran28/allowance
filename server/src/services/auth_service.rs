@@ -37,7 +37,7 @@ impl AuthService {
         let password_hash = hash_password(password)?;
 
         // KwongFu users are auto-activated, others need email activation
-        let initial_status = if source_upid.starts_with("UKWONGFU") {
+        let initial_status = if source_upid.starts_with("UPID-kwongfu") {
             "active"
         } else {
             "inactive"

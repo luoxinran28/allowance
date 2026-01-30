@@ -66,7 +66,7 @@ INSERT INTO products (upid, product_slug, name, description) VALUES
     ('UALLOWANCE0001', 'allowance', 'Allowance System', 'Core allowance authorization management system'),
     ('UPROD000001', 'analytics-pro', 'Analytics Pro', 'Advanced analytics and reporting platform'),
     ('UPROD000002', 'crm-suite', 'CRM Suite', 'Customer relationship management solution'),
-    ('UKWONGFU0001', 'kwongfu', 'KwongFu Trading System', 'Automated Crypto Trading Platform for Binance.US Spot')
+    ('UPID-kwongfu-basic', 'kwongfu', 'KwongFu Trading System', 'Automated Crypto Trading Platform for Binance.US Spot')
 ON CONFLICT (upid) DO NOTHING;
 
 -- ============================================================
