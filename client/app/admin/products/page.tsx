@@ -8,7 +8,7 @@ import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 
 interface Product {
   id: number;
-  product_id: string;
+  product_slug: string;
   upid?: string;
   name: string;
   description?: string;
@@ -98,7 +98,7 @@ export default function AdminProductsPage() {
     if (product) {
       setEditingProduct(product);
       setFormData({
-        product_slug: product.product_id || '',
+        product_slug: product.product_slug || '',
         name: product.name || '',
         description: product.description || '',
       });
@@ -211,14 +211,14 @@ export default function AdminProductsPage() {
 
       const response = licenseOrgId
         ? await apiClient.generateBatchOrgLicenses(
-            licensingProduct.product_id,
+            licensingProduct.product_slug,
             licenseOrgId as number,
             licensingProduct.version || 'pro',
             licenseQuantity,
             licenseExpirationDays
           )
         : await apiClient.generateBatchLicenses(
-            licensingProduct.product_id,
+            licensingProduct.product_slug,
             licensingProduct.version || 'pro',
             licenseQuantity,
             licenseExpirationDays
@@ -339,7 +339,7 @@ export default function AdminProductsPage() {
                       {product.name}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600 font-mono">
-                      {product.product_id}
+                      {product.product_slug}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600 font-mono">
                       {product.upid || 'N/A'}
