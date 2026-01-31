@@ -13,24 +13,24 @@ ON CONFLICT (email) DO NOTHING;
 
 -- Org Bosses (premium tier)
 INSERT INTO users (uid, email, password_hash, tier, status, organization_id, team_ids, source_upid, profile_data, license_status, created_at, updated_at) VALUES
-    ('UBOSS0001', 'boss1@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$F20jUfqy4qy4/6z6tOLBhg$Gl8U55p400Q0AXdl2TAWiYGcEWgGs5+4DqvagDNvJrc', 'premium', 'active', NULL, '[]'::jsonb, 'UALLOWANCE0001', '{"first_name": "Alice", "last_name": "Boss"}', 'valid', CURRENT_TIMESTAMP - INTERVAL '60 days', CURRENT_TIMESTAMP),
-    ('UBOSS0002', 'boss2@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$F20jUfqy4qy4/6z6tOLBhg$Gl8U55p400Q0AXdl2TAWiYGcEWgGs5+4DqvagDNvJrc', 'premium', 'active', NULL, '[]'::jsonb, 'UALLOWANCE0001', '{"first_name": "Bob", "last_name": "Manager"}', 'valid', CURRENT_TIMESTAMP - INTERVAL '55 days', CURRENT_TIMESTAMP),
-    ('UPREM0001', 'premium@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$F20jUfqy4qy4/6z6tOLBhg$Gl8U55p400Q0AXdl2TAWiYGcEWgGs5+4DqvagDNvJrc', 'premium', 'active', NULL, '[]'::jsonb, 'UALLOWANCE0001', '{"first_name": "Premium", "last_name": "User"}', 'valid', CURRENT_TIMESTAMP - INTERVAL '52 days', CURRENT_TIMESTAMP)
+    ('UBOSS0001', 'boss1@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$F20jUfqy4qy4/6z6tOLBhg$Gl8U55p400Q0AXdl2TAWiYGcEWgGs5+4DqvagDNvJrc', 'premium', 'active', NULL, '[]'::jsonb, 'allowance', '{"first_name": "Alice", "last_name": "Boss"}', 'valid', CURRENT_TIMESTAMP - INTERVAL '60 days', CURRENT_TIMESTAMP),
+    ('UBOSS0002', 'boss2@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$F20jUfqy4qy4/6z6tOLBhg$Gl8U55p400Q0AXdl2TAWiYGcEWgGs5+4DqvagDNvJrc', 'premium', 'active', NULL, '[]'::jsonb, 'allowance', '{"first_name": "Bob", "last_name": "Manager"}', 'valid', CURRENT_TIMESTAMP - INTERVAL '55 days', CURRENT_TIMESTAMP),
+    ('UPREM0001', 'premium@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$F20jUfqy4qy4/6z6tOLBhg$Gl8U55p400Q0AXdl2TAWiYGcEWgGs5+4DqvagDNvJrc', 'premium', 'active', NULL, '[]'::jsonb, 'allowance', '{"first_name": "Premium", "last_name": "User"}', 'valid', CURRENT_TIMESTAMP - INTERVAL '52 days', CURRENT_TIMESTAMP)
 ON CONFLICT (email) DO NOTHING;
 
 -- Standard users (team members)
 INSERT INTO users (uid, email, password_hash, tier, status, organization_id, team_ids, source_upid, profile_data, license_status, created_at, updated_at) VALUES
-    ('USTD00001', 'standard@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$F20jUfqy4qy4/6z6tOLBhg$Gl8U55p400Q0AXdl2TAWiYGcEWgGs5+4DqvagDNvJrc', 'standard', 'active', NULL, '[]'::jsonb, 'UALLOWANCE0001', '{"first_name": "Standard", "last_name": "User"}', 'valid', CURRENT_TIMESTAMP - INTERVAL '55 days', CURRENT_TIMESTAMP),
-    ('ULEAD0001', 'leader1@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$F20jUfqy4qy4/6z6tOLBhg$Gl8U55p400Q0AXdl2TAWiYGcEWgGs5+4DqvagDNvJrc', 'standard', 'active', NULL, '[]'::jsonb, 'UALLOWANCE0001', '{"first_name": "Charlie", "last_name": "Leader"}', 'valid', CURRENT_TIMESTAMP - INTERVAL '50 days', CURRENT_TIMESTAMP),
-    ('ULEAD0002', 'leader2@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$F20jUfqy4qy4/6z6tOLBhg$Gl8U55p400Q0AXdl2TAWiYGcEWgGs5+4DqvagDNvJrc', 'standard', 'active', NULL, '[]'::jsonb, 'UALLOWANCE0001', '{"first_name": "Diana", "last_name": "Team Leader"}', 'valid', CURRENT_TIMESTAMP - INTERVAL '45 days', CURRENT_TIMESTAMP),
-    ('UMEM00001', 'member1@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$F20jUfqy4qy4/6z6tOLBhg$Gl8U55p400Q0AXdl2TAWiYGcEWgGs5+4DqvagDNvJrc', 'standard', 'active', NULL, '[]'::jsonb, 'UALLOWANCE0001', '{"first_name": "Eve", "last_name": "Developer"}', 'valid', CURRENT_TIMESTAMP - INTERVAL '40 days', CURRENT_TIMESTAMP),
-    ('UMEM00002', 'member2@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$F20jUfqy4qy4/6z6tOLBhg$Gl8U55p400Q0AXdl2TAWiYGcEWgGs5+4DqvagDNvJrc', 'standard', 'active', NULL, '[]'::jsonb, 'UPROD000001', '{"first_name": "Frank", "last_name": "Designer"}', 'valid', CURRENT_TIMESTAMP - INTERVAL '35 days', CURRENT_TIMESTAMP),
-    ('UMEM00003', 'member3@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$F20jUfqy4qy4/6z6tOLBhg$Gl8U55p400Q0AXdl2TAWiYGcEWgGs5+4DqvagDNvJrc', 'standard', 'active', NULL, '[]'::jsonb, 'UPROD000002', '{"first_name": "Grace", "last_name": "Engineer"}', 'valid', CURRENT_TIMESTAMP - INTERVAL '30 days', CURRENT_TIMESTAMP)
+    ('USTD00001', 'standard@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$F20jUfqy4qy4/6z6tOLBhg$Gl8U55p400Q0AXdl2TAWiYGcEWgGs5+4DqvagDNvJrc', 'standard', 'active', NULL, '[]'::jsonb, 'allowance', '{"first_name": "Standard", "last_name": "User"}', 'valid', CURRENT_TIMESTAMP - INTERVAL '55 days', CURRENT_TIMESTAMP),
+    ('ULEAD0001', 'leader1@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$F20jUfqy4qy4/6z6tOLBhg$Gl8U55p400Q0AXdl2TAWiYGcEWgGs5+4DqvagDNvJrc', 'standard', 'active', NULL, '[]'::jsonb, 'allowance', '{"first_name": "Charlie", "last_name": "Leader"}', 'valid', CURRENT_TIMESTAMP - INTERVAL '50 days', CURRENT_TIMESTAMP),
+    ('ULEAD0002', 'leader2@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$F20jUfqy4qy4/6z6tOLBhg$Gl8U55p400Q0AXdl2TAWiYGcEWgGs5+4DqvagDNvJrc', 'standard', 'active', NULL, '[]'::jsonb, 'allowance', '{"first_name": "Diana", "last_name": "Team Leader"}', 'valid', CURRENT_TIMESTAMP - INTERVAL '45 days', CURRENT_TIMESTAMP),
+    ('UMEM00001', 'member1@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$F20jUfqy4qy4/6z6tOLBhg$Gl8U55p400Q0AXdl2TAWiYGcEWgGs5+4DqvagDNvJrc', 'standard', 'active', NULL, '[]'::jsonb, 'allowance', '{"first_name": "Eve", "last_name": "Developer"}', 'valid', CURRENT_TIMESTAMP - INTERVAL '40 days', CURRENT_TIMESTAMP),
+    ('UMEM00002', 'member2@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$F20jUfqy4qy4/6z6tOLBhg$Gl8U55p400Q0AXdl2TAWiYGcEWgGs5+4DqvagDNvJrc', 'standard', 'active', NULL, '[]'::jsonb, 'analytics-pro', '{"first_name": "Frank", "last_name": "Designer"}', 'valid', CURRENT_TIMESTAMP - INTERVAL '35 days', CURRENT_TIMESTAMP),
+    ('UMEM00003', 'member3@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$F20jUfqy4qy4/6z6tOLBhg$Gl8U55p400Q0AXdl2TAWiYGcEWgGs5+4DqvagDNvJrc', 'standard', 'active', NULL, '[]'::jsonb, 'crm-suite', '{"first_name": "Grace", "last_name": "Engineer"}', 'valid', CURRENT_TIMESTAMP - INTERVAL '30 days', CURRENT_TIMESTAMP)
 ON CONFLICT (email) DO NOTHING;
 
 -- Free user
 INSERT INTO users (uid, email, password_hash, tier, status, organization_id, team_ids, source_upid, profile_data, license_status, created_at, updated_at) VALUES
-    ('UFREE0001', 'free@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$F20jUfqy4qy4/6z6tOLBhg$Gl8U55p400Q0AXdl2TAWiYGcEWgGs5+4DqvagDNvJrc', 'free', 'active', NULL, '[]'::jsonb, 'UALLOWANCE0001', '{"first_name": "Henry", "last_name": "Trial"}', 'not_assigned', CURRENT_TIMESTAMP - INTERVAL '10 days', CURRENT_TIMESTAMP)
+    ('UFREE0001', 'free@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$F20jUfqy4qy4/6z6tOLBhg$Gl8U55p400Q0AXdl2TAWiYGcEWgGs5+4DqvagDNvJrc', 'free', 'active', NULL, '[]'::jsonb, 'allowance', '{"first_name": "Henry", "last_name": "Trial"}', 'not_assigned', CURRENT_TIMESTAMP - INTERVAL '10 days', CURRENT_TIMESTAMP)
 ON CONFLICT (email) DO NOTHING;
 
 -- ============================================================
@@ -63,10 +63,10 @@ ON CONFLICT (team_id) DO NOTHING;
 -- ============================================================
 
 INSERT INTO products (upid, product_slug, name, description) VALUES
-    ('UPID-allowan-b', 'allowance', 'Allowance System', 'Core allowance authorization management system'),
-    ('UPID-analyti-b', 'analytics-pro', 'Analytics Pro', 'Advanced analytics and reporting platform'),
-    ('UPID-crm-sui-b', 'crm-suite', 'CRM Suite', 'Customer relationship management solution'),
-    ('UPID-kwongfu-b', 'kwongfu', 'KwongFu Trading System', 'Automated Crypto Trading Platform for Binance.US Spot')
+    ('allowance', 'allowance', 'Allowance System', 'Core allowance authorization management system'),
+    ('analytics-pro', 'analytics-pro', 'Analytics Pro', 'Advanced analytics and reporting platform'),
+    ('crm-suite', 'crm-suite', 'CRM Suite', 'Customer relationship management solution'),
+    ('kwongfu-trading', 'kwongfu', 'KwongFu Trading System', 'Automated Crypto Trading Platform for Binance.US Spot')
 ON CONFLICT (upid) DO NOTHING;
 
 -- ============================================================
@@ -75,10 +75,10 @@ ON CONFLICT (upid) DO NOTHING;
 
 -- Allowance versions
 INSERT INTO product_versions (product_id, version_name, description, features, tier_required, daily_limit, monthly_limit) VALUES
-    ((SELECT id FROM products WHERE upid = 'UALLOWANCE0001'), 'basic', 'Basic features', '{"max_recipients": 10, "reporting": false}'::jsonb, 'free'::user_tier, 10, 1000),
-    ((SELECT id FROM products WHERE upid = 'UALLOWANCE0001'), 'standard', 'Standard features', '{"max_recipients": 100, "reporting": true}'::jsonb, 'standard'::user_tier, 100, 10000),
-    ((SELECT id FROM products WHERE upid = 'UALLOWANCE0001'), 'premium', 'Premium features', '{"max_recipients": 1000, "api_access": true}'::jsonb, 'premium'::user_tier, NULL, NULL),
-    ((SELECT id FROM products WHERE upid = 'UALLOWANCE0001'), 'allstar', 'AllStar - Full access', '{"max_recipients": "unlimited"}'::jsonb, 'allstar'::user_tier, NULL, NULL)
+    ((SELECT id FROM products WHERE upid = 'allowance'), 'basic', 'Basic features', '{"max_recipients": 10, "reporting": false}'::jsonb, 'free'::user_tier, 10, 1000),
+    ((SELECT id FROM products WHERE upid = 'allowance'), 'standard', 'Standard features', '{"max_recipients": 100, "reporting": true}'::jsonb, 'standard'::user_tier, 100, 10000),
+    ((SELECT id FROM products WHERE upid = 'allowance'), 'premium', 'Premium features', '{"max_recipients": 1000, "api_access": true}'::jsonb, 'premium'::user_tier, NULL, NULL),
+    ((SELECT id FROM products WHERE upid = 'allowance'), 'allstar', 'AllStar - Full access', '{"max_recipients": "unlimited"}'::jsonb, 'allstar'::user_tier, NULL, NULL)
 ON CONFLICT (product_id, version_name) DO NOTHING;
 
 -- Analytics Pro versions
@@ -107,9 +107,9 @@ ON CONFLICT (product_id, version_name) DO NOTHING;
 -- ============================================================
 
 INSERT INTO org_product_licenses (organization_id, product_id, total_count, assigned_count, expires_at, created_by) VALUES
-    ((SELECT id FROM organizations WHERE org_id = 'ACME01'), (SELECT id FROM products WHERE upid = 'UALLOWANCE0001'), 50, 0, CURRENT_TIMESTAMP + INTERVAL '1 year', (SELECT id FROM users WHERE email = 'admin@allowance.test')),
-    ((SELECT id FROM organizations WHERE org_id = 'ACME01'), (SELECT id FROM products WHERE upid = 'UPROD000001'), 30, 0, CURRENT_TIMESTAMP + INTERVAL '1 year', (SELECT id FROM users WHERE email = 'admin@allowance.test')),
-    ((SELECT id FROM organizations WHERE org_id = 'STARTUP1'), (SELECT id FROM products WHERE upid = 'UALLOWANCE0001'), 20, 0, CURRENT_TIMESTAMP + INTERVAL '1 year', (SELECT id FROM users WHERE email = 'admin@allowance.test'))
+    ((SELECT id FROM organizations WHERE org_id = 'ACME01'), (SELECT id FROM products WHERE upid = 'allowance'), 50, 0, CURRENT_TIMESTAMP + INTERVAL '1 year', (SELECT id FROM users WHERE email = 'admin@allowance.test')),
+    ((SELECT id FROM organizations WHERE org_id = 'ACME01'), (SELECT id FROM products WHERE upid = 'analytics-pro'), 30, 0, CURRENT_TIMESTAMP + INTERVAL '1 year', (SELECT id FROM users WHERE email = 'admin@allowance.test')),
+    ((SELECT id FROM organizations WHERE org_id = 'STARTUP1'), (SELECT id FROM products WHERE upid = 'allowance'), 20, 0, CURRENT_TIMESTAMP + INTERVAL '1 year', (SELECT id FROM users WHERE email = 'admin@allowance.test'))
 ON CONFLICT (organization_id, product_id) DO NOTHING;
 
 -- ============================================================

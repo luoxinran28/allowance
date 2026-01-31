@@ -408,7 +408,8 @@ export default function AdminProductsPage() {
                   type="text"
                   value={formData.product_slug}
                   onChange={(e) =>
-                    setFormData({ ...formData, product_slug: e.target.value })
+                    // enforce lowercase and max 16 chars on the client
+                    setFormData({ ...formData, product_slug: e.target.value.toLowerCase().slice(0, 16) })
                   }
                   className={`w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 ${
                     editingProduct ? 'bg-gray-100 cursor-not-allowed' : ''
@@ -416,6 +417,7 @@ export default function AdminProductsPage() {
                   placeholder="e.g., allowance-001"
                   disabled={!!editingProduct}
                   required
+                  maxLength={16}
                 />
               </div>
 

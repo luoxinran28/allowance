@@ -37,10 +37,10 @@ impl AuthService {
         let password_hash = hash_password(password)?;
 
         // KwongFu users are auto-activated, others need email activation
-        let initial_status = if source_upid.starts_with("UPID-kwongfu") {
-            "active"
+        let initial_status = if source_upid == "kwongfu-trading" {
+            UserStatus::Active
         } else {
-            "inactive"
+            UserStatus::Inactive
         };
 
         // Create user (tier=free, status based on source)

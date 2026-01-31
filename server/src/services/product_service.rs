@@ -177,14 +177,23 @@ impl ProductService {
         description: Option<&str>,
         owner_id: i64,
     ) -> AppResult<Product> {
-        // Generate UPID: UPID-{slug}-{tier} format, but ensure total length <= 16
-        // Take first 8 chars of slug to fit within 16 char limit: UPID-{8chars}-b = 16 chars
-        let slug_prefix = if product_slug.len() > 8 {
-            &product_slug[..8]
-        } else {
-            product_slug
-        };
-        let upid = format!("UPID-{}-b", slug_prefix);
+        // Generate UPID: Use product_slug directly as UPID (they are the same)
+        // Product slug is limited to 50 chars (matching DB VARCHAR(50) constraint)
+        let upid = product_slug.to_lowercase();
+
+        // Validate product_slug length (max 16 chars)
+        if upid.len() > 16 {
+            return Err(AppError::BadRequest(format!(
+                "Product identifier too long: {} characters (max 16)", upid.len()
+            )));
+        }
+
+        // Validate UPID format (lowercase, alphanumeric, hyphens only)
+        if !upid.chars().all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-') {
+            return Err(AppError::BadRequest(
+                "Product identifier must contain only lowercase letters, numbers, and hyphens".to_string()
+            ));
+        }
 
         let product = sqlx::query_as::<_, Product>(
             r#"
