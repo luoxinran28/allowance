@@ -1,5 +1,5 @@
-# Use the official Node.js image as the base image
-FROM node:24-alpine AS builder
+# Use the official Node.js slim image as the base image for better memory management
+FROM node:24-slim AS builder
 
 # Set the working directory
 WORKDIR /app
@@ -14,11 +14,12 @@ RUN npm cache clean --force && npm install --legacy-peer-deps
 COPY . .
 RUN rm -rf node_modules && npm install --legacy-peer-deps
 
-# Build the application
+# Build the application with increased memory limit
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 RUN npm run build
 
 # Use a smaller base image for the final stage
-FROM node:24-alpine AS runner
+FROM node:24-slim AS runner
 
 # Set the working directory
 WORKDIR /app
