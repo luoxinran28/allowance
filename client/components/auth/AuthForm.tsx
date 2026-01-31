@@ -19,7 +19,7 @@ import {
 } from '@/lib/validation';
 
 interface AuthFormProps {
-  mode: 'login' | 'register';
+  mode?: 'login' | 'register';
 }
 
 interface ValidationState {
@@ -37,9 +37,10 @@ interface ValidationState {
   };
 }
 
-export function AuthForm({ mode }: AuthFormProps) {
+export function AuthForm({ mode: initialMode = 'login' }: AuthFormProps) {
   const router = useRouter();
   const { setAuth } = useAuthStore();
+  const [mode, setMode] = useState<'login' | 'register'>(initialMode);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [upid, setUpid] = useState('');
@@ -172,12 +173,13 @@ export function AuthForm({ mode }: AuthFormProps) {
       const sanitizedPassword = sanitizeInput(password);
 
       if (mode === 'register') {
-        // Use UPID from meta tag or default
-        const sourceUpid = upid || process.env.NEXT_PUBLIC_PRODUCT_UPID || 'UALLOWANCE0001';
+        // Use UPID from meta tag or default to 'allowance' product
+        const sourceUpid = upid || process.env.NEXT_PUBLIC_PRODUCT_UPID || 'allowance';
         await apiClient.register(sanitizedEmail, sanitizedPassword, sourceUpid);
-        setSuccess('Registration successful! Check your email to activate your account.');
+        setSuccess('Registration successful! You can now sign in.');
         setTimeout(() => {
-          router.push(`/auth/activate?email=${encodeURIComponent(sanitizedEmail)}`);
+          setMode('login');
+          setSuccess('');
         }, 2000);
       } else {
         // Login without UPID - UPID is only required when accessing a specific product
@@ -218,6 +220,32 @@ export function AuthForm({ mode }: AuthFormProps) {
         </CardHeader>
 
         <CardContent>
+          {/* Mode Toggle Tabs */}
+          <div className="flex mb-6 bg-muted rounded-lg p-1">
+            <button
+              type="button"
+              onClick={() => { setMode('login'); setError(''); setSuccess(''); }}
+              className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${
+                mode === 'login'
+                  ? 'bg-background shadow text-foreground'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Sign In
+            </button>
+            <button
+              type="button"
+              onClick={() => { setMode('register'); setError(''); setSuccess(''); }}
+              className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${
+                mode === 'register'
+                  ? 'bg-background shadow text-foreground'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Register
+            </button>
+          </div>
+
           {error && (
             <Alert variant="destructive" className="mb-4">
               <AlertCircle className="h-4 w-4" />
@@ -426,34 +454,15 @@ export function AuthForm({ mode }: AuthFormProps) {
 
           <div className="mt-6 space-y-3">
             {mode === 'login' && (
-              <>
-                <p className="text-center text-sm text-muted-foreground">
-                  <Link href="/auth/reset-password" className="text-primary hover:underline font-medium">
-                    Forgot your password?
-                  </Link>
-                </p>
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-border"></div>
-                  </div>
-                  <div className="relative flex justify-center text-sm">
-                    <span className="px-2 bg-background text-muted-foreground">or</span>
-                  </div>
-                </div>
-                <p className="text-center text-sm text-muted-foreground">
-                  Don't have an account?{' '}
-                  <Link href="/auth/login" className="text-primary hover:underline font-medium">
-                    Create one
-                  </Link>
-                </p>
-              </>
+              <p className="text-center text-sm text-muted-foreground">
+                <Link href="/auth/reset-password" className="text-primary hover:underline font-medium">
+                  Forgot your password?
+                </Link>
+              </p>
             )}
             {mode === 'register' && (
               <p className="text-center text-sm text-muted-foreground">
-                Already have an account?{' '}
-                <Link href="/auth/login" className="text-primary hover:underline font-medium">
-                  Sign in
-                </Link>
+                By creating an account, you agree to our terms of service.
               </p>
             )}
           </div>

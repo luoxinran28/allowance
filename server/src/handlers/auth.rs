@@ -16,7 +16,7 @@ pub struct AuthHandler {
 
 /// Register new user
 /// 
-/// Creates a new user account with email and password. An activation email will be sent.
+/// Creates a new user account with email and password. User is auto-activated.
 /// Returns user info with effective_tier set to "free" for new registrations.
 pub async fn register(
     State(state): State<Arc<AuthHandler>>,
@@ -24,15 +24,7 @@ pub async fn register(
 ) -> AppResult<(StatusCode, Json<UserResponse>)> {
     let user = AuthService::register(&state.pool, &req.email, &req.password, &req.source_upid).await?;
     
-    // Create activation token and send email
-    let token = AuthService::create_activation_token(
-        &state.pool,
-        user.id,
-        &req.email,
-    ).await?;
-
-    // TODO: Send activation email
-    tracing::info!("User {} registered, activation token: {}", user.email, token);
+    tracing::info!("User {} registered successfully", user.email);
 
     // New users always start with "free" effective tier
     let mut response = user;

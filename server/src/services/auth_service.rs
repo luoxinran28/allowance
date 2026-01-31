@@ -45,12 +45,8 @@ impl AuthService {
         let uid = format!("U{}", Uuid::new_v4().simple().to_string()[..15].to_uppercase());
         let password_hash = hash_password(password)?;
 
-        // KwongFu users are auto-activated, others need email activation
-        let initial_status = if source_upid == "kwongfu-trading" {
-            UserStatus::Active
-        } else {
-            UserStatus::Inactive
-        };
+        // All users are auto-activated (no email activation required)
+        let initial_status = UserStatus::Active;
 
         // Create user (tier=free, status based on source)
         let user = sqlx::query_as::<_, User>(
@@ -68,14 +64,16 @@ impl AuthService {
             .fetch_one(pool)
             .await?;
 
-        // Get product_id from upid
-        let product_id: i64 = sqlx::query_scalar("SELECT id FROM products WHERE upid = $1")
+        // Get product_id from upid (optional - product may not exist for internal registrations)
+        let product_id: Option<i64> = sqlx::query_scalar("SELECT id FROM products WHERE upid = $1")
             .bind(source_upid)
-            .fetch_one(pool)
+            .fetch_optional(pool)
             .await?;
 
-        // Create free user license
-        FreeUserService::create_free_license(pool, user.id, product_id, source_upid).await?;
+        // Create free user license only if product exists
+        if let Some(pid) = product_id {
+            FreeUserService::create_free_license(pool, user.id, pid, source_upid).await?;
+        }
 
         Ok(UserResponse::from(user))
     }
