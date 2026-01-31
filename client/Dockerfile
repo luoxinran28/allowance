@@ -14,8 +14,9 @@ RUN npm cache clean --force && npm install --legacy-peer-deps
 COPY . .
 RUN rm -rf node_modules && npm install --legacy-peer-deps
 
-# Build the application with increased memory limit
-ENV NODE_OPTIONS="--max-old-space-size=4096"
+# Build the application with increased memory limit and parallel processing disabled
+ENV NODE_OPTIONS="--max-old-space-size=4096 --max-old-space-size-semispace=512"
+ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
 # Use a smaller base image for the final stage

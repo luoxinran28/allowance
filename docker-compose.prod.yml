@@ -70,6 +70,9 @@ services:
     build:
       context: ./client
       dockerfile: Dockerfile
+      # Increase memory for build process
+      args:
+        BUILDKIT_INLINE_CACHE: 1
     image: allowance-client:latest
     container_name: allowance-client
     restart: always
@@ -88,11 +91,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.5"
-          memory: 256M
+          cpus: "1.0"
+          memory: 2G
         reservations:
-          cpus: "0.25"
-          memory: 128M
+          cpus: "0.5"
+          memory: 512M
 
   # pgAdmin 4 - Database Management Tool
   pgadmin:
