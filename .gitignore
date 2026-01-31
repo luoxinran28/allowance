@@ -13,6 +13,7 @@ dist/
 # Rust/WASM
 target/
 Cargo.lock
+.sqlx/
 **/pkg/
 **/wasm-pack.log
 

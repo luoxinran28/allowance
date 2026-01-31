@@ -21,7 +21,7 @@ async fn setup_test_db() -> PgPool {
 async fn create_test_user(pool: &PgPool, unique_id: u32) -> AppResult<i64> {
     let uid = format!("U{:015X}", unique_id);
     let email = format!("test{}@example.com", unique_id);
-    let result = sqlx::query!(
+    let result = sqlx::query_scalar!(
         "INSERT INTO users (uid, email, password_hash, tier, status) VALUES ($1, $2, $3, 'free', 'active') RETURNING id",
         uid,
         email,
@@ -29,7 +29,7 @@ async fn create_test_user(pool: &PgPool, unique_id: u32) -> AppResult<i64> {
     )
     .fetch_one(pool)
     .await?;
-    Ok(result.id)
+    Ok(result)
 }
 
 // Helper: Create test org with unique ID
