@@ -14,9 +14,14 @@ RUN npm cache clean --force && npm install --legacy-peer-deps
 COPY . .
 RUN rm -rf node_modules && npm install --legacy-peer-deps
 
-# Build the application with increased memory limit
+# Build the application with increased memory limit and build optimizations
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 ENV NEXT_TELEMETRY_DISABLED=1
+# Disable Turbopack explicitly for production builds
+ENV TURBO_FORCE=false
+# Additional Next.js v16 optimizations
+ENV NEXT_WEBPACK_USEPOLLING=0
+ENV NEXT_WEBPACK_BUILD_WORKER=1
 RUN npm run build
 
 # Use a smaller base image for the final stage
