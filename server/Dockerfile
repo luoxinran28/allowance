@@ -1,5 +1,11 @@
 # Use the official Rust image as the base image
-FROM rust:latest as builder
+FROM rust:1.93-slim-bookworm as builder
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y \
+    pkg-config \
+    libssl-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 # Set the working directory
 WORKDIR /app

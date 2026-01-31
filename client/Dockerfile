@@ -1,23 +1,24 @@
 # Use the official Node.js image as the base image
-FROM node:18-alpine as builder
+FROM node:24-alpine AS builder
 
 # Set the working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json
-COPY package*.json ./
+# Copy only package.json (ignore package-lock.json to get fresh dependencies)
+COPY package.json ./
 
-# Install dependencies
-RUN npm ci
+# Clean npm cache and install dependencies with fresh resolution
+RUN npm cache clean --force && npm install --legacy-peer-deps
 
-# Copy the source code
+# Copy the source code (but delete node_modules if it was copied)
 COPY . .
+RUN rm -rf node_modules && npm install --legacy-peer-deps
 
 # Build the application
 RUN npm run build
 
 # Use a smaller base image for the final stage
-FROM node:18-alpine as runner
+FROM node:24-alpine AS runner
 
 # Set the working directory
 WORKDIR /app

@@ -28,7 +28,7 @@ DB_USER="${DB_USER:-postgres}"
 DB_PASSWORD="${DB_PASSWORD:-postgres}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SEED_FILE="$SCRIPT_DIR/database/seed_data.sql"
+SEED_FILE="$SCRIPT_DIR/server/database/seed_four_tier_system.sql"
 
 # Colors for output
 RED='\033[0;31m'
@@ -103,7 +103,7 @@ done
 
 # Step 4: Start server to run migrations
 log_info "Step 4/6: Starting server to run migrations..."
-$COMPOSE_CMD up -d server
+$COMPOSE_CMD up -d --build server
 sleep 3
 
 # Wait for migrations to complete (by checking if tables exist)
@@ -157,17 +157,17 @@ log_header "DATABASE SUMMARY"
 echo ""
 log_info "Test Users:"
 docker exec allowance-postgres psql -U postgres -d allowance -t -c \
-    "SELECT email, tier, status FROM users WHERE email LIKE '%@allowance.test%' ORDER BY tier, email;" 2>/dev/null || echo "  (no users found)"
+    "SELECT email, tier, status FROM users WHERE email LIKE '%@test.com' ORDER BY tier, email;" 2>/dev/null || echo "  (no users found)"
 
 echo ""
 log_info "Organizations:"
 docker exec allowance-postgres psql -U postgres -d allowance -t -c \
-    "SELECT org_id, name FROM organizations ORDER BY org_id;" 2>/dev/null || echo "  (no organizations found)"
+    "SELECT id, name FROM organizations ORDER BY id;" 2>/dev/null || echo "  (no organizations found)"
 
 echo ""
 log_info "Teams:"
 docker exec allowance-postgres psql -U postgres -d allowance -t -c \
-    "SELECT team_id, name, is_default FROM teams ORDER BY team_id;" 2>/dev/null || echo "  (no teams found)"
+    "SELECT id, name FROM teams ORDER BY id;" 2>/dev/null || echo "  (no teams found)"
 
 echo ""
 log_info "Products:"
