@@ -28,8 +28,17 @@ impl AuthService {
             .fetch_optional(pool)
             .await?;
 
-        if existing.is_some() {
-            return Err(AppError::EmailAlreadyRegistered);
+        if let Some(existing) = existing {
+            // If user already exists and is active with same source_upid, verify password and return existing user
+            if existing.status == UserStatus::Active && existing.source_upid.as_deref() == Some(source_upid) {
+                if verify_password(password, &existing.password_hash)? {
+                    return Ok(UserResponse::from(existing));
+                } else {
+                    return Err(AppError::EmailAlreadyRegistered);
+                }
+            } else {
+                return Err(AppError::EmailAlreadyRegistered);
+            }
         }
 
         // Generate uid
