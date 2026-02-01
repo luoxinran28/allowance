@@ -88,16 +88,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     });
 
     // Setup routes
-    let cors = CorsLayer::permissive()
+    let cors = CorsLayer::new()
         .allow_origin(Any)
-        .allow_methods([Method::GET, Method::POST, Method::PUT, Method::DELETE])
-        .allow_headers([
-            header::CONTENT_TYPE,
-            header::AUTHORIZATION,
-            "X-Nonce".parse().unwrap(),
-            "X-Timestamp".parse().unwrap(),
-            "X-Sign".parse().unwrap(),
-        ]);
+        .allow_methods(Any)
+        .allow_headers(Any);
 
     let openapi_doc = docs::get_openapi_doc();
 
@@ -184,7 +178,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .layer(Extension(jwt.clone()))
         .layer(DefaultBodyLimit::max(5_242_880)) // 5MB
         .layer(TraceLayer::new_for_http())
-        .layer(cors.clone())
+        .layer(cors)
         .nest("/health", 
             Router::new()
                 .route("/", get(handlers::health::health_check))
