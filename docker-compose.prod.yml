@@ -73,6 +73,8 @@ services:
       # Increase memory for build process
       args:
         BUILDKIT_INLINE_CACHE: 1
+      # Build with increased memory
+      shm_size: 2gb
     image: allowance-client:latest
     container_name: allowance-client
     restart: always
@@ -92,10 +94,10 @@ services:
       resources:
         limits:
           cpus: "1.0"
-          memory: 2G
+          memory: 4G
         reservations:
           cpus: "0.5"
-          memory: 512M
+          memory: 1G
 
   # pgAdmin 4 - Database Management Tool
   pgadmin:

@@ -2,18 +2,11 @@
 const nextConfig = {
   reactStrictMode: true,
   output: 'standalone',
-  // Optimize for Next.js v16 build performance
-  experimental: {
-    // Explicitly disable Turbopack for production builds to reduce memory usage
-    turbo: false,
-  },
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
-  // Additional build optimizations for v16
-  swcMinify: true,
   poweredByHeader: false,
-  // Reduce bundle analysis overhead
+  // Force webpack instead of Turbopack for compatibility
   webpack: (config, { dev }) => {
     if (!dev) {
       // Optimize production build
@@ -30,8 +23,16 @@ const nextConfig = {
           },
         },
       };
+      // Reduce memory usage
+      config.cache = false;
+      // Limit parallel processing
+      config.parallelism = 2;
     }
     return config;
+  },
+  // Additional memory optimizations
+  images: {
+    unoptimized: true, // Reduce memory usage during build
   },
 };
 
