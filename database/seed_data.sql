@@ -1,136 +1,58 @@
--- Seed Data: Four-Tier Authorization System (free/standard/premium/allstar)
--- Password: Pass88899
--- Argon2id: $argon2id$v=19$m=19456,t=2,p=1$F20jUfqy4qy4/6z6tOLBhg$Gl8U55p400Q0AXdl2TAWiYGcEWgGs5+4DqvagDNvJrc
+-- database/seed_data.sql
+-- 四层权限系统测试数据
 
--- ============================================================
--- CREATE TEST USERS
--- ============================================================
+-- 1. 创建测试用户（不同 Tier 级别）
+INSERT INTO users (email, uid, password_hash, tier, organization_id, team_ids, license_status, source_upid, status, created_at, updated_at)
+VALUES
+  -- Free User - 无组织，无团队
+  ('free_user@test.com', 'UFR1E2E3E4E5E6E7',
+   '$argon2id$v=19$m=19456,t=2,p=1$Z0pVRTkyMzRiVjA4Mzc4$8MuXYP0tWfVy8fVfMW0Cud5QqvLLV1mZsGbQ2xF6dN0',
+   'free', NULL, NULL, 'valid', 'UALLOWANCE0001', 'active', NOW(), NOW()),
 
--- Admin (allstar tier)
-INSERT INTO users (uid, email, password_hash, tier, status, organization_id, team_ids, source_upid, profile_data, license_status, created_at, updated_at) VALUES
-    ('UADMIN0001', 'admin@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$F20jUfqy4qy4/6z6tOLBhg$Gl8U55p400Q0AXdl2TAWiYGcEWgGs5+4DqvagDNvJrc', 'allstar', 'active', NULL, '[]'::jsonb, NULL, '{"first_name": "System", "last_name": "Admin"}', 'valid', CURRENT_TIMESTAMP - INTERVAL '90 days', CURRENT_TIMESTAMP)
-ON CONFLICT (email) DO NOTHING;
+  -- Standard User - 有组织，有团队（Team Member）
+  ('standard_user@test.com', 'US7T8A9N10D11A12',
+   '$argon2id$v=19$m=19456,t=2,p=1$Z0pVRTkyMzRiVjA4Mzc4$8MuXYP0tWfVy8fVfMW0Cud5QqvLLV1mZsGbQ2xF6dN0',
+   'standard', 1, '[1, 2]', 'valid', 'UALLOWANCE0001', 'active', NOW(), NOW()),
 
--- Org Bosses (premium tier)
-INSERT INTO users (uid, email, password_hash, tier, status, organization_id, team_ids, source_upid, profile_data, license_status, created_at, updated_at) VALUES
-    ('UBOSS0001', 'boss1@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$F20jUfqy4qy4/6z6tOLBhg$Gl8U55p400Q0AXdl2TAWiYGcEWgGs5+4DqvagDNvJrc', 'premium', 'active', NULL, '[]'::jsonb, 'allowance', '{"first_name": "Alice", "last_name": "Boss"}', 'valid', CURRENT_TIMESTAMP - INTERVAL '60 days', CURRENT_TIMESTAMP),
-    ('UBOSS0002', 'boss2@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$F20jUfqy4qy4/6z6tOLBhg$Gl8U55p400Q0AXdl2TAWiYGcEWgGs5+4DqvagDNvJrc', 'premium', 'active', NULL, '[]'::jsonb, 'allowance', '{"first_name": "Bob", "last_name": "Manager"}', 'valid', CURRENT_TIMESTAMP - INTERVAL '55 days', CURRENT_TIMESTAMP),
-    ('UPREM0001', 'premium@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$F20jUfqy4qy4/6z6tOLBhg$Gl8U55p400Q0AXdl2TAWiYGcEWgGs5+4DqvagDNvJrc', 'premium', 'active', NULL, '[]'::jsonb, 'allowance', '{"first_name": "Premium", "last_name": "User"}', 'valid', CURRENT_TIMESTAMP - INTERVAL '52 days', CURRENT_TIMESTAMP)
-ON CONFLICT (email) DO NOTHING;
+  -- Premium User - 有组织，有团队（Org Boss）
+  ('premium_user@test.com', 'UP11R12E13M14I15',
+   '$argon2id$v=19$m=19456,t=2,p=1$Z0pVRTkyMzRiVjA4Mzc4$8MuXYP0tWfVy8fVfMW0Cud5QqvLLV1mZsGbQ2xF6dN0',
+   'premium', 1, '[1, 2, 3]', 'valid', 'UALLOWANCE0001', 'active', NOW(), NOW()),
 
--- Standard users (team members)
-INSERT INTO users (uid, email, password_hash, tier, status, organization_id, team_ids, source_upid, profile_data, license_status, created_at, updated_at) VALUES
-    ('USTD00001', 'standard@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$F20jUfqy4qy4/6z6tOLBhg$Gl8U55p400Q0AXdl2TAWiYGcEWgGs5+4DqvagDNvJrc', 'standard', 'active', NULL, '[]'::jsonb, 'allowance', '{"first_name": "Standard", "last_name": "User"}', 'valid', CURRENT_TIMESTAMP - INTERVAL '55 days', CURRENT_TIMESTAMP),
-    ('ULEAD0001', 'leader1@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$F20jUfqy4qy4/6z6tOLBhg$Gl8U55p400Q0AXdl2TAWiYGcEWgGs5+4DqvagDNvJrc', 'standard', 'active', NULL, '[]'::jsonb, 'allowance', '{"first_name": "Charlie", "last_name": "Leader"}', 'valid', CURRENT_TIMESTAMP - INTERVAL '50 days', CURRENT_TIMESTAMP),
-    ('ULEAD0002', 'leader2@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$F20jUfqy4qy4/6z6tOLBhg$Gl8U55p400Q0AXdl2TAWiYGcEWgGs5+4DqvagDNvJrc', 'standard', 'active', NULL, '[]'::jsonb, 'allowance', '{"first_name": "Diana", "last_name": "Team Leader"}', 'valid', CURRENT_TIMESTAMP - INTERVAL '45 days', CURRENT_TIMESTAMP),
-    ('UMEM00001', 'member1@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$F20jUfqy4qy4/6z6tOLBhg$Gl8U55p400Q0AXdl2TAWiYGcEWgGs5+4DqvagDNvJrc', 'standard', 'active', NULL, '[]'::jsonb, 'allowance', '{"first_name": "Eve", "last_name": "Developer"}', 'valid', CURRENT_TIMESTAMP - INTERVAL '40 days', CURRENT_TIMESTAMP),
-    ('UMEM00002', 'member2@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$F20jUfqy4qy4/6z6tOLBhg$Gl8U55p400Q0AXdl2TAWiYGcEWgGs5+4DqvagDNvJrc', 'standard', 'active', NULL, '[]'::jsonb, 'analytics-pro', '{"first_name": "Frank", "last_name": "Designer"}', 'valid', CURRENT_TIMESTAMP - INTERVAL '35 days', CURRENT_TIMESTAMP),
-    ('UMEM00003', 'member3@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$F20jUfqy4qy4/6z6tOLBhg$Gl8U55p400Q0AXdl2TAWiYGcEWgGs5+4DqvagDNvJrc', 'standard', 'active', NULL, '[]'::jsonb, 'crm-suite', '{"first_name": "Grace", "last_name": "Engineer"}', 'valid', CURRENT_TIMESTAMP - INTERVAL '30 days', CURRENT_TIMESTAMP)
-ON CONFLICT (email) DO NOTHING;
+  -- Allstar User - Admin
+  ('admin_user@test.com', 'UA11D12M13I14N15',
+   '$argon2id$v=19$m=19456,t=2,p=1$Z0pVRTkyMzRiVjA4Mzc4$8MuXYP0tWfVy8fVfMW0Cud5QqvLLV1mZsGbQ2xF6dN0',
+   'allstar', NULL, NULL, 'valid', 'UALLOWANCE0001', 'active', NOW(), NOW())
+ON CONFLICT (email) DO UPDATE SET
+  tier = EXCLUDED.tier,
+  organization_id = EXCLUDED.organization_id,
+  team_ids = EXCLUDED.team_ids,
+  updated_at = NOW();
 
--- Free user
-INSERT INTO users (uid, email, password_hash, tier, status, organization_id, team_ids, source_upid, profile_data, license_status, created_at, updated_at) VALUES
-    ('UFREE0001', 'free@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$F20jUfqy4qy4/6z6tOLBhg$Gl8U55p400Q0AXdl2TAWiYGcEWgGs5+4DqvagDNvJrc', 'free', 'active', NULL, '[]'::jsonb, 'allowance', '{"first_name": "Henry", "last_name": "Trial"}', 'not_assigned', CURRENT_TIMESTAMP - INTERVAL '10 days', CURRENT_TIMESTAMP)
-ON CONFLICT (email) DO NOTHING;
+-- 2. 创建测试组织
+INSERT INTO organizations (name, created_by, status, created_at, updated_at)
+VALUES
+  ('Test Organization', 2, 'active', NOW(), NOW())
+ON CONFLICT DO NOTHING;
 
--- ============================================================
--- CREATE ORGANIZATIONS
--- ============================================================
+-- 3. 创建测试团队
+INSERT INTO teams (name, organization_id, created_by, status, created_at, updated_at)
+VALUES
+  ('Development Team', 1, 3, 'active', NOW(), NOW()),
+  ('Marketing Team', 1, 3, 'active', NOW(), NOW()),
+  ('Sales Team', 1, 3, 'active', NOW(), NOW())
+ON CONFLICT DO NOTHING;
 
-INSERT INTO organizations (org_id, name, description, created_by) VALUES
-    ('ACME01', 'ACME Corporation', 'Main test organization', (SELECT id FROM users WHERE email = 'admin@allowance.test')),
-    ('STARTUP1', 'StartupX Inc.', 'Second test organization', (SELECT id FROM users WHERE email = 'admin@allowance.test'))
-ON CONFLICT (org_id) DO NOTHING;
+-- 测试权限矩阵
+-- ┌─────────────┬──────────┬──────────┬──────────┬──────────┐
+-- │ 操作        │ Free     │ Standard │ Premium  │ Allstar  │
+-- ├─────────────┼──────────┼──────────┼──────────┼──────────┤
+-- │ 创建Team    │ ✗        │ ✗        │ ✓        │ ✓        │
+-- │ 删除Team    │ ✗        │ ✗        │ ✓        │ ✓        │
+-- │ 添加成员    │ ✗        │ ✓*       │ ✓        │ ✓        │
+-- │ 管理员操作  │ ✗        │ ✗        │ ✗        │ ✓        │
+-- └─────────────┴──────────┴──────────┴──────────┴──────────┘
+-- *: Standard 仅可添加到自己的团队
 
--- Update organization_id for org bosses
-UPDATE users SET organization_id = (SELECT id FROM organizations WHERE org_id = 'ACME01') WHERE email = 'boss1@allowance.test';
-UPDATE users SET organization_id = (SELECT id FROM organizations WHERE org_id = 'STARTUP1') WHERE email = 'boss2@allowance.test';
-
--- ============================================================
--- CREATE TEAMS
--- ============================================================
-
-INSERT INTO teams (team_id, organization_id, name, description, is_default, created_by) VALUES
-    ('DEFAULT-ACME', (SELECT id FROM organizations WHERE org_id = 'ACME01'), 'Default Team', 'Default', TRUE, (SELECT id FROM users WHERE email = 'admin@allowance.test')),
-    ('ENG-TEAM', (SELECT id FROM organizations WHERE org_id = 'ACME01'), 'Engineering Team', 'Engineering', FALSE, (SELECT id FROM users WHERE email = 'admin@allowance.test')),
-    ('SALES-TEAM', (SELECT id FROM organizations WHERE org_id = 'ACME01'), 'Sales Team', 'Sales', FALSE, (SELECT id FROM users WHERE email = 'admin@allowance.test')),
-    ('DEFAULT-STARTUP', (SELECT id FROM organizations WHERE org_id = 'STARTUP1'), 'Default Team', 'Default', TRUE, (SELECT id FROM users WHERE email = 'admin@allowance.test')),
-    ('DEV-TEAM', (SELECT id FROM organizations WHERE org_id = 'STARTUP1'), 'Development Team', 'Development', FALSE, (SELECT id FROM users WHERE email = 'admin@allowance.test'))
-ON CONFLICT (team_id) DO NOTHING;
-
--- ============================================================
--- CREATE PRODUCTS
--- ============================================================
-
-INSERT INTO products (upid, product_slug, name, description) VALUES
-    ('allowance', 'allowance', 'Allowance System', 'Core allowance authorization management system'),
-    ('analytics-pro', 'analytics-pro', 'Analytics Pro', 'Advanced analytics and reporting platform'),
-    ('crm-suite', 'crm-suite', 'CRM Suite', 'Customer relationship management solution'),
-    ('kwongfu-trading', 'kwongfu', 'KwongFu Trading System', 'Automated Crypto Trading Platform for Binance.US Spot')
-ON CONFLICT (upid) DO NOTHING;
-
--- ============================================================
--- CREATE PRODUCT VERSIONS
--- ============================================================
-
--- Allowance versions
-INSERT INTO product_versions (product_id, version_name, description, features, tier_required, daily_limit, monthly_limit) VALUES
-    ((SELECT id FROM products WHERE upid = 'allowance'), 'basic', 'Basic features', '{"max_recipients": 10, "reporting": false}'::jsonb, 'free'::user_tier, 10, 1000),
-    ((SELECT id FROM products WHERE upid = 'allowance'), 'standard', 'Standard features', '{"max_recipients": 100, "reporting": true}'::jsonb, 'standard'::user_tier, 100, 10000),
-    ((SELECT id FROM products WHERE upid = 'allowance'), 'premium', 'Premium features', '{"max_recipients": 1000, "api_access": true}'::jsonb, 'premium'::user_tier, NULL, NULL),
-    ((SELECT id FROM products WHERE upid = 'allowance'), 'allstar', 'AllStar - Full access', '{"max_recipients": "unlimited"}'::jsonb, 'allstar'::user_tier, NULL, NULL)
-ON CONFLICT (product_id, version_name) DO NOTHING;
-
--- Analytics Pro versions
-INSERT INTO product_versions (product_id, version_name, description, features, tier_required, daily_limit, monthly_limit) VALUES
-    ((SELECT id FROM products WHERE upid = 'UPROD000001'), 'basic', 'Basic', '{"dashboards": 5}'::jsonb, 'free'::user_tier, 50, 5000),
-    ((SELECT id FROM products WHERE upid = 'UPROD000001'), 'pro', 'Professional', '{"dashboards": 50}'::jsonb, 'standard'::user_tier, 500, 50000),
-    ((SELECT id FROM products WHERE upid = 'UPROD000001'), 'enterprise', 'Enterprise', '{"dashboards": "unlimited"}'::jsonb, 'premium'::user_tier, NULL, NULL)
-ON CONFLICT (product_id, version_name) DO NOTHING;
-
--- CRM Suite versions
-INSERT INTO product_versions (product_id, version_name, description, features, tier_required, daily_limit, monthly_limit) VALUES
-    ((SELECT id FROM products WHERE upid = 'UPROD000002'), 'starter', 'Starter', '{"contacts": 100}'::jsonb, 'free'::user_tier, 20, 2000),
-    ((SELECT id FROM products WHERE upid = 'UPROD000002'), 'business', 'Business', '{"contacts": 10000}'::jsonb, 'standard'::user_tier, 1000, 100000),
-    ((SELECT id FROM products WHERE upid = 'UPROD000002'), 'enterprise', 'Enterprise', '{"contacts": "unlimited"}'::jsonb, 'premium'::user_tier, NULL, NULL)
-ON CONFLICT (product_id, version_name) DO NOTHING;
-
--- KwongFu Trading System versions
-INSERT INTO product_versions (product_id, version_name, description, features, tier_required, daily_limit, monthly_limit) VALUES
-    ((SELECT id FROM products WHERE upid = 'UKWONGFU0001'), 'free', 'Free Tier - Dashboard Only', '{"dashboard": true, "trading": false, "validation_lab": false}'::jsonb, 'free'::user_tier, 10, 100),
-    ((SELECT id FROM products WHERE upid = 'UKWONGFU0001'), 'standard', 'Standard Tier - Full Trading', '{"dashboard": true, "trading": true, "validation_lab": false}'::jsonb, 'standard'::user_tier, 1000, 100000),
-    ((SELECT id FROM products WHERE upid = 'UKWONGFU0001'), 'premium', 'Premium Tier - All Features', '{"dashboard": true, "trading": true, "validation_lab": true}'::jsonb, 'premium'::user_tier, NULL, NULL)
-ON CONFLICT (product_id, version_name) DO NOTHING;
-
--- ============================================================
--- CREATE ORG LICENSES
--- ============================================================
-
-INSERT INTO org_product_licenses (organization_id, product_id, total_count, assigned_count, expires_at, created_by) VALUES
-    ((SELECT id FROM organizations WHERE org_id = 'ACME01'), (SELECT id FROM products WHERE upid = 'allowance'), 50, 0, CURRENT_TIMESTAMP + INTERVAL '1 year', (SELECT id FROM users WHERE email = 'admin@allowance.test')),
-    ((SELECT id FROM organizations WHERE org_id = 'ACME01'), (SELECT id FROM products WHERE upid = 'analytics-pro'), 30, 0, CURRENT_TIMESTAMP + INTERVAL '1 year', (SELECT id FROM users WHERE email = 'admin@allowance.test')),
-    ((SELECT id FROM organizations WHERE org_id = 'STARTUP1'), (SELECT id FROM products WHERE upid = 'allowance'), 20, 0, CURRENT_TIMESTAMP + INTERVAL '1 year', (SELECT id FROM users WHERE email = 'admin@allowance.test'))
-ON CONFLICT (organization_id, product_id) DO NOTHING;
-
--- ============================================================
--- DISPLAY SUMMARY
--- ============================================================
-
-\echo ''
-\echo '=========================================='
-\echo 'FOUR-TIER SYSTEM SETUP COMPLETE'
-\echo '=========================================='
-\echo ''
-\echo 'Test Users Created:'
-SELECT email, tier, 'Status: ' || status as info FROM users WHERE email LIKE '%@allowance.test%' ORDER BY tier, email;
-
-\echo ''
-\echo 'Organizations:'
-SELECT org_id, name FROM organizations ORDER BY org_id;
-
-\echo ''
-\echo 'Products:'
-SELECT upid, name FROM products ORDER BY upid;
-
-\echo ''
-\echo '=========================================='
+-- 验证查询
+-- SELECT id, email, tier, organization_id, team_ids FROM users WHERE email LIKE '%@test.com' ORDER BY id;

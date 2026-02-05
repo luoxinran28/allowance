@@ -26,7 +26,7 @@ The test suite covers all major user workflows and pages:
 
 2. **Test Data** - Seed data with test users should be loaded:
    ```bash
-   bash database/setup_db_v2.sh
+   bash setup_db_v3.sh
    ```
 
    Test credentials (all use password: `Pass888999`):
