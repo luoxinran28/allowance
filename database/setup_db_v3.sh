@@ -28,7 +28,7 @@ DB_USER="${DB_USER:-postgres}"
 DB_PASSWORD="${DB_PASSWORD:-postgres}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SEED_FILE="$SCRIPT_DIR/database/seed_data.sql"
+SEED_FILE="$SCRIPT_DIR/seed_data.sql"
 
 # Colors for output
 RED='\033[0;31m'

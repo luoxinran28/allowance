@@ -6,22 +6,22 @@ INSERT INTO users (email, uid, password_hash, tier, organization_id, team_ids, l
 VALUES
   -- Free User - 无组织，无团队
   ('free_user@test.com', 'UFR1E2E3E4E5E6E7',
-   '$argon2id$v=19$m=19456,t=2,p=1$Z0pVRTkyMzRiVjA4Mzc4$8MuXYP0tWfVy8fVfMW0Cud5QqvLLV1mZsGbQ2xF6dN0',
+   '$argon2id$v=19$m=19456,t=2,p=1$2NtODaH4T0wmOnsuNCg3ew$/zOMOnWbc1kK723Cbc4PzujaLKrqo0q4vCjFakA3Llg',
    'free', NULL, NULL, 'valid', 'UALLOWANCE0001', 'active', NOW(), NOW()),
 
   -- Standard User - 有组织，有团队（Team Member）
   ('standard_user@test.com', 'US7T8A9N10D11A12',
-   '$argon2id$v=19$m=19456,t=2,p=1$Z0pVRTkyMzRiVjA4Mzc4$8MuXYP0tWfVy8fVfMW0Cud5QqvLLV1mZsGbQ2xF6dN0',
+   '$argon2id$v=19$m=19456,t=2,p=1$2NtODaH4T0wmOnsuNCg3ew$/zOMOnWbc1kK723Cbc4PzujaLKrqo0q4vCjFakA3Llg',
    'standard', 1, '[1, 2]', 'valid', 'UALLOWANCE0001', 'active', NOW(), NOW()),
 
   -- Premium User - 有组织，有团队（Org Boss）
   ('premium_user@test.com', 'UP11R12E13M14I15',
-   '$argon2id$v=19$m=19456,t=2,p=1$Z0pVRTkyMzRiVjA4Mzc4$8MuXYP0tWfVy8fVfMW0Cud5QqvLLV1mZsGbQ2xF6dN0',
+   '$argon2id$v=19$m=19456,t=2,p=1$2NtODaH4T0wmOnsuNCg3ew$/zOMOnWbc1kK723Cbc4PzujaLKrqo0q4vCjFakA3Llg',
    'premium', 1, '[1, 2, 3]', 'valid', 'UALLOWANCE0001', 'active', NOW(), NOW()),
 
   -- Allstar User - Admin
   ('admin_user@test.com', 'UA11D12M13I14N15',
-   '$argon2id$v=19$m=19456,t=2,p=1$Z0pVRTkyMzRiVjA4Mzc4$8MuXYP0tWfVy8fVfMW0Cud5QqvLLV1mZsGbQ2xF6dN0',
+   '$argon2id$v=19$m=19456,t=2,p=1$2NtODaH4T0wmOnsuNCg3ew$/zOMOnWbc1kK723Cbc4PzujaLKrqo0q4vCjFakA3Llg',
    'allstar', NULL, NULL, 'valid', 'UALLOWANCE0001', 'active', NOW(), NOW())
 ON CONFLICT (email) DO UPDATE SET
   tier = EXCLUDED.tier,
