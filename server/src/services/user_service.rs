@@ -11,7 +11,7 @@ impl UserService {
     /// 根据用户 ID 获取用户信息
     pub async fn get_user(pool: &PgPool, user_id: i64) -> AppResult<User> {
         let user = sqlx::query_as::<_, User>(
-            "SELECT id, uid, email, password_hash, tier, status, organization_id, team_ids, license_status, source_upid,
+            "SELECT id, uid, email, password_hash, tier, status, organization_id, team_ids, license_status, source_product_slug,
                     profile_data, created_at, updated_at, last_login
             FROM users WHERE id = $1"
         )
@@ -26,7 +26,7 @@ impl UserService {
     /// 根据邮箱获取用户信息
     pub async fn get_user_by_email(pool: &PgPool, email: &str) -> AppResult<User> {
         let user = sqlx::query_as::<_, User>(
-            "SELECT id, uid, email, password_hash, tier, status, organization_id, team_ids, license_status, source_upid,
+            "SELECT id, uid, email, password_hash, tier, status, organization_id, team_ids, license_status, source_product_slug,
                     profile_data, created_at, updated_at, last_login
             FROM users WHERE email = $1"
         )

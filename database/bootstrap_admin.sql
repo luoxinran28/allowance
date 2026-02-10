@@ -8,8 +8,8 @@
 -- ============================================================
 
 -- Create admin user (allstar tier - full system access)
-INSERT INTO users (uid, email, password_hash, tier, status, organization_id, team_ids, source_upid, profile_data, license_status, created_at, updated_at) VALUES
-    ('UADMIN0001', 'admin@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$F20jUfqy4qy4/6z6tOLBhg$Gl8U55p400Q0AXdl2TAWiYGcEWgGs5+4DqvagDNvJrc', 'allstar', 'active', NULL, '[]'::jsonb, NULL, '{"first_name": "System", "last_name": "Admin"}', 'valid', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+INSERT INTO users (uid, email, password_hash, tier, status, organization_id, team_ids, source_product_slug, profile_data, license_status, created_at, updated_at) VALUES
+    ('UADMIN0001', 'admin@allowance.test', '$argon2id$v=19$m=19456,t=2,p=1$F20jUfqy4qy4/6z6tOLBhg$Gl8U55p400Q0AXdl2TAWiYGcEWgGs5+4DqvagDNvJrc', 'allstar', 'active', NULL, '[]'::jsonb, 'allowance', '{"first_name": "System", "last_name": "Admin"}', 'valid', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 ON CONFLICT (email) DO UPDATE SET
     tier = 'allstar',
     status = 'active',

@@ -17,12 +17,13 @@ pub struct AuthHandler {
 /// Register new user
 /// 
 /// Creates a new user account with email and password. User is auto-activated.
+/// The `product_slug` field identifies which product the user is registering from (e.g. "kwongfu").
 /// Returns user info with effective_tier set to "free" for new registrations.
 pub async fn register(
     State(state): State<Arc<AuthHandler>>,
     Json(req): Json<RegisterRequest>,
 ) -> AppResult<(StatusCode, Json<UserResponse>)> {
-    let user = AuthService::register(&state.pool, &req.email, &req.password, &req.source_upid).await?;
+    let user = AuthService::register(&state.pool, &req.email, &req.password, &req.product_slug).await?;
     
     tracing::info!("User {} registered successfully", user.email);
 
@@ -36,14 +37,14 @@ pub async fn register(
 /// User login
 /// 
 /// Authenticates user with email and password. Returns JWT token and refresh token.
-/// If UPID is provided, validates that the user has access to the product and returns
-/// the product-specific tier in `effective_tier` field.
+/// If `product_slug` is provided (e.g. "kwongfu"), validates that the user has access
+/// to the product and returns the product-specific tier in `effective_tier` field.
 pub async fn login(
     State(state): State<Arc<AuthHandler>>,
     Json(req): Json<LoginRequest>,
 ) -> AppResult<Json<AuthResponse>> {
-    let user = if let Some(upid) = &req.upid {
-        AuthService::login_with_upid(&state.pool, &req.email, &req.password, upid).await?
+    let user = if let Some(slug) = &req.product_slug {
+        AuthService::login_with_product_slug(&state.pool, &req.email, &req.password, slug).await?
     } else {
         AuthService::login(&state.pool, &req.email, &req.password).await?
     };
@@ -58,7 +59,7 @@ pub async fn login(
     let effective_tier = AuthService::determine_user_tier(
         &state.pool,
         &user,
-        req.upid.as_deref(),
+        req.product_slug.as_deref(),
         roles.as_ref(),
     ).await;
 

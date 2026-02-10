@@ -18,19 +18,19 @@ impl AuthService {
         pool: &PgPool,
         email: &str,
         password: &str,
-        source_upid: &str,
+        product_slug: &str,
     ) -> AppResult<UserResponse> {
         // Check if email already exists
         let existing = sqlx::query_as::<_, User>(
-            "SELECT id, uid, email, password_hash, tier, status, organization_id, team_ids, license_status, source_upid, profile_data, created_at, updated_at, last_login FROM users WHERE email = $1"
+            "SELECT id, uid, email, password_hash, tier, status, organization_id, team_ids, license_status, source_product_slug, profile_data, created_at, updated_at, last_login FROM users WHERE email = $1"
         )
             .bind(email)
             .fetch_optional(pool)
             .await?;
 
         if let Some(existing) = existing {
-            // If user already exists and is active with same source_upid, verify password and return existing user
-            if existing.status == UserStatus::Active && existing.source_upid.as_deref() == Some(source_upid) {
+            // If user already exists and is active with same product_slug, verify password and return existing user
+            if existing.status == UserStatus::Active && existing.source_product_slug.as_deref() == Some(product_slug) {
                 if verify_password(password, &existing.password_hash)? {
                     return Ok(UserResponse::from(existing));
                 } else {
@@ -51,28 +51,33 @@ impl AuthService {
         // Create user (tier=free, status based on source)
         let user = sqlx::query_as::<_, User>(
             r#"
-            INSERT INTO users (uid, email, password_hash, status, tier, source_upid)
+            INSERT INTO users (uid, email, password_hash, status, tier, source_product_slug)
             VALUES ($1, $2, $3, $4, 'free', $5)
-            RETURNING id, uid, email, password_hash, tier, status, organization_id, team_ids, license_status, source_upid, profile_data, created_at, updated_at, last_login
+            RETURNING id, uid, email, password_hash, tier, status, organization_id, team_ids, license_status, source_product_slug, profile_data, created_at, updated_at, last_login
             "#
         )
             .bind(&uid)
             .bind(email)
             .bind(password_hash)
             .bind(initial_status)
-            .bind(source_upid)
+            .bind(product_slug)
             .fetch_one(pool)
             .await?;
 
-        // Get product_id from upid (optional - product may not exist for internal registrations)
-        let product_id: Option<i64> = sqlx::query_scalar("SELECT id FROM products WHERE upid = $1")
-            .bind(source_upid)
+        // Get product_id from product_slug (optional - product may not exist for internal registrations)
+        let product_id: Option<i64> = sqlx::query_scalar("SELECT id FROM products WHERE product_slug = $1")
+            .bind(product_slug)
             .fetch_optional(pool)
             .await?;
 
         // Create free user license only if product exists
         if let Some(pid) = product_id {
-            FreeUserService::create_free_license(pool, user.id, pid, source_upid).await?;
+            // Get the product's upid for free license creation (internal use)
+            let upid: String = sqlx::query_scalar("SELECT upid FROM products WHERE id = $1")
+                .bind(pid)
+                .fetch_one(pool)
+                .await?;
+            FreeUserService::create_free_license(pool, user.id, pid, &upid).await?;
         }
 
         Ok(UserResponse::from(user))
@@ -85,7 +90,7 @@ impl AuthService {
         password: &str,
     ) -> AppResult<User> {
         let user = sqlx::query_as::<_, User>(
-            "SELECT id, uid, email, password_hash, tier, status, organization_id, team_ids, license_status, source_upid, profile_data, created_at, updated_at, last_login FROM users WHERE email = $1"
+            "SELECT id, uid, email, password_hash, tier, status, organization_id, team_ids, license_status, source_product_slug, profile_data, created_at, updated_at, last_login FROM users WHERE email = $1"
         )
             .bind(email)
             .fetch_optional(pool)
@@ -114,12 +119,12 @@ impl AuthService {
         Ok(user)
     }
 
-    /// Login with email, password, and UPID (product validation)
-    pub async fn login_with_upid(
+    /// Login with email, password, and product_slug (product validation)
+    pub async fn login_with_product_slug(
         pool: &PgPool,
         email: &str,
         password: &str,
-        upid: &str,
+        product_slug: &str,
     ) -> AppResult<User> {
         // First, perform regular authentication
         let user = Self::login(pool, email, password).await?;
@@ -129,17 +134,28 @@ impl AuthService {
             return Ok(user);
         }
 
+        // Resolve product_slug to product_id for DB lookups
+        let product_id: Option<i64> = sqlx::query_scalar("SELECT id FROM products WHERE product_slug = $1")
+            .bind(product_slug)
+            .fetch_optional(pool)
+            .await?;
+
+        let pid = match product_id {
+            Some(id) => id,
+            None => return Err(AppError::BadRequest(format!("Product '{}' not found", product_slug))),
+        };
+
         // For standard users, check if they have team membership with quota for this product
         if user.tier == crate::models::UserTier::Standard {
             let team_license_count = sqlx::query_scalar::<_, i64>(
                 r#"
                 SELECT COUNT(*) FROM user_teams ut
                 JOIN team_product_quotas tpq ON ut.team_id = tpq.team_id
-                WHERE ut.user_id = $1 AND tpq.upid = $2
+                WHERE ut.user_id = $1 AND tpq.product_id = $2
                 "#
             )
             .bind(user.id)
-            .bind(upid)
+            .bind(pid)
             .fetch_one(pool)
             .await?;
 
@@ -151,13 +167,12 @@ impl AuthService {
         // For free users, check if they have free license for this product
         let free_license_count = sqlx::query_scalar::<_, i64>(
             r#"
-            SELECT COUNT(*) FROM free_user_licenses ful
-            JOIN products p ON ful.product_id = p.id
-            WHERE ful.user_id = $1 AND p.upid = $2
+            SELECT COUNT(*) FROM free_user_licenses
+            WHERE user_id = $1 AND product_id = $2
             "#
         )
         .bind(user.id)
-        .bind(upid)
+        .bind(pid)
         .fetch_one(pool)
         .await?;
 
@@ -223,7 +238,7 @@ impl AuthService {
 
         // Update user to active
         let user = sqlx::query_as::<_, User>(
-            "UPDATE users SET status = 'active', updated_at = $1 WHERE id = $2 RETURNING id, uid, email, password_hash, tier, status, organization_id, team_ids, license_status, source_upid, profile_data, created_at, updated_at, last_login"
+            "UPDATE users SET status = 'active', updated_at = $1 WHERE id = $2 RETURNING id, uid, email, password_hash, tier, status, organization_id, team_ids, license_status, source_product_slug, profile_data, created_at, updated_at, last_login"
         )
             .bind(Utc::now().naive_utc())
             .bind(user_id)
@@ -250,7 +265,7 @@ impl AuthService {
         email: &str,
     ) -> AppResult<String> {
         let user = sqlx::query_as::<_, User>(
-            "SELECT id, uid, email, tier, status, organization_id, team_ids, license_status, source_upid, profile_data, created_at, updated_at, last_login FROM users WHERE email = $1"
+            "SELECT id, uid, email, tier, status, organization_id, team_ids, license_status, source_product_slug, profile_data, created_at, updated_at, last_login FROM users WHERE email = $1"
         )
             .bind(email)
             .fetch_optional(pool)
@@ -327,7 +342,7 @@ impl AuthService {
     /// Get user by ID
     pub async fn get_user_by_id(pool: &PgPool, user_id: i64) -> AppResult<User> {
         sqlx::query_as::<_, User>(
-            "SELECT id, uid, email, password_hash, tier, status, organization_id, team_ids, license_status, source_upid, profile_data, created_at, updated_at, last_login FROM users WHERE id = $1"
+            "SELECT id, uid, email, password_hash, tier, status, organization_id, team_ids, license_status, source_product_slug, profile_data, created_at, updated_at, last_login FROM users WHERE id = $1"
         )
             .bind(user_id)
             .fetch_optional(pool)
@@ -338,7 +353,7 @@ impl AuthService {
     /// Get user by email
     pub async fn get_user_by_email(pool: &PgPool, email: &str) -> AppResult<User> {
         sqlx::query_as::<_, User>(
-            "SELECT id, uid, email, password_hash, tier, status, organization_id, team_ids, license_status, source_upid, profile_data, created_at, updated_at, last_login FROM users WHERE email = $1"
+            "SELECT id, uid, email, password_hash, tier, status, organization_id, team_ids, license_status, source_product_slug, profile_data, created_at, updated_at, last_login FROM users WHERE email = $1"
         )
             .bind(email)
             .fetch_optional(pool)
@@ -348,45 +363,56 @@ impl AuthService {
 
     /// Determine user tier for a specific product (or global tier if no product specified)
     /// 
-    /// When `source_upid` is provided (external product like KwongFu):
+    /// When `product_slug` is provided (external product like KwongFu):
     /// - Returns "premium" or "allstar" if user's global tier is premium/allstar
     /// - Returns "standard" if user has team assignment for the product
     /// - Returns "free" if user only has free_user_license for the product
     /// 
-    /// When `source_upid` is None (Allowance's own frontend):
+    /// When `product_slug` is None (Allowance's own frontend):
     /// - Returns tier mapped from user's roles (admin->allstar, org_boss->premium, etc.)
     pub async fn determine_user_tier(
         pool: &PgPool,
         user: &User,
-        source_upid: Option<&str>,
+        product_slug: Option<&str>,
         roles: Option<&Vec<String>>,
     ) -> String {
-        match source_upid {
-            Some(upid) => Self::get_tier_for_product(pool, user, upid).await,
+        match product_slug {
+            Some(slug) => Self::get_tier_for_product(pool, user, slug).await,
             None => Self::get_tier_from_roles(user, roles),
         }
     }
 
     /// Get tier for a specific product based on user's license
     /// Checks user_teams + team_product_quotas for standard tier (four-tier system)
-    async fn get_tier_for_product(pool: &PgPool, user: &User, upid: &str) -> String {
+    async fn get_tier_for_product(pool: &PgPool, user: &User, product_slug: &str) -> String {
         // Premium and Allstar users have full access to all products
         if user.tier == crate::models::UserTier::Premium || user.tier == crate::models::UserTier::Allstar {
             return user.tier.to_string();
         }
 
+        // Resolve product_slug to product_id
+        let product_id: Option<i64> = sqlx::query_scalar("SELECT id FROM products WHERE product_slug = $1")
+            .bind(product_slug)
+            .fetch_optional(pool)
+            .await
+            .unwrap_or(None);
+
+        let pid = match product_id {
+            Some(id) => id,
+            None => return "free".to_string(), // Product not found, default to free
+        };
+
         // For standard users: check if they are in a team with quota for this product
-        // This is the new four-tier system based on team membership
         if user.tier == crate::models::UserTier::Standard {
             let has_team_quota = sqlx::query_scalar::<_, i64>(
                 r#"
                 SELECT COUNT(*) FROM user_teams ut
                 JOIN team_product_quotas tpq ON ut.team_id = tpq.team_id
-                WHERE ut.user_id = $1 AND tpq.upid = $2
+                WHERE ut.user_id = $1 AND tpq.product_id = $2
                 "#
             )
             .bind(user.id)
-            .bind(upid)
+            .bind(pid)
             .fetch_one(pool)
             .await
             .unwrap_or(0);
@@ -399,13 +425,12 @@ impl AuthService {
         // Check if user has a free license for this product
         let has_free_license = sqlx::query_scalar::<_, i64>(
             r#"
-            SELECT COUNT(*) FROM free_user_licenses ful
-            JOIN products p ON ful.product_id = p.id
-            WHERE ful.user_id = $1 AND p.upid = $2
+            SELECT COUNT(*) FROM free_user_licenses
+            WHERE user_id = $1 AND product_id = $2
             "#
         )
         .bind(user.id)
-        .bind(upid)
+        .bind(pid)
         .fetch_one(pool)
         .await
         .unwrap_or(0);

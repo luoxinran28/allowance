@@ -7,7 +7,7 @@ export interface User {
   licenseStatus?: 'valid' | 'expired' | 'not_assigned';
   organizationId?: number | null;
   teamIds?: number[];
-  source_upid?: string;
+  source_product_slug?: string;
   roles?: string[];
   created_at: string;
   updated_at?: string;

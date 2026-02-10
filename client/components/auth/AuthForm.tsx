@@ -43,7 +43,7 @@ export function AuthForm({ mode: initialMode = 'login' }: AuthFormProps) {
   const [mode, setMode] = useState<'login' | 'register'>(initialMode);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [upid, setUpid] = useState('');
+  const [productSlug, setProductSlug] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
@@ -67,12 +67,12 @@ export function AuthForm({ mode: initialMode = 'login' }: AuthFormProps) {
     password: false,
   });
 
-  // Read UPID from meta tag on component mount
+  // Read product slug from meta tag on component mount
   useEffect(() => {
     if (typeof document !== 'undefined') {
-      const upidMeta = document.querySelector('meta[name="allowance-upid"]') as HTMLMetaElement;
-      if (upidMeta?.content) {
-        setUpid(upidMeta.content);
+      const slugMeta = document.querySelector('meta[name="allowance-product-slug"]') as HTMLMetaElement;
+      if (slugMeta?.content) {
+        setProductSlug(slugMeta.content);
       }
     }
   }, []);
@@ -173,16 +173,16 @@ export function AuthForm({ mode: initialMode = 'login' }: AuthFormProps) {
       const sanitizedPassword = sanitizeInput(password);
 
       if (mode === 'register') {
-        // Use UPID from meta tag or default to 'allowance' product
-        const sourceUpid = upid || process.env.NEXT_PUBLIC_PRODUCT_UPID || 'allowance';
-        await apiClient.register(sanitizedEmail, sanitizedPassword, sourceUpid);
+        // Use product slug from meta tag or default to 'allowance'
+        const slug = productSlug || process.env.NEXT_PUBLIC_PRODUCT_SLUG || 'allowance';
+        await apiClient.register(sanitizedEmail, sanitizedPassword, slug);
         setSuccess('Registration successful! You can now sign in.');
         setTimeout(() => {
           setMode('login');
           setSuccess('');
         }, 2000);
       } else {
-        // Login without UPID - UPID is only required when accessing a specific product
+        // Login without product_slug - it's only required when accessing a specific product
         // not for initial authentication
         const response = await apiClient.login(sanitizedEmail, sanitizedPassword);
         const { user, token } = response.data;
@@ -260,10 +260,10 @@ export function AuthForm({ mode: initialMode = 'login' }: AuthFormProps) {
             </Alert>
           )}
 
-          {upid && (
+          {productSlug && (
             <div className="mb-4 p-3 rounded-lg border border-border bg-muted">
               <p className="text-xs text-muted-foreground">
-                <span className="font-semibold">Product:</span> {upid}
+                <span className="font-semibold">Product:</span> {productSlug}
               </p>
             </div>
           )}

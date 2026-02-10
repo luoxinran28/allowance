@@ -21,7 +21,7 @@ interface User {
   uid: string;
   email: string;
   tier: string;
-  source_upid?: string;
+  source_product_slug?: string;
 }
 
 interface TeamQuota {
@@ -53,15 +53,15 @@ export function AddMemberModal({ isOpen, onClose, teamId, organizationId, onMemb
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, teamId, organizationId]);
 
-  // Auto-select user's source_upid product when user is selected
+  // Auto-select user's source product when user is selected
   useEffect(() => {
     if (typeof selectedUserId === 'number' && selectedUserId > 0) {
       const selectedUser = users.find(u => u.id === selectedUserId);
-      if (selectedUser?.source_upid) {
+      if (selectedUser?.source_product_slug) {
         // Check if this product has available quota
-        const quota = teamQuotas.find(q => q.upid === selectedUser.source_upid);
+        const quota = teamQuotas.find(q => q.upid === selectedUser.source_product_slug);
         if (quota && quota.allocated_count > quota.used_count) {
-          setSelectedProducts([selectedUser.source_upid]);
+          setSelectedProducts([selectedUser.source_product_slug]);
         }
       }
     }
@@ -208,8 +208,8 @@ export function AddMemberModal({ isOpen, onClose, teamId, organizationId, onMemb
                 </Select>
                 {typeof selectedUserId === 'number' && selectedUserId > 0 && (
                   <div className="text-xs text-gray-500">
-                    {users.find(u => u.id === selectedUserId)?.source_upid && (
-                      <span>User registered with product: {users.find(u => u.id === selectedUserId)?.source_upid}</span>
+                    {users.find(u => u.id === selectedUserId)?.source_product_slug && (
+                      <span>User registered with product: {users.find(u => u.id === selectedUserId)?.source_product_slug}</span>
                     )}
                   </div>
                 )}

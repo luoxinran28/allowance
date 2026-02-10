@@ -93,7 +93,7 @@ pub struct User {
     pub organization_id: Option<i64>,
     pub team_ids: Option<serde_json::Value>,  // JSON array: [1, 2, 3]
     pub license_status: Option<String>,       // valid, expired, not_assigned
-    pub source_upid: Option<String>,
+    pub source_product_slug: Option<String>,
     pub profile_data: Option<serde_json::Value>,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
@@ -135,17 +135,17 @@ impl From<User> for UserResponse {
 pub struct RegisterRequest {
     pub email: String,
     pub password: String,
-    pub source_upid: String,
+    /// Product slug identifying the registration source (e.g., "kwongfu", "allowance")
+    pub product_slug: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct LoginRequest {
     pub email: String,
     pub password: String,
-    /// Product UPID for product-specific tier lookup (e.g., "kwongfu-trading")
-    /// Used by external products like KwongFu to get product-specific tier
-    #[serde(alias = "source_upid")]
-    pub upid: Option<String>,
+    /// Product slug for product-specific tier lookup (e.g., "kwongfu")
+    /// Used by external products to get product-specific effective_tier
+    pub product_slug: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

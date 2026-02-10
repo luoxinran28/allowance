@@ -130,7 +130,7 @@ export default function ProfilePage() {
               <div className="flex justify-between items-center py-2 border-b border-border">
                 <span className="font-medium text-muted-foreground">Registration Source Product</span>
                 <span className="text-foreground">
-                  {user.source_upid || 'Not specified'}
+                  {user.source_product_slug || 'Not specified'}
                 </span>
               </div>
               <div className="flex justify-between items-center py-2">

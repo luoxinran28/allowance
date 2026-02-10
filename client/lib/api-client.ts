@@ -94,12 +94,12 @@ class ApiClient {
 
   // ============= Auth Endpoints =============
 
-  async register(email: string, password: string, sourceUpid: string) {
-    return this.client.post('/auth/register', { email, password, source_upid: sourceUpid });
+  async register(email: string, password: string, productSlug: string) {
+    return this.client.post('/auth/register', { email, password, product_slug: productSlug });
   }
 
-  async login(email: string, password: string, upid?: string) {
-    const body = upid ? { email, password, upid } : { email, password };
+  async login(email: string, password: string, productSlug?: string) {
+    const body = productSlug ? { email, password, product_slug: productSlug } : { email, password };
     return this.client.post('/auth/login', body);
   }
 

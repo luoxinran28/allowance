@@ -20,7 +20,7 @@ impl AdminService {
 
         let users = sqlx::query_as::<_, User>(
             r#"
-            SELECT id, uid, email, password_hash, tier, status, organization_id, team_ids, license_status, source_upid, profile_data, created_at, updated_at, last_login FROM users
+            SELECT id, uid, email, password_hash, tier, status, organization_id, team_ids, license_status, source_product_slug, profile_data, created_at, updated_at, last_login FROM users
             ORDER BY created_at DESC
             LIMIT $1 OFFSET $2
             "#
@@ -51,7 +51,7 @@ impl AdminService {
         }
 
         let user = sqlx::query_as::<_, User>(
-            "SELECT id, uid, email, password_hash, tier, status, organization_id, team_ids, license_status, source_upid, profile_data, created_at, updated_at, last_login FROM users WHERE id = $1"
+            "SELECT id, uid, email, password_hash, tier, status, organization_id, team_ids, license_status, source_product_slug, profile_data, created_at, updated_at, last_login FROM users WHERE id = $1"
         )
             .bind(user_id)
             .fetch_optional(pool)

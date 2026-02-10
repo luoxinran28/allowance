@@ -20,11 +20,11 @@ impl UserGroupService {
 
         let mut tx = pool.begin().await?;
 
-        let user: (String, Option<String>) = sqlx::query_as("SELECT tier::text, source_upid FROM users WHERE id = $1")
+        let user: (String, Option<String>) = sqlx::query_as("SELECT tier::text, source_product_slug FROM users WHERE id = $1")
             .bind(user_id)
             .fetch_one(&mut *tx)
             .await?;
-        let (tier_str, source_upid) = (user.0, user.1);
+        let (tier_str, source_product_slug) = (user.0, user.1);
         
         let tier = match tier_str.as_str() {
             "free" => UserTier::Free,
@@ -34,18 +34,18 @@ impl UserGroupService {
             _ => return Err(AppError::BadRequest(format!("Unknown tier: {}", tier_str))),
         };
 
-        if let Some(ref upid) = source_upid {
-            if !upid.is_empty() && !selected_upids.contains(upid) {
+        if let Some(ref slug) = source_product_slug {
+            if !slug.is_empty() && !selected_upids.contains(slug) {
                 let has_quota: bool = sqlx::query_scalar(
                     "SELECT EXISTS(SELECT 1 FROM team_product_quotas WHERE team_id = $1 AND upid = $2 AND used_count < allocated_count)"
                 )
                 .bind(team_id)
-                .bind(upid)
+                .bind(slug)
                 .fetch_one(&mut *tx)
                 .await?;
 
                 if !has_quota {
-                    return Err(AppError::BadRequest(format!("Team does not have quota for source product {}", upid)));
+                    return Err(AppError::BadRequest(format!("Team does not have quota for source product {}", slug)));
                 }
             }
         }
@@ -114,7 +114,7 @@ impl UserGroupService {
             .await?;
 
         if other_teams == 0 {
-            let source_upid: Option<String> = sqlx::query_scalar("SELECT source_upid FROM users WHERE id = $1")
+            let source_product_slug: Option<String> = sqlx::query_scalar("SELECT source_product_slug FROM users WHERE id = $1")
                 .bind(user_id)
                 .fetch_one(&mut *tx)
                 .await?;
@@ -124,9 +124,14 @@ impl UserGroupService {
                 .execute(&mut *tx)
                 .await?;
 
-            if let Some(upid) = source_upid {
-                let product_id: i64 = sqlx::query_scalar("SELECT id FROM products WHERE upid = $1")
-                    .bind(&upid)
+            if let Some(slug) = source_product_slug {
+                let product_id: i64 = sqlx::query_scalar("SELECT id FROM products WHERE product_slug = $1")
+                    .bind(&slug)
+                    .fetch_one(&mut *tx)
+                    .await?;
+                // Fetch the internal upid for FreeUserService (still needs it for license key)
+                let upid: String = sqlx::query_scalar("SELECT upid FROM products WHERE id = $1")
+                    .bind(product_id)
                     .fetch_one(&mut *tx)
                     .await?;
                 FreeUserService::create_free_license(&mut *tx, user_id, product_id, &upid).await?;

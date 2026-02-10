@@ -101,7 +101,7 @@ pub async fn list_users(
     
     // Fetch the requesting user to check tier
     let requesting_user = sqlx::query_as::<_, User>(
-        "SELECT id, uid, email, password_hash, tier, status, organization_id, team_ids, license_status, source_upid,
+        "SELECT id, uid, email, password_hash, tier, status, organization_id, team_ids, license_status, source_product_slug,
                 profile_data, created_at, updated_at, last_login
         FROM users WHERE id = $1"
     )
@@ -125,7 +125,7 @@ pub async fn list_users(
     // Admin: Return all users with organization and team info
     let users = sqlx::query_as::<_, User>(
         r#"
-        SELECT id, uid, email, password_hash, tier, status, organization_id, team_ids, license_status, source_upid,
+        SELECT id, uid, email, password_hash, tier, status, organization_id, team_ids, license_status, source_product_slug,
                profile_data, created_at, updated_at, last_login
         FROM users
         ORDER BY created_at DESC
@@ -242,9 +242,9 @@ pub async fn create_user(
     // Create user
     let user = sqlx::query_as::<_, User>(
         r#"
-        INSERT INTO users (uid, email, password_hash, status, tier, organization_id, source_upid)
-        VALUES ($1, $2, $3, $4::user_status, $5::user_tier, $6, 'UALLOWANCE0001')
-        RETURNING id, uid, email, password_hash, tier, status, organization_id, team_ids, license_status, source_upid, profile_data, created_at, updated_at, last_login
+        INSERT INTO users (uid, email, password_hash, status, tier, organization_id, source_product_slug)
+        VALUES ($1, $2, $3, $4::user_status, $5::user_tier, $6, 'allowance')
+        RETURNING id, uid, email, password_hash, tier, status, organization_id, team_ids, license_status, source_product_slug, profile_data, created_at, updated_at, last_login
         "#
     )
         .bind(&uid)

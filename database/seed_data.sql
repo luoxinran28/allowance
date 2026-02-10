@@ -2,27 +2,27 @@
 -- 四层权限系统测试数据
 
 -- 1. 创建测试用户（不同 Tier 级别）
-INSERT INTO users (email, uid, password_hash, tier, organization_id, team_ids, license_status, source_upid, status, created_at, updated_at)
+INSERT INTO users (email, uid, password_hash, tier, organization_id, team_ids, license_status, source_product_slug, status, created_at, updated_at)
 VALUES
   -- Free User - 无组织，无团队
   ('free_user@test.com', 'UFR1E2E3E4E5E6E7',
    '$argon2id$v=19$m=19456,t=2,p=1$2NtODaH4T0wmOnsuNCg3ew$/zOMOnWbc1kK723Cbc4PzujaLKrqo0q4vCjFakA3Llg',
-   'free', NULL, NULL, 'valid', 'UALLOWANCE0001', 'active', NOW(), NOW()),
+   'free', NULL, NULL, 'valid', 'allowance', 'active', NOW(), NOW()),
 
   -- Standard User - 有组织，有团队（Team Member）
   ('standard_user@test.com', 'US7T8A9N10D11A12',
    '$argon2id$v=19$m=19456,t=2,p=1$2NtODaH4T0wmOnsuNCg3ew$/zOMOnWbc1kK723Cbc4PzujaLKrqo0q4vCjFakA3Llg',
-   'standard', 1, '[1, 2]', 'valid', 'UALLOWANCE0001', 'active', NOW(), NOW()),
+   'standard', 1, '[1, 2]', 'valid', 'allowance', 'active', NOW(), NOW()),
 
   -- Premium User - 有组织，有团队（Org Boss）
   ('premium_user@test.com', 'UP11R12E13M14I15',
    '$argon2id$v=19$m=19456,t=2,p=1$2NtODaH4T0wmOnsuNCg3ew$/zOMOnWbc1kK723Cbc4PzujaLKrqo0q4vCjFakA3Llg',
-   'premium', 1, '[1, 2, 3]', 'valid', 'UALLOWANCE0001', 'active', NOW(), NOW()),
+   'premium', 1, '[1, 2, 3]', 'valid', 'allowance', 'active', NOW(), NOW()),
 
   -- Allstar User - Admin
   ('admin_user@test.com', 'UA11D12M13I14N15',
    '$argon2id$v=19$m=19456,t=2,p=1$2NtODaH4T0wmOnsuNCg3ew$/zOMOnWbc1kK723Cbc4PzujaLKrqo0q4vCjFakA3Llg',
-   'allstar', NULL, NULL, 'valid', 'UALLOWANCE0001', 'active', NOW(), NOW())
+   'allstar', NULL, NULL, 'valid', 'allowance', 'active', NOW(), NOW())
 ON CONFLICT (email) DO UPDATE SET
   tier = EXCLUDED.tier,
   organization_id = EXCLUDED.organization_id,
