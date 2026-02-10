@@ -1,7 +1,6 @@
 use sqlx::PgPool;
 use crate::models::{User, UserResponse};
 use crate::utils::{AppResult, AppError};
-use crate::services::RbacService;
 
 pub struct AdminService;
 
@@ -61,116 +60,6 @@ impl AdminService {
         Ok(UserResponse::from(user))
     }
 
-    /// Assign role to user (admin only)
-    pub async fn assign_role_to_user(
-        pool: &PgPool,
-        admin_user_id: i64,
-        target_user_id: i64,
-        role_code: &str,
-    ) -> AppResult<()> {
-        if target_user_id <= 0 {
-            return Err(AppError::InvalidRequest("Invalid target user ID".to_string()));
-        }
-
-        if role_code.trim().is_empty() {
-            return Err(AppError::InvalidRequest("Role code cannot be empty".to_string()));
-        }
-
-        // Verify admin has permission
-        let has_permission = RbacService::has_permission(
-            pool,
-            admin_user_id,
-            "admin:manage_users",
-        ).await?;
-
-        if !has_permission {
-            return Err(AppError::Forbidden);
-        }
-
-        // Check if target user exists
-        let user_exists: bool = sqlx::query_scalar(
-            "SELECT EXISTS(SELECT 1 FROM users WHERE id = $1)"
-        )
-            .bind(target_user_id)
-            .fetch_one(pool)
-            .await?;
-
-        if !user_exists {
-            return Err(AppError::NotFound("Target user not found".to_string()));
-        }
-
-        // Assign the role
-        RbacService::assign_role(pool, target_user_id, role_code).await?;
-
-        // Log the admin action
-        Self::log_admin_action(
-            pool,
-            admin_user_id,
-            "role_assign",
-            "user",
-            target_user_id,
-            None,
-            Some(role_code.to_string()),
-        ).await?;
-
-        Ok(())
-    }
-
-    /// Remove role from user (admin only)
-    pub async fn remove_role_from_user(
-        pool: &PgPool,
-        admin_user_id: i64,
-        target_user_id: i64,
-        role_code: &str,
-    ) -> AppResult<()> {
-        if target_user_id <= 0 {
-            return Err(AppError::InvalidRequest("Invalid target user ID".to_string()));
-        }
-
-        if role_code.trim().is_empty() {
-            return Err(AppError::InvalidRequest("Role code cannot be empty".to_string()));
-        }
-
-        // Verify admin has permission
-        let has_permission = RbacService::has_permission(
-            pool,
-            admin_user_id,
-            "admin:manage_users",
-        ).await?;
-
-        if !has_permission {
-            return Err(AppError::Forbidden);
-        }
-
-        // Check if target user exists
-        let user_exists: bool = sqlx::query_scalar(
-            "SELECT EXISTS(SELECT 1 FROM users WHERE id = $1)"
-        )
-            .bind(target_user_id)
-            .fetch_one(pool)
-            .await?;
-
-        if !user_exists {
-            return Err(AppError::NotFound("Target user not found".to_string()));
-        }
-
-        // Remove the role
-        RbacService::remove_role(pool, target_user_id, role_code).await?;
-
-        // Log the admin action
-        Self::log_admin_action(
-            pool,
-            admin_user_id,
-            "role_remove",
-            "user",
-            target_user_id,
-            Some(role_code.to_string()),
-            None,
-        ).await?;
-
-        Ok(())
-    }
-
     /// Log an admin action for audit purposes
     async fn log_admin_action(
         pool: impl sqlx::Executor<'_, Database = sqlx::Postgres>,
@@ -197,14 +86,6 @@ impl AdminService {
             .await?;
 
         Ok(())
-    }
-
-    /// Check if a user has admin permissions
-    pub async fn is_admin(
-        pool: &PgPool,
-        user_id: i64,
-    ) -> AppResult<bool> {
-        RbacService::has_permission(pool, user_id, "admin:manage_users").await
     }
 }
 
@@ -260,33 +141,34 @@ mod tests {
     }
 
     #[test]
-    fn test_role_code_validation() {
-        let long_string = "a".repeat(101);
-
-        let valid_roles = vec![
-            "admin",
-            "free_user",
-            "standard_employee",
-            "team_leader",
-            "a", // Minimum length
+    fn test_tier_code_validation() {
+        let valid_tiers = vec![
+            "free",
+            "standard",
+            "premium",
+            "allstar",
         ];
 
-        let invalid_roles = vec![
+        let invalid_tiers = vec![
             "",      // Empty
             "   ",   // Only whitespace
-            &long_string, // Too long (assuming 100 char limit)
+            "admin", // Not a valid tier
+            "super", // Not a valid tier
         ];
 
-        for role in valid_roles {
-            assert!(!role.trim().is_empty(), "Valid role should not be empty after trim");
-            assert!(role.len() <= 100, "Valid role should be within length limit");
+        for tier in valid_tiers {
+            assert!(!tier.trim().is_empty(), "Valid tier should not be empty after trim");
+            assert!(
+                ["free", "standard", "premium", "allstar"].contains(&tier),
+                "Valid tier should be recognized: {}", tier
+            );
         }
 
-        for role in invalid_roles {
+        for tier in invalid_tiers {
             assert!(
-                role.trim().is_empty() || role.len() > 100,
-                "Invalid role should fail validation: '{}'",
-                role
+                tier.trim().is_empty() || !["free", "standard", "premium", "allstar"].contains(&tier),
+                "Invalid tier should fail validation: '{}'",
+                tier
             );
         }
     }
@@ -348,19 +230,19 @@ mod tests {
         let valid_actions = vec![
             AdminActionLog {
                 admin_user_id: 1,
-                action: "role_assign".to_string(),
+                action: "tier_change".to_string(),
                 target_type: "user".to_string(),
                 target_id: 2,
-                old_value: None,
-                new_value: Some("admin".to_string()),
+                old_value: Some("free".to_string()),
+                new_value: Some("standard".to_string()),
             },
             AdminActionLog {
                 admin_user_id: 1,
-                action: "role_remove".to_string(),
+                action: "user_suspend".to_string(),
                 target_type: "user".to_string(),
                 target_id: 2,
-                old_value: Some("admin".to_string()),
-                new_value: None,
+                old_value: Some("active".to_string()),
+                new_value: Some("suspended".to_string()),
             },
             AdminActionLog {
                 admin_user_id: 1,
@@ -375,11 +257,11 @@ mod tests {
         let invalid_actions = vec![
             AdminActionLog {
                 admin_user_id: 0, // Invalid admin ID
-                action: "role_assign".to_string(),
+                action: "tier_change".to_string(),
                 target_type: "user".to_string(),
                 target_id: 2,
                 old_value: None,
-                new_value: Some("admin".to_string()),
+                new_value: Some("standard".to_string()),
             },
             AdminActionLog {
                 admin_user_id: 1,
@@ -387,23 +269,23 @@ mod tests {
                 target_type: "user".to_string(),
                 target_id: 2,
                 old_value: None,
-                new_value: Some("admin".to_string()),
+                new_value: Some("standard".to_string()),
             },
             AdminActionLog {
                 admin_user_id: 1,
-                action: "role_assign".to_string(),
+                action: "tier_change".to_string(),
                 target_type: "".to_string(), // Empty target type
                 target_id: 2,
                 old_value: None,
-                new_value: Some("admin".to_string()),
+                new_value: Some("standard".to_string()),
             },
             AdminActionLog {
                 admin_user_id: 1,
-                action: "role_assign".to_string(),
+                action: "tier_change".to_string(),
                 target_type: "user".to_string(),
                 target_id: 0, // Invalid target ID
                 old_value: None,
-                new_value: Some("admin".to_string()),
+                new_value: Some("standard".to_string()),
             },
         ];
 
@@ -437,7 +319,7 @@ mod tests {
         let long_string = "a".repeat(101);
 
         let valid_request_types = vec![
-            "role_upgrade",
+            "tier_upgrade",
             "organization_create",
             "team_create",
             "permission_request",
@@ -465,38 +347,34 @@ mod tests {
     }
 
     #[test]
-    fn test_admin_permission_hierarchy() {
-        // Test that admin permissions include all other permissions
-        let admin_permissions = vec![
-            "admin:manage_users",
-            "admin:manage_approvals",
-            "user:read",
-            "product:read",
-            "team:write",
-            "org:write",
-        ];
+    fn test_tier_hierarchy() {
+        // Test that tiers have proper ordering: allstar > premium > standard > free
+        let tiers = vec!["free", "standard", "premium", "allstar"];
 
-        let non_admin_permissions = vec![
-            "user:read",
-            "product:read",
-            "team:write",
-        ];
+        fn tier_level(tier: &str) -> u8 {
+            match tier {
+                "free" => 0,
+                "standard" => 1,
+                "premium" => 2,
+                "allstar" => 3,
+                _ => panic!("Unknown tier: {}", tier),
+            }
+        }
 
-        // Admin should have all permissions
-        for perm in &non_admin_permissions {
+        // Verify ordering
+        for window in tiers.windows(2) {
             assert!(
-                admin_permissions.contains(perm),
-                "Admin should include all non-admin permissions: {}",
-                perm
+                tier_level(window[0]) < tier_level(window[1]),
+                "{} should be lower tier than {}",
+                window[0], window[1]
             );
         }
 
-        // Admin should have additional admin-specific permissions
-        let admin_only_perms: Vec<_> = admin_permissions.iter()
-            .filter(|p| p.starts_with("admin:"))
-            .collect();
+        // Allstar should be the highest tier
+        assert_eq!(tier_level("allstar"), 3, "Allstar should be the highest tier level");
 
-        assert!(!admin_only_perms.is_empty(), "Admin should have admin-specific permissions");
+        // Free should be the lowest tier
+        assert_eq!(tier_level("free"), 0, "Free should be the lowest tier level");
     }
 
     #[test]

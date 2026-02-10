@@ -27,7 +27,7 @@ test.describe('Admin Pages - Overlay Mode', () => {
       console.log('Successfully navigated to admin users page');
     });
 
-    test('should open overlay when clicking user action button', async ({ page }) => {
+    test('should open overlay when clicking user row', async ({ page }) => {
       // Login manually
       await page.goto('/auth/login');
       await page.fill('input[type="email"]', 'admin@allowance.test');
@@ -41,12 +41,11 @@ test.describe('Admin Pages - Overlay Mode', () => {
       await page.goto('/admin/users');
       await page.waitForTimeout(2000);
 
-      // Wait for table and buttons to load
+      // Wait for table to load
       await page.waitForSelector('table', { timeout: 10000 });
-      await page.waitForSelector('button[title="Assign role"]', { timeout: 10000 });
 
-      // Click first role assignment button
-      await page.click('button[title="Assign role"]');
+      // Click first user row
+      await page.click('table tbody tr:first-child');
       
       // Wait for URL to change with selected_id parameter
       await page.waitForURL(/selected_id=\d+/, { timeout: 5000 });
@@ -56,9 +55,9 @@ test.describe('Admin Pages - Overlay Mode', () => {
       const overlay = page.locator('[role="dialog"]');
       await expect(overlay).toBeVisible({ timeout: 5000 });
 
-      // Check overlay content
+      // Check overlay content shows user details
       await expect(page.locator('text=User Details')).toBeVisible();
-      await expect(page.locator('text=Select Role')).toBeVisible();
+      await expect(page.locator('text=Tier')).toBeVisible();
     });
 
     test('should close overlay on close button click', async ({ page }) => {
@@ -75,11 +74,11 @@ test.describe('Admin Pages - Overlay Mode', () => {
       await page.goto('/admin/users');
       await page.waitForTimeout(2000);
 
-      // Wait for buttons to load
-      await page.waitForSelector('button[title="Assign role"]', { timeout: 10000 });
+      // Wait for table to load
+      await page.waitForSelector('table', { timeout: 10000 });
 
-      // Open overlay
-      await page.click('button[title="Assign role"]');
+      // Open overlay by clicking first user row
+      await page.click('table tbody tr:first-child');
       
       // Wait for URL to change with selected_id parameter
       await page.waitForURL(/selected_id=\d+/, { timeout: 5000 });

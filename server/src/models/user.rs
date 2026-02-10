@@ -108,12 +108,11 @@ pub struct UserResponse {
     pub tier: UserTier,
     /// Effective tier for the current product context (may differ from stored tier)
     /// For external products: based on product-specific license
-    /// For Allowance: based on user roles
+    /// For Allowance: based on user's stored tier
     #[serde(skip_serializing_if = "Option::is_none")]
     pub effective_tier: Option<String>,
     pub status: UserStatus,
     pub created_at: NaiveDateTime,
-    pub roles: Option<Vec<String>>,
 }
 
 impl From<User> for UserResponse {
@@ -126,7 +125,6 @@ impl From<User> for UserResponse {
             effective_tier: None,  // Will be set by handler if needed
             status: user.status,
             created_at: user.created_at,
-            roles: None,
         }
     }
 }

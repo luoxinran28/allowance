@@ -292,14 +292,6 @@ class ApiClient {
     return this.client.get(`/admin/users/${userId}`);
   }
 
-  async assignRole(userId: number, roleCode: string) {
-    return this.client.post(`/admin/users/${userId}/role`, { role_code: roleCode });
-  }
-
-  async removeRole(userId: number, roleCode: string) {
-    return this.client.delete(`/admin/users/${userId}/role/${roleCode}`);
-  }
-
   // Team Quota Admin endpoints
   async listTeamQuotas() {
     return this.client.get('/admin/team-quotas');

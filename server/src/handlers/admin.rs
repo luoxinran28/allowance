@@ -6,7 +6,7 @@ use axum::{
 use serde::{Deserialize, Serialize};
 
 use crate::models::{UserResponse, User, CreateProductAdminRequest, GenerateLicensesRequest, OrgProductLicenseResponse};
-use crate::services::{AuthService, RbacService, ProductService, UserService};
+use crate::services::{AuthService, ProductService, UserService};
 use crate::utils::{AppResult, AppError};
 use crate::handlers::auth::AuthHandler;
 
@@ -14,11 +14,6 @@ use crate::handlers::auth::AuthHandler;
 pub struct PaginationParams {
     pub page: Option<i64>,
     pub page_size: Option<i64>,
-}
-
-#[derive(Deserialize)]
-pub struct AssignRoleRequest {
-    pub role_code: String,
 }
 
 #[derive(Deserialize)]
@@ -81,16 +76,14 @@ pub struct AdminUserResponse {
     pub tier: String,
     pub status: String,
     pub created_at: chrono::NaiveDateTime,
-    pub roles: Option<Vec<String>>,
     pub organization_id: Option<i64>,
     pub organization_name: Option<String>,
     pub team_ids: Option<Vec<i64>>,
     pub team_names: Option<Vec<String>>,
 }
 
-/// List users with role-based filtering
-/// - Admin: sees all users
-/// - Team Leader: sees only members of teams they lead
+/// List users with tier-based filtering
+/// - Admin (Allstar): sees all users
 /// - Regular users: denied access
 pub async fn list_users(
     State(state): State<Arc<AuthHandler>>,
@@ -114,11 +107,8 @@ pub async fn list_users(
     let page_size = params.page_size.unwrap_or(20);
     let offset = (page - 1) * page_size;
 
-    // TEMP: Allow all for debugging
-    // Check if user has admin role
-    let user_roles = crate::services::RbacService::get_user_roles(&state.pool, user_id).await?;
-    let has_admin_role = user_roles.iter().any(|r| r.code == "admin");
-    if !has_admin_role && requesting_user.tier != crate::models::UserTier::Allstar {
+    // Only Allstar tier users can access admin functions
+    if requesting_user.tier != crate::models::UserTier::Allstar {
         return Err(AppError::PermissionDenied);
     }
 
@@ -159,9 +149,6 @@ pub async fn list_users(
 
     let mut user_responses: Vec<AdminUserResponse> = Vec::new();
     for user in users {
-        let uid = user.id;
-        let roles = RbacService::get_user_roles(&state.pool, uid).await?;
-        
         // Get organization name
         let org_name = user.organization_id.and_then(|oid| org_map.get(&oid).cloned());
         
@@ -186,7 +173,6 @@ pub async fn list_users(
             tier: format!("{:?}", user.tier).to_lowercase(),
             status: format!("{:?}", user.status).to_lowercase(),
             created_at: user.created_at,
-            roles: Some(roles.iter().map(|r| r.code.clone()).collect()),
             organization_id: user.organization_id,
             organization_name: org_name,
             team_ids: team_ids_vec,
@@ -256,18 +242,7 @@ pub async fn create_user(
         .fetch_one(&*state.pool)
         .await?;
 
-    // Assign default role based on tier
-    let role_code = match tier {
-        "allstar" => "admin",
-        "premium" => "org_boss",
-        "standard" => "standard_employee",
-        _ => "free_user",
-    };
-    let _ = RbacService::assign_role(&state.pool, user.id, role_code).await;
-
-    let mut response = UserResponse::from(user);
-    let roles = RbacService::get_user_roles(&state.pool, response.id).await?;
-    response.roles = Some(roles.iter().map(|r| r.code.clone()).collect());
+    let response = UserResponse::from(user);
 
     Ok((axum::http::StatusCode::CREATED, Json(response)))
 }
@@ -282,48 +257,8 @@ pub async fn get_user(
     check_admin_permission(&state, requester_id).await?;
 
     let user = AuthService::get_user_by_id(&state.pool, user_id).await?;
-    let mut response = UserResponse::from(user);
-    let roles = RbacService::get_user_roles(&state.pool, user_id).await?;
-    response.roles = Some(roles.iter().map(|r| r.code.clone()).collect());
+    let response = UserResponse::from(user);
     Ok(Json(response))
-}
-
-/// Assign role to user (admin only)
-pub async fn assign_role(
-    State(state): State<Arc<AuthHandler>>,
-    headers: HeaderMap,
-    Path(user_id): Path<i64>,
-    Json(req): Json<AssignRoleRequest>,
-) -> AppResult<Json<AdminResponse>> {
-    let requester_id = extract_user_from_header(&state, &headers)?;
-    check_admin_permission(&state, requester_id).await?;
-
-    // Verify the user exists
-    let _user = UserService::get_user(&state.pool, user_id).await?;
-    
-    RbacService::assign_role(&state.pool, user_id, &req.role_code).await?;
-
-    Ok(Json(AdminResponse {
-        success: true,
-        message: format!("Role '{}' assigned to user {}", req.role_code, user_id),
-    }))
-}
-
-/// Remove role from user (admin only)
-pub async fn remove_role(
-    State(state): State<Arc<AuthHandler>>,
-    headers: HeaderMap,
-    Path((user_id, role_code)): Path<(i64, String)>,
-) -> AppResult<Json<AdminResponse>> {
-    let requester_id = extract_user_from_header(&state, &headers)?;
-    check_admin_permission(&state, requester_id).await?;
-
-    RbacService::remove_role(&state.pool, user_id, &role_code).await?;
-
-    Ok(Json(AdminResponse {
-        success: true,
-        message: format!("Role '{}' removed from user {}", role_code, user_id),
-    }))
 }
 
 // ============= PRODUCT & LICENSE ADMIN ENDPOINTS =============

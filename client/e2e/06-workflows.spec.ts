@@ -10,7 +10,7 @@ test.describe('Workflows', () => {
     expect(page.url()).toContain('/dashboard');
   });
 
-  test('should support multiple roles', async ({ page }) => {
+  test('should support multiple tiers', async ({ page }) => {
     const users = [
       'free@allowance.test',
       'leader1@allowance.test',

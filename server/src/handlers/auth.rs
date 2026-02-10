@@ -49,25 +49,17 @@ pub async fn login(
         AuthService::login(&state.pool, &req.email, &req.password).await?
     };
 
-    // Fetch user roles and extract role codes
-    let roles = crate::services::RbacService::get_user_roles(&state.pool, user.id)
-        .await
-        .ok()
-        .map(|role_list| role_list.iter().map(|r| r.code.clone()).collect::<Vec<String>>());
-
-    // Determine effective tier based on product context or roles
+    // Determine effective tier based on product context or stored tier
     let effective_tier = AuthService::determine_user_tier(
         &state.pool,
         &user,
         req.product_slug.as_deref(),
-        roles.as_ref(),
     ).await;
 
     let token = state.jwt.generate_token(user.id, user.email.clone())?;
     let refresh_token = state.jwt.generate_refresh_token(user.id)?;
 
     let mut user_response = UserResponse::from(user);
-    user_response.roles = roles;
     user_response.effective_tier = Some(effective_tier);
 
     Ok(Json(AuthResponse {
@@ -80,19 +72,11 @@ pub async fn login(
 /// Activate account
 /// 
 /// Activates a user account using the email verification token sent during registration.
-/// Automatically assigns the `free_user` role to the new user.
 pub async fn activate(
     State(state): State<Arc<AuthHandler>>,
     Json(req): Json<ActivateRequest>,
 ) -> AppResult<Json<UserResponse>> {
     let user = AuthService::activate_user(&state.pool, &req.token).await?;
-    
-    // Auto-assign free_user role
-    crate::services::RbacService::assign_role(
-        &state.pool,
-        user.id,
-        "free_user",
-    ).await?;
 
     Ok(Json(UserResponse::from(user)))
 }

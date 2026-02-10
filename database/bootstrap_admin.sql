@@ -16,13 +16,6 @@ ON CONFLICT (email) DO UPDATE SET
     license_status = 'valid',
     updated_at = CURRENT_TIMESTAMP;
 
--- Assign admin role to user
-INSERT INTO user_roles (user_id, role_id, scope)
-SELECT u.id, r.id, '{}'::jsonb
-FROM users u, roles r
-WHERE u.email = 'admin@allowance.test' AND r.code = 'admin'
-ON CONFLICT (user_id, role_id) DO NOTHING;
-
 -- Create default product (Allowance System)
 INSERT INTO products (upid, product_slug, name, description) VALUES
     ('UALLOWANCE0001', 'allowance', 'Allowance System', 'Core allowance authorization management system')

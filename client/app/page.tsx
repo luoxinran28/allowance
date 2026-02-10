@@ -52,7 +52,7 @@ export default function Home() {
             Authorization & User Management
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            A comprehensive system for managing user accounts, roles, and permissions with enterprise-grade security.
+            A comprehensive system for managing user accounts, tiers, and licenses with enterprise-grade security.
           </p>
           
           {/* Product Info Card */}
@@ -102,8 +102,8 @@ export default function Home() {
           <Card>
             <CardHeader>
               <Zap className="h-8 w-8 mb-2 text-primary" />
-              <CardTitle>Role-Based Access</CardTitle>
-              <CardDescription>Manage permissions and roles for different user types</CardDescription>
+              <CardTitle>Tier-Based Access</CardTitle>
+              <CardDescription>Manage access tiers for different user types</CardDescription>
             </CardHeader>
           </Card>
           

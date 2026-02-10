@@ -3,10 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { apiClient } from '@/lib/api-client';
-import { RoleTag } from '@/components/common/RoleTag';
 import { StatusBadge } from '@/components/common/StatusBadge';
 import { PaginationNav } from '@/components/common/PaginationNav';
-import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { AdminDetailOverlay } from '@/components/admin/AdminDetailOverlay';
 import { Plus } from 'lucide-react';
 import {
@@ -25,7 +23,6 @@ interface User {
   tier: string;
   status: string;
   created_at: string;
-  roles?: string[];
   organization_id?: number;
   organization_name?: string;
   team_ids?: number[];
@@ -52,13 +49,6 @@ interface CreateUserFormData {
   activate: boolean;
 }
 
-const AVAILABLE_ROLES = [
-  { code: 'admin', label: 'Administrator' },
-  { code: 'team_leader', label: 'Team Leader' },
-  { code: 'standard_employee', label: 'Standard Employee' },
-  { code: 'free_user', label: 'Free User' },
-];
-
 const AVAILABLE_TIERS = [
   { code: 'free', label: 'Free' },
   { code: 'standard', label: 'Standard' },
@@ -83,7 +73,6 @@ export default function AdminUsersPage() {
 
   // Detail overlay state
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [selectedRole, setSelectedRole] = useState('');
 
   // Create user overlay state
   const [isCreating, setIsCreating] = useState(false);
@@ -94,14 +83,6 @@ export default function AdminUsersPage() {
     organizationId: '',
     activate: true,
   });
-
-  // Confirm dialog state
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [confirmAction, setConfirmAction] = useState<{
-    type: 'assign' | 'remove';
-    userId?: number;
-    role?: string;
-  }>({ type: 'assign' });
 
   useEffect(() => {
     loadUsers();
@@ -114,7 +95,6 @@ export default function AdminUsersPage() {
       const user = users.find(u => u.id === selectedUserId);
       if (user) {
         setSelectedUser(user);
-        setSelectedRole(user.roles?.[0] || 'free_user');
       }
     } else {
       setSelectedUser(null);
@@ -153,14 +133,13 @@ export default function AdminUsersPage() {
     }
   };
 
-  const handleOpenRoleModal = (user: User) => {
+  const handleOpenUserDetail = (user: User) => {
     router.push(`?selected_id=${user.id}`);
   };
 
   const handleCloseOverlay = () => {
     router.push('');
     setSelectedUser(null);
-    setSelectedRole('');
     setIsCreating(false);
     setCreateFormData({
       email: '',
@@ -196,33 +175,6 @@ export default function AdminUsersPage() {
     }
   };
 
-  const handleRemoveRole = (userId: number, role: string) => {
-    setConfirmAction({ type: 'remove', userId, role });
-    setShowConfirm(true);
-  };
-
-  const confirmRoleChange = async () => {
-    try {
-      setError('');
-      setSuccess('');
-
-      if (confirmAction.type === 'assign' && confirmAction.userId && confirmAction.role) {
-        await apiClient.assignRole(confirmAction.userId, confirmAction.role);
-        setSuccess('Role assigned successfully');
-      } else if (confirmAction.type === 'remove' && confirmAction.userId && confirmAction.role) {
-        await apiClient.removeRole(confirmAction.userId, confirmAction.role);
-        setSuccess('Role removed successfully');
-      }
-
-      handleCloseOverlay();
-      await loadUsers();
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to update role');
-    } finally {
-      setShowConfirm(false);
-    }
-  };
-
   const totalPages = Math.ceil(total / pageSize);
 
   const filteredUsers = users.filter(
@@ -235,7 +187,7 @@ export default function AdminUsersPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold mb-2 text-gray-900">User Management</h1>
-          <p className="text-gray-600">Manage system users and assign roles</p>
+          <p className="text-gray-600">Manage system users and tiers</p>
         </div>
         <button
           onClick={() => setIsCreating(true)}
@@ -289,7 +241,6 @@ export default function AdminUsersPage() {
               <TableHead>Email</TableHead>
               <TableHead>UID</TableHead>
               <TableHead>Tier</TableHead>
-              <TableHead>Role</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Organization</TableHead>
               <TableHead>Teams</TableHead>
@@ -300,7 +251,7 @@ export default function AdminUsersPage() {
               <TableRow
                 key={user.id}
                 className="cursor-pointer"
-                onClick={() => handleOpenRoleModal(user)}
+                onClick={() => handleOpenUserDetail(user)}
               >
                 <TableCell className="font-medium text-gray-900">
                   {user.email}
@@ -310,9 +261,6 @@ export default function AdminUsersPage() {
                 </TableCell>
                 <TableCell>
                   <StatusBadge status={user.tier} />
-                </TableCell>
-                <TableCell>
-                  <RoleTag role={user.roles?.[0] || 'free_user'} />
                 </TableCell>
                 <TableCell>
                   <StatusBadge status={user.status} />
@@ -352,7 +300,7 @@ export default function AdminUsersPage() {
         />
       )}
 
-      {/* Role Assignment Overlay */}
+      {/* User Detail Overlay */}
       <AdminDetailOverlay
         isOpen={!!selectedUser}
         title={`User Details - ${selectedUser?.email}`}
@@ -372,67 +320,34 @@ export default function AdminUsersPage() {
             </div>
             <div>
               <p className="text-gray-600 font-medium">Tier</p>
-              <p className="text-gray-900">{selectedUser?.tier}</p>
+              <StatusBadge status={selectedUser?.tier || 'free'} />
             </div>
             <div>
               <p className="text-gray-600 font-medium">Status</p>
-              <p className="text-gray-900">{selectedUser?.status}</p>
+              <StatusBadge status={selectedUser?.status || 'inactive'} />
             </div>
-          </div>
-
-          <div className="border-t border-gray-200" />
-
-          {/* Role Assignment */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-3">
-              Select Role
-            </label>
-            <div className="space-y-2">
-              {AVAILABLE_ROLES.map((role) => (
-                <label
-                  key={role.code}
-                  className="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 transition"
-                >
-                  <input
-                    type="radio"
-                    name="role"
-                    value={role.code}
-                    checked={selectedRole === role.code}
-                    onChange={(e) => setSelectedRole(e.target.value)}
-                    className="w-4 h-4 text-blue-600"
-                  />
-                  <div className="ml-3">
-                    <p className="font-medium text-gray-900">{role.label}</p>
-                    <p className="text-xs text-gray-500">{role.code}</p>
-                  </div>
-                </label>
-              ))}
+            <div>
+              <p className="text-gray-600 font-medium">Organization</p>
+              <p className="text-gray-900">{selectedUser?.organization_name || 'Not Assigned'}</p>
             </div>
-          </div>
-
-          {/* Current Roles */}
-          {selectedUser?.roles && selectedUser.roles.length > 0 && (
-            <div className="pt-4 border-t">
-              <p className="text-sm font-medium text-gray-700 mb-2">Current Roles</p>
-              <div className="flex flex-wrap gap-2">
-                {selectedUser.roles.map((role) => (
-                  <div
-                    key={role}
-                    className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100 text-sm text-gray-800"
-                  >
-                    <span>{role}</span>
-                    <button
-                      onClick={() => handleRemoveRole(selectedUser.id, role)}
-                      className="text-red-600 hover:text-red-800 font-bold"
-                      title="Remove role"
+            <div>
+              <p className="text-gray-600 font-medium">Teams</p>
+              {selectedUser?.team_names && selectedUser.team_names.length > 0 ? (
+                <div className="flex flex-wrap gap-1">
+                  {selectedUser.team_names.map((team, index) => (
+                    <span
+                      key={index}
+                      className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
                     >
-                      ×
-                    </button>
-                  </div>
-                ))}
-              </div>
+                      {team}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-400">Not Assigned</p>
+              )}
             </div>
-          )}
+          </div>
 
           {/* Actions */}
           <div className="flex gap-3 pt-4 border-t">
@@ -440,17 +355,7 @@ export default function AdminUsersPage() {
               onClick={handleCloseOverlay}
               className="flex-1 rounded-lg border border-gray-300 px-4 py-2 font-medium text-gray-700 hover:bg-gray-50 transition"
             >
-              Cancel
-            </button>
-            <button
-              onClick={() => {
-                if (!selectedUser || !selectedRole) return;
-                setConfirmAction({ type: 'assign', userId: selectedUser.id, role: selectedRole });
-                setShowConfirm(true);
-              }}
-              className="flex-1 rounded-lg bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700 transition"
-            >
-              Assign
+              Close
             </button>
           </div>
         </div>
@@ -560,21 +465,6 @@ export default function AdminUsersPage() {
           </div>
         </div>
       </AdminDetailOverlay>
-
-      {/* Confirm Dialog */}
-      <ConfirmDialog
-        isOpen={showConfirm}
-        title={confirmAction.type === 'assign' ? 'Assign Role' : 'Remove Role'}
-        message={
-          confirmAction.type === 'assign'
-            ? `Are you sure you want to assign the ${confirmAction.role} role to this user?`
-            : `Are you sure you want to remove the ${confirmAction.role} role from this user?`
-        }
-        confirmText={confirmAction.type === 'assign' ? 'Assign' : 'Remove'}
-        isDangerous={confirmAction.type === 'remove'}
-        onConfirm={confirmRoleChange}
-        onCancel={() => setShowConfirm(false)}
-      />
     </div>
   );
 }

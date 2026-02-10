@@ -78,7 +78,7 @@ export function AddMemberModal({ isOpen, onClose, teamId, organizationId, onMemb
         apiClient.getTeamQuotas(teamId),
       ]);
       
-      const usersList = Array.isArray(usersRes.data) ? usersRes.data : (usersRes.data?.users || []);
+      const usersList = Array.isArray(usersRes.data) ? usersRes.data : (usersRes.data?.data || usersRes.data?.users || []);
       setUsers(usersList);
       
       const quotasList = Array.isArray(quotasRes.data) ? quotasRes.data : (quotasRes.data?.quotas || []);

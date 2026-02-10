@@ -8,7 +8,6 @@ export interface User {
   organizationId?: number | null;
   teamIds?: number[];
   source_product_slug?: string;
-  roles?: string[];
   created_at: string;
   updated_at?: string;
 }

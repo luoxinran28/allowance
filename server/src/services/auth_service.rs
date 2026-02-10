@@ -369,16 +369,15 @@ impl AuthService {
     /// - Returns "free" if user only has free_user_license for the product
     /// 
     /// When `product_slug` is None (Allowance's own frontend):
-    /// - Returns tier mapped from user's roles (admin->allstar, org_boss->premium, etc.)
+    /// - Returns user's stored tier directly
     pub async fn determine_user_tier(
         pool: &PgPool,
         user: &User,
         product_slug: Option<&str>,
-        roles: Option<&Vec<String>>,
     ) -> String {
         match product_slug {
             Some(slug) => Self::get_tier_for_product(pool, user, slug).await,
-            None => Self::get_tier_from_roles(user, roles),
+            None => user.tier.to_string(),
         }
     }
 
@@ -441,30 +440,5 @@ impl AuthService {
 
         // No license found - default to free
         "free".to_string()
-    }
-
-    /// Get tier from user's roles (for Allowance's own frontend)
-    fn get_tier_from_roles(user: &User, roles: Option<&Vec<String>>) -> String {
-        // If user has explicit tier set, use it for global tier mapping
-        // But also check roles for more accurate tier
-        if let Some(role_list) = roles {
-            // Role hierarchy: admin > org_boss > team_leader > standard_employee > free_user
-            if role_list.contains(&"admin".to_string()) {
-                return "allstar".to_string();
-            }
-            if role_list.contains(&"org_boss".to_string()) {
-                return "premium".to_string();
-            }
-            if role_list.contains(&"team_leader".to_string()) 
-                || role_list.contains(&"standard_employee".to_string()) {
-                return "standard".to_string();
-            }
-            if role_list.contains(&"free_user".to_string()) {
-                return "free".to_string();
-            }
-        }
-
-        // Fall back to user's stored tier
-        user.tier.to_string()
     }
 }
