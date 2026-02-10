@@ -177,6 +177,17 @@ impl PermissionService {
     pub fn can_assign_org_boss(tier: &UserTier) -> bool {
         matches!(tier, UserTier::Allstar)
     }
+
+    /// 检查用户是否能查看产品信息（所有用户）
+    pub fn can_read_product(ctx: &PermissionContext) -> bool {
+        // All tiers can read product info
+        true
+    }
+
+    /// 检查用户是否能管理所有用户（仅 Admin）
+    pub fn can_manage_all_users(ctx: &PermissionContext) -> bool {
+        matches!(ctx.user_tier, UserTier::Allstar)
+    }
 }
 
 #[cfg(test)]

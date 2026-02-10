@@ -247,7 +247,7 @@ impl OrganizationService {
             .execute(&mut *tx)
             .await?;
 
-        // Update user's tier to premium and organization_id
+        // Update user's tier to premium and set organization_id
         sqlx::query(
             r#"
             UPDATE users 
@@ -260,46 +260,13 @@ impl OrganizationService {
             .execute(&mut *tx)
             .await?;
 
-        // Add user to default team if not already a member
-        let default_team_id: Option<(i64,)> = sqlx::query_as(
-            "SELECT id FROM teams WHERE organization_id = $1 AND is_default = true"
-        )
-            .bind(org_id)
-            .fetch_optional(&mut *tx)
-            .await?;
-
-        if let Some((team_id,)) = default_team_id {
-            // Check if user is already in the team
-            let exists: bool = sqlx::query_scalar(
-                "SELECT EXISTS(SELECT 1 FROM user_teams WHERE user_id = $1 AND team_id = $2)"
-            )
-                .bind(user_id)
-                .bind(team_id)
-                .fetch_one(&mut *tx)
-                .await?;
-
-            if !exists {
-                sqlx::query(
-                    r#"
-                    INSERT INTO user_teams (user_id, team_id, role)
-                    VALUES ($1, $2, 'admin')
-                    ON CONFLICT (user_id, team_id) DO NOTHING
-                    "#
-                )
-                    .bind(user_id)
-                    .bind(team_id)
-                    .execute(&mut *tx)
-                    .await?;
-            }
-        }
-
         tx.commit().await?;
 
         // Fetch and return the created boss record
         let boss = sqlx::query_as::<_, crate::models::OrganizationBoss>(
             r#"
             SELECT ob.id, ob.organization_id, ob.user_id, ob.assigned_by, ob.assigned_at, ob.notes,
-                   u.uid, u.email, u.tier::text as tier
+                   u.uid as user_uid, u.email as user_email, u.tier::text as user_tier
             FROM organization_bosses ob
             JOIN users u ON ob.user_id = u.id
             WHERE ob.organization_id = $1 AND ob.user_id = $2
@@ -349,48 +316,12 @@ impl OrganizationService {
             return Err(AppError::NotFound("Boss not found in this organization".to_string()));
         }
 
-        // Downgrade user's tier to free (or keep as standard if still in teams)
-        // Check if user is in any teams other than default team
-        let team_count: i64 = sqlx::query_scalar(
-            r#"
-            SELECT COUNT(*) FROM user_teams ut
-            JOIN teams t ON ut.team_id = t.id
-            WHERE ut.user_id = $1 AND t.is_default = false
-            "#
-        )
+        // Downgrade user's tier to standard, keep organization_id
+        // If admin wants the user to be free, they should also remove them from teams separately
+        sqlx::query("UPDATE users SET tier = 'standard', updated_at = NOW() WHERE id = $1")
             .bind(user_id)
-            .fetch_one(&mut *tx)
+            .execute(&mut *tx)
             .await?;
-
-        if team_count > 0 {
-            // User is still in other teams, downgrade to standard
-            sqlx::query("UPDATE users SET tier = 'standard', updated_at = NOW() WHERE id = $1")
-                .bind(user_id)
-                .execute(&mut *tx)
-                .await?;
-        } else {
-            // User is not in any non-default teams, downgrade to free
-            sqlx::query(
-                "UPDATE users SET tier = 'free', organization_id = NULL, updated_at = NOW() WHERE id = $1"
-            )
-                .bind(user_id)
-                .execute(&mut *tx)
-                .await?;
-
-            // Remove from default team
-            sqlx::query(
-                r#"
-                DELETE FROM user_teams 
-                WHERE user_id = $1 AND team_id IN (
-                    SELECT id FROM teams WHERE organization_id = $2 AND is_default = true
-                )
-                "#
-            )
-                .bind(user_id)
-                .bind(org_id)
-                .execute(&mut *tx)
-                .await?;
-        }
 
         tx.commit().await?;
         Ok(())

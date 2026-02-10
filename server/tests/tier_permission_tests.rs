@@ -13,6 +13,8 @@ mod tier_permission_tests {
     use allowance_server::models::UserTier;
 
     // Helper function to create a permission context for testing
+    // Sets target_org_id and target_team_id to match the user's own org/team
+    // so that resource-scoped checks pass for the user's own resources.
     fn create_context(tier_str: &str) -> PermissionContext {
         let tier = match tier_str {
             "free" => UserTier::Free,
@@ -25,9 +27,11 @@ mod tier_permission_tests {
         PermissionContext::new(
             1,
             tier,
-            1,
-            vec![],
+            Some(1),
+            vec![1],
         )
+        .with_target_org(1)
+        .with_target_team(1)
     }
 
     // ========== FREE USER TESTS ==========
@@ -201,13 +205,13 @@ mod permission_context_tests {
         let ctx = PermissionContext::new(
             1,
             UserTier::Premium,
-            1,
+            Some(1),
             vec![],
         );
         
         assert_eq!(ctx.user_id, 1);
-        assert_eq!(ctx.tier, UserTier::Premium);
-        assert_eq!(ctx.organization_id, 1);
+        assert_eq!(ctx.user_tier, UserTier::Premium);
+        assert_eq!(ctx.user_org_id, Some(1));
     }
 
     #[test]
@@ -215,14 +219,14 @@ mod permission_context_tests {
         let ctx = PermissionContext::new(
             1,
             UserTier::Premium,
-            1,
+            Some(1),
             vec![1, 2, 3],
         );
         
-        assert_eq!(ctx.team_ids.len(), 3);
-        assert!(ctx.team_ids.contains(&1));
-        assert!(ctx.team_ids.contains(&2));
-        assert!(ctx.team_ids.contains(&3));
+        assert_eq!(ctx.user_team_ids.len(), 3);
+        assert!(ctx.user_team_ids.contains(&1));
+        assert!(ctx.user_team_ids.contains(&2));
+        assert!(ctx.user_team_ids.contains(&3));
     }
 
     #[test]
@@ -230,12 +234,12 @@ mod permission_context_tests {
         let ctx = PermissionContext::new(
             42,
             UserTier::Free,
-            100,
+            Some(100),
             vec![5],
         );
         
         assert_eq!(ctx.user_id, 42);
-        assert_eq!(ctx.organization_id, 100);
-        assert_eq!(ctx.team_ids, vec![5]);
+        assert_eq!(ctx.user_org_id, Some(100));
+        assert_eq!(ctx.user_team_ids, vec![5]);
     }
 }

@@ -1,6 +1,6 @@
 use sqlx::PgPool;
 use crate::models::{TeamMemberResponse, UserTier};
-use crate::services::{TeamQuotaService, FreeUserService, LicenseHistoryService};
+use crate::services::{TeamQuotaService, LicenseHistoryService};
 use crate::utils::{AppResult, AppError};
 
 pub struct UserGroupService;
@@ -76,8 +76,6 @@ impl UserGroupService {
                 .execute(&mut *tx)
                 .await?;
 
-            FreeUserService::revoke_free_license(&mut *tx, user_id).await?;
-
             LicenseHistoryService::record_change(
                 &mut *tx, user_id, "tier_upgraded", Some("free"), Some("standard"),
                 "Added to team", changed_by, None
@@ -114,28 +112,10 @@ impl UserGroupService {
             .await?;
 
         if other_teams == 0 {
-            let source_product_slug: Option<String> = sqlx::query_scalar("SELECT source_product_slug FROM users WHERE id = $1")
-                .bind(user_id)
-                .fetch_one(&mut *tx)
-                .await?;
-
             sqlx::query("UPDATE users SET tier = 'free' WHERE id = $1")
                 .bind(user_id)
                 .execute(&mut *tx)
                 .await?;
-
-            if let Some(slug) = source_product_slug {
-                let product_id: i64 = sqlx::query_scalar("SELECT id FROM products WHERE product_slug = $1")
-                    .bind(&slug)
-                    .fetch_one(&mut *tx)
-                    .await?;
-                // Fetch the internal upid for FreeUserService (still needs it for license key)
-                let upid: String = sqlx::query_scalar("SELECT upid FROM products WHERE id = $1")
-                    .bind(product_id)
-                    .fetch_one(&mut *tx)
-                    .await?;
-                FreeUserService::create_free_license(&mut *tx, user_id, product_id, &upid).await?;
-            }
 
             LicenseHistoryService::record_change(
                 &mut *tx, user_id, "tier_downgraded", Some("standard"), Some("free"),

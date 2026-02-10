@@ -2,7 +2,7 @@
 
 **文档状态**: ✅ 需求已实施  
 **创建日期**: 2025-12-05  
-**最后更新**: 2026-01-21
+**最后更新**: 2026-02-10
 
 ---
 
@@ -14,6 +14,7 @@
 - `20251205-refactor-four-tier.prompt.md` - 技术实施方案（已完成）
 - `20251210-refactor-four-tier-sidebar-and-pages.prompt.md` - 前端重构（已完成）
 - `20251218-refactor-frontend-route.prompt.md` - 路由结构（已完成）
+- `20260210-simplify-auto-ops/20260210-simplify-auto-ops.prompt.md` - 简化自动化操作（已完成）
 
 ---
 
@@ -100,9 +101,9 @@
 6. 组织管理
     - 系统管理员可创建和管理组织
       - 20251205新增：
-        * 创建组织时可指定一个或多个组织老板，从注册用户中选择，赋予其组织管理权限；如果注册用户已经是系统管理员，则无需重复赋予权限；如果注册用户已经是其他组织的老板，则禁止重复赋予权限。
-        * 创建组织时，需要默认创建一个默认团队，团队名称为"Default Team"，并将组织老板指定为该团队的团队负责人。默认团队不能够被删除。
-        * 组织老板如果移除了某个团队，需要询问是解散团队成员为免费用户，还是移动成员到其他团队。
+        * ~~创建组织时可指定一个或多个组织老板~~ → **20260210简化**: 创建组织与指定Boss分两步操作。先创建组织，再通过组织详情页添加Boss。
+        * ~~创建组织时，需要默认创建一个默认团队~~ → **20260210简化**: 不再自动创建Default Team。Admin手动创建所需团队。`is_default`概念废弃。
+        * ~~组织老板如果移除了某个团队，需要询问是解散团队成员为免费用户，还是移动成员到其他团队~~ → **20260210延迟**: 删除团队功能暂不实现，先手动移走成员再删除。
     - 组织详情页显示：
       * 关联的产品和许可证池信息（总名额/已分配/剩余）
       * 各团队的配额分配情况
@@ -222,13 +223,12 @@ Org Boss 不能看到其他组织的信息吗？不能把用户从一个组织�
   - Admin 自动拥有 Org Boss 的所有权限， Org Boss 自动拥有 Team Leader 的所有权限
 
 5. 创建组织时指定 Org Boss 的工作流
-  - Admin 作为 Org Boss 时，使用 Admin 权限 权限访问该组织？
   - Admin 自动拥有所有 Org Boss 权限
   - 不允许一个用户是 2 个不同组织的 Org Boss
-  - 指定 Org Boss 的时机有三种：
-    * 在创建组织时指定指定 Org Boss；
-    * Admin也可以在用户列表中的用户详情页里面指定该用户为某一个组织的老板
-    * 在组织详情页添加，移除，修改 Org Boss，当一个组织只有一个Org Boss时，不能移除该Org Boss。
+  - **20260210简化**: 指定 Org Boss 的时机简化为两种（取消创建时同步指定）：
+    * Admin在组织详情页通过 POST `/org/:id/bosses` 添加 Boss
+    * Admin在用户列表中的用户详情页里面指定该用户为某一个组织的老板
+    * 当一个组织只有一个Org Boss时，不能移除该Org Boss。
 
 6. 前端页面重构的实施顺序
   - 暂时不需要图标及可视化
@@ -263,12 +263,19 @@ Org Boss 不能看到其他组织的信息吗？不能把用户从一个组织�
     * 'allstar'：admin （修改）
   - 前端SideBar导航权限是根据产品Tier来决定的
 
-10. Tier 变更时的自动化处理
-需求中提到几个 Tier 转变场景：
+10. Tier 变更时的自动化处理（**20260210简化**）
+保留的自动 Tier 转变场景：
 
-  - 免费用户 → 分配到团队，Tier 应该自动从 free → standard
-  - 标准用户 → 指定为 Org Boss，Tier 应该自动从 standard → premium
-  - 用户从所有团队移除，Tier 应该自动从 standard → free
+  - 免费用户 → 分配到团队，Tier 自动从 free → standard ✅
+  - 任意用户 → 指定为 Org Boss，Tier 自动升级为 premium ✅
+  - 用户从所有团队移除（且不是Boss），Tier 自动从 standard → free ✅
+  - 移除 Boss → Tier 统一降级为 standard（保留 organization_id）✅
+
+已取消的自动化：
+  - ~~添加成员时自动撤销 free_user_licenses~~ → 不再删除，通过 tier 判断有效性
+  - ~~移除成员时自动恢复 free_user_licenses~~ → 不再自动恢复
+  - ~~添加 Boss 时自动加入 Default Team~~ → Boss 权限来自 tier，无需团队成员身份
+  - ~~移除 Boss 时条件判断降级到 free 或 standard~~ → 统一降级为 standard
 
 
 11. Tier 与 Role 的分离设计
@@ -299,10 +306,11 @@ Org Boss 不能看到其他组织的信息吗？不能把用户从一个组织�
   - 用户注册时，organization_id 默认为 null，表示 Not Assigned 状态
   - 系统管理员分配用户到某个组织时，赋值 organization_id
   - 仅分配到组织，不分配到团队时，tier 应该是 free，分配到团队后 tier 自动升级到 standard，并且quota分配逻辑生效
-16. Org Boss 和 Team Leader 的 Tier 差异
-  - Org Boss 必须分配到某个团队，默认是该组织的 Default Team
-  - 如果 Org Boss 不应该从所有团队移除，因为默认Team不能删除
-  - Org Boss 的 tier 是 premium，不会降级为 standard 或 free
+16. Org Boss 和 Team Leader 的 Tier 差异（**20260210简化**）
+  - ~~Org Boss 必须分配到某个团队~~ → Boss 权限来自 premium tier，不依赖团队成员身份
+  - ~~Default Team 不能删除~~ → Default Team 概念废弃
+  - Org Boss 的 tier 是 premium
+  - 移除 Boss 时统一降级为 standard（如需变 free，admin 另行从团队移除）
 
 17. 当前代码中的 user_roles 表要做什么？
   - user_roles 表可以废除
@@ -316,14 +324,13 @@ Org Boss 不能看到其他组织的信息吗？不能把用户从一个组织�
     * standard_employee/team_leader → standard
     * org_boss → premium
     * admin → allstar
-19. Org Boss 首次创建和后续修改的工作流，确认逻辑：
-  - 创建组织时：
-    * Step1: Admin 输入组织基本信息 + 选择 Org Boss 用户
-    * Step2: 系统自动创建 Default Team
-    * Step3: 系统自动将选中的用户分配到 Default Team
-    * Step4: 系统自动将这些用户的 tier 升级为 premium
-    * Step5: 完成
+19. Org Boss 首次创建和后续修改的工作流（**20260210简化**）：
+  - 创建组织（显式分步操作，不再链式自动化）：
+    * Step1: Admin 通过 POST `/org` 创建组织（仅创建组织记录）
+    * Step2: Admin 通过 POST `/org/:id/bosses` 添加 Boss（自动升级 tier 为 premium + 设置 organization_id）
+    * Step3: Admin 手动创建团队并分配配额（按需操作）
+    * 不再自动创建 Default Team，不再自动加入团队
   - 后续修改 Org Boss，在组织详情页中：
-    * 添加新的 Org Boss：选择用户 → tier升级为premium → 分配到Default Team
-    * 移除 Org Boss：如果只有1个，不允许移除；如果有多个，允许移除 → free
+    * 添加新的 Org Boss：选择用户 → tier 自动升级为 premium + 设置 organization_id
+    * 移除 Org Boss：如果只有1个，不允许移除；如果有多个，允许移除 → tier 降级为 standard（保留 organization_id）
 

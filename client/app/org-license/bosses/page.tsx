@@ -198,7 +198,7 @@ function AddBossModal({ isOpen, onClose, organization, onSuccess }: AddBossModal
               <ul className="text-sm text-muted-foreground mt-1 list-disc list-inside">
                 <li>Upgrade their tier to &quot;premium&quot; if not already</li>
                 <li>Grant organization management permissions</li>
-                <li>Add them to the organization&apos;s default team</li>
+                <li>Set their organization to this one</li>
               </ul>
             </div>
           )}
@@ -316,7 +316,7 @@ export default function OrganizationBossesPage() {
       return;
     }
 
-    if (!confirm('Are you sure you want to remove this boss? They will lose premium tier and organization management access.')) {
+    if (!confirm('Are you sure you want to remove this boss? They will be downgraded to standard tier but remain in the organization.')) {
       return;
     }
 
