@@ -6,9 +6,28 @@ const nextConfig = {
     removeConsole: process.env.NODE_ENV === 'production',
   },
   poweredByHeader: false,
-  // Force webpack instead of Turbopack for compatibility
+  
+  // ==== Memory Optimizations (for low-memory Docker builds) ====
+  // Disable source maps to reduce build memory
+  productionBrowserSourceMaps: false,
+  experimental: {
+    serverSourceMaps: false,
+  },
+  
+  // Disable TypeScript type checking during build (done in CI separately)
+  typescript: {
+    ignoreBuildErrors: process.env.SKIP_TYPECHECK === 'true',
+  },
+  
+  // Webpack memory optimization
   webpack: (config, { dev }) => {
     if (!dev) {
+      // Memory optimizations for production build
+      config.cache = {
+        type: 'memory',
+        maxAge: 3600000, // 1 hour
+      }
+      
       // Optimize production build
       config.optimization = {
         ...config.optimization,

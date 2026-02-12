@@ -70,11 +70,11 @@ services:
     build:
       context: ./client
       dockerfile: Dockerfile
-      # Increase memory for build process
+      # Increase memory for builds to prevent OOM
       args:
         BUILDKIT_INLINE_CACHE: 1
-      # Build with increased memory
-      shm_size: 2gb
+      # Build with increased shared memory for Next.js Turbopack/Webpack
+      shm_size: 4gb
     image: allowance-client:latest
     container_name: allowance-client
     restart: always

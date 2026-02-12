@@ -66,6 +66,43 @@ check_root() {
     fi
 }
 
+# 配置 Swap（用于低内存服务器，前端构建需要）
+setup_swap() {
+    print_step "检查 Swap 配置..."
+    
+    # 检查是否已有 Swap
+    local current_swap=$(free -h | awk '/^Swap:/ {print $2}')
+    
+    if [ "$current_swap" != "0B" ] && [ "$current_swap" != "0" ]; then
+        print_success "Swap 已配置: $current_swap"
+        return 0
+    fi
+    
+    print_warning "Swap 未配置，为前端 Next.js 构建创建 4GB Swap 文件..."
+    
+    # 创建 4GB Swap 文件
+    if fallocate -l 4G /swapfile 2>/dev/null || dd if=/dev/zero of=/swapfile bs=1G count=4 2>/dev/null; then
+        chmod 600 /swapfile || true
+        mkswap /swapfile > /dev/null 2>&1 || true
+        swapon /swapfile || true
+        
+        # 永久启用（添加到 /etc/fstab）
+        if ! grep -q "/swapfile" /etc/fstab; then
+            echo '/swapfile none swap sw 0 0' >> /etc/fstab
+        fi
+        
+        # 调整 vm.swappiness
+        sysctl vm.swappiness=60 > /dev/null 2>&1 || true
+        echo 'vm.swappiness=60' >> /etc/sysctl.conf 2>/dev/null || true
+        
+        # 验证
+        local swap_after=$(free -h | awk '/^Swap:/ {print $2}')
+        print_success "Swap 配置完成: $swap_after"
+    else
+        print_warning "无法创建 Swap，继续部署（构建可能会失败）"
+    fi
+}
+
 # 检查命令是否存在
 check_command() {
     if ! command -v "$1" &> /dev/null; then
@@ -422,6 +459,7 @@ do_install() {
     print_header "Allowance 首次部署"
 
     check_root
+    setup_swap
     check_dependencies
     check_project_dir
     setup_directories
@@ -451,6 +489,7 @@ do_update() {
     print_header "Allowance 更新部署"
 
     check_root
+    setup_swap
     check_dependencies
     check_project_dir
 
