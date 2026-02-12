@@ -4,7 +4,7 @@
 # ========================================
 # Purpose: Production deployment with optimized settings
 # Usage: docker-compose -f docker-compose.prod.yml up -d
-# Note: Environment variables loaded from server/.env and client/.env files
+# Configuration: All services read from root .env file (not from subdirectories)
 # ========================================
 
 services:
@@ -14,8 +14,11 @@ services:
     container_name: allowance-postgres
     restart: always
     env_file:
-      - ./database/.env
-    ports:
+      - .env
+    environment:
+      - POSTGRES_USER=${DB_USER:-postgres}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-allow_Me2Pa3s}
+      - POSTGRES_DB=${DB_NAME:-allowance}
       - "${DB_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -39,7 +42,7 @@ services:
     container_name: allowance-server
     restart: always
     env_file:
-      - ./server/.env
+      - .env
     ports:
       - "4040:4040"
     expose:
@@ -82,7 +85,7 @@ services:
     container_name: allowance-client
     restart: always
     env_file:
-      - ./client/.env
+      - .env
     ports:
       - "3030:3030"
     expose:
@@ -108,8 +111,11 @@ services:
     container_name: allowance-pgadmin
     restart: always
     env_file:
-      - ./database/.env
+      - .env
     environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL:-admin@allowance.local}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD:-pgadmin_password}
+      - PGADMIN_CONFIG_SERVER_MODE=${PGADMIN_CONFIG_SERVER_MODE:-False}
       - SCRIPT_NAME=/pgadmin
     ports:
       - "8080:80"
