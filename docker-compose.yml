@@ -8,6 +8,9 @@ services:
       - POSTGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
       - POSTGRES_DB=${DB_NAME}
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
     ports:
       - "5432:5432"
     volumes:
@@ -43,6 +46,9 @@ services:
       - PASSWORD_RESET_TOKEN_EXPIRATION_HOURS=${PASSWORD_RESET_TOKEN_EXPIRATION_HOURS}
       - RUST_LOG=${RUST_LOG}
       - RUST_BACKTRACE=${RUST_BACKTRACE}
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
     ports:
       - "4040:4040"
     depends_on:
@@ -65,12 +71,16 @@ services:
         - NEXT_PUBLIC_FRONTEND_URL=${NEXT_PUBLIC_FRONTEND_URL}
         - NEXT_PUBLIC_API_SECRET=${NEXT_PUBLIC_API_SECRET}
         - NEXT_PUBLIC_PRODUCT_SLUG=${NEXT_PUBLIC_PRODUCT_SLUG}
+      network: host
     container_name: allowance-client
     env_file:
       - .env.local
     environment:
       - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
       - NEXT_PUBLIC_FRONTEND_URL=${NEXT_PUBLIC_FRONTEND_URL}
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
     ports:
       - "3030:3030"
     depends_on:

@@ -40,13 +40,20 @@ ENV npm_config_loglevel=error
 ENV NEXT_TELEMETRY_DISABLED=1
 # ENV NODE_ENV=production (Removed to ensure devDependencies like tailwindcss are installed)
 
+# Configure npm for better network stability
+RUN npm config set fetch-timeout 120000 && \
+    npm config set fetch-retry-mintimeout 10000 && \
+    npm config set fetch-retry-maxtimeout 120000 && \
+    npm config set fetch-retries 5 && \
+    npm config set registry https://registry.npmjs.org/
+
 # Copy package files
 COPY package.json package-lock.json ./
 
-# Install dependencies with best practices for memory-constrained environments
-# Using 'npm install' instead of 'npm ci' to handle potential lockfile mismatches and install devDependencies
+# Install dependencies with retry logic and network optimization
 RUN npm cache clean --force && \
-    npm install --legacy-peer-deps --no-audit --no-fund --prefer-offline && \
+    npm install --legacy-peer-deps --no-audit --no-fund --prefer-offline --timeout=120000 || \
+    (echo "First install failed, retrying..." && npm install --legacy-peer-deps --no-audit --no-fund --timeout=120000) && \
     echo "✓ Dependencies installed successfully" && \
     npm ls tailwindcss postcss autoprefixer 2>&1 | head -20
 
