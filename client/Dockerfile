@@ -32,7 +32,9 @@ COPY package.json package-lock.json ./
 
 # Install dependencies with best practices for memory-constrained environments
 RUN npm cache clean --force && \
-    npm ci --legacy-peer-deps --no-audit --no-fund --prefer-offline 2>&1 | grep -v "^warn" || true
+    npm ci --legacy-peer-deps --no-audit --no-fund --prefer-offline && \
+    echo "✓ Dependencies installed successfully" && \
+    npm ls tailwindcss postcss autoprefixer 2>&1 | head -20
 
 # Copy the source code
 COPY . .

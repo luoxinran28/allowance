@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "TURBO_FORCE=false NODE_OPTIONS=\"--max-old-space-size=8192\" next build --webpack",
+    "build": "TURBO_FORCE=false next build --webpack",
     "start": "next start",
     "lint": "eslint . --ext .ts,.tsx",
     "type-check": "tsc --noEmit",
