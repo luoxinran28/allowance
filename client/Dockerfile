@@ -25,14 +25,15 @@ ENV npm_config_loglevel=error
 
 # 4. Disable Next.js telemetry
 ENV NEXT_TELEMETRY_DISABLED=1
-ENV NODE_ENV=production
+# ENV NODE_ENV=production (Removed to ensure devDependencies like tailwindcss are installed)
 
 # Copy package files
 COPY package.json package-lock.json ./
 
 # Install dependencies with best practices for memory-constrained environments
+# Using 'npm install' instead of 'npm ci' to handle potential lockfile mismatches and install devDependencies
 RUN npm cache clean --force && \
-    npm ci --legacy-peer-deps --no-audit --no-fund --prefer-offline && \
+    npm install --legacy-peer-deps --no-audit --no-fund --prefer-offline && \
     echo "✓ Dependencies installed successfully" && \
     npm ls tailwindcss postcss autoprefixer 2>&1 | head -20
 
