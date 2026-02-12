@@ -40,20 +40,30 @@ ENV npm_config_loglevel=error
 ENV NEXT_TELEMETRY_DISABLED=1
 # ENV NODE_ENV=production (Removed to ensure devDependencies like tailwindcss are installed)
 
-# Configure npm for better network stability
+# 5. Configure npm registry (support custom registry via build ARG)
+# Default: official npm registry (works globally)
+# For China/HK, override at build time:
+#   docker build --build-arg NPM_REGISTRY=https://registry.npmmirror.com/ .
+ARG NPM_REGISTRY=https://registry.npmjs.org/
+
+# Configure npm for better network stability and flexibility
 RUN npm config set fetch-timeout 120000 && \
     npm config set fetch-retry-mintimeout 10000 && \
     npm config set fetch-retry-maxtimeout 120000 && \
     npm config set fetch-retries 5 && \
-    npm config set registry https://registry.npmjs.org/
+    npm config set registry "${NPM_REGISTRY}"
 
 # Copy package files
 COPY package.json package-lock.json ./
 
-# Install dependencies with retry logic and network optimization
-RUN npm cache clean --force && \
+# Deep clean cache and install with retry logic
+RUN rm -rf /root/.npm ~/.npm && \
+    npm cache clean --force && \
     npm install --legacy-peer-deps --no-audit --no-fund --prefer-offline --timeout=120000 || \
-    (echo "First install failed, retrying..." && npm install --legacy-peer-deps --no-audit --no-fund --timeout=120000) && \
+    (echo "⚠️  First install failed, cleaning and retrying..." && \
+     rm -rf /root/.npm node_modules && \
+     npm cache clean --force && \
+     npm install --legacy-peer-deps --no-audit --no-fund --timeout=120000) && \
     echo "✓ Dependencies installed successfully" && \
     npm ls tailwindcss postcss autoprefixer 2>&1 | head -20
 

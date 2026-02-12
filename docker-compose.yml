@@ -67,6 +67,7 @@ services:
       dockerfile: Dockerfile
       args:
         - BUILDKIT_INLINE_CACHE=1
+        - NPM_REGISTRY=${NPM_REGISTRY:-https://registry.npmmirror.com/}
         - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
         - NEXT_PUBLIC_FRONTEND_URL=${NEXT_PUBLIC_FRONTEND_URL}
         - NEXT_PUBLIC_API_SECRET=${NEXT_PUBLIC_API_SECRET}
