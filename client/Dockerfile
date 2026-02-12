@@ -11,6 +11,19 @@ RUN apt-get update && apt-get install -y \
 # Set the working directory
 WORKDIR /app
 
+# Build-time environment variables (baked into Next.js bundle)
+# These are passed via docker-compose build args from host environment
+# Example: NEXT_PUBLIC_API_URL=http://47.79.78.229/api docker compose build
+ARG NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_FRONTEND_URL
+ARG NEXT_PUBLIC_API_SECRET
+ARG NEXT_PUBLIC_PRODUCT_SLUG
+
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_FRONTEND_URL=$NEXT_PUBLIC_FRONTEND_URL
+ENV NEXT_PUBLIC_API_SECRET=$NEXT_PUBLIC_API_SECRET
+ENV NEXT_PUBLIC_PRODUCT_SLUG=$NEXT_PUBLIC_PRODUCT_SLUG
+
 # =================================================================
 # Memory Optimizations based on Next.js official guide
 # =================================================================

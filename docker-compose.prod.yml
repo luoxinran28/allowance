@@ -70,10 +70,13 @@ services:
     build:
       context: ./client
       dockerfile: Dockerfile
-      # Increase memory for builds to prevent OOM
       args:
-        BUILDKIT_INLINE_CACHE: 1
-      # Build with increased shared memory for Next.js Turbopack/Webpack
+        - BUILDKIT_INLINE_CACHE=1
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+        - NEXT_PUBLIC_FRONTEND_URL=${NEXT_PUBLIC_FRONTEND_URL}
+        - NEXT_PUBLIC_API_SECRET=${NEXT_PUBLIC_API_SECRET}
+        - NEXT_PUBLIC_PRODUCT_SLUG=${NEXT_PUBLIC_PRODUCT_SLUG:-allowance}
+      # Build with increased shared memory for Next.js
       shm_size: 4gb
     image: allowance-client:latest
     container_name: allowance-client
