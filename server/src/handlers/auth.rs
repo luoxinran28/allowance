@@ -39,6 +39,8 @@ pub async fn register(
 /// Authenticates user with email and password. Returns JWT token and refresh token.
 /// If `product_slug` is provided (e.g. "kwongfu"), validates that the user has access
 /// to the product and returns the product-specific tier in `effective_tier` field.
+/// The JWT access token is signed with the product's own signing key from the database,
+/// so that external products can verify tokens using their product-specific key.
 pub async fn login(
     State(state): State<Arc<AuthHandler>>,
     Json(req): Json<LoginRequest>,
@@ -56,7 +58,27 @@ pub async fn login(
         req.product_slug.as_deref(),
     ).await;
 
-    let token = state.jwt.generate_token(user.id, user.email.clone())?;
+    // Sign the access token with the product-specific key (or fallback for Allowance internal)
+    let token = if let Some(slug) = &req.product_slug {
+        // Look up product's jwt_signing_key from DB
+        let signing_key: Option<String> = sqlx::query_scalar(
+            "SELECT jwt_signing_key FROM products WHERE product_slug = $1"
+        )
+            .bind(slug)
+            .fetch_optional(state.pool.as_ref())
+            .await
+            .map_err(|_| crate::utils::errors::AppError::InternalServerError)?;
+
+        match signing_key {
+            Some(key) => state.jwt.generate_token_with_key(user.id, user.email.clone(), &key)?,
+            // Product not found in DB → use fallback (Allowance internal key)
+            None => state.jwt.generate_token(user.id, user.email.clone())?,
+        }
+    } else {
+        // No product specified → Allowance's own frontend login
+        state.jwt.generate_token(user.id, user.email.clone())?
+    };
+
     let refresh_token = state.jwt.generate_refresh_token(user.id)?;
 
     let mut user_response = UserResponse::from(user);

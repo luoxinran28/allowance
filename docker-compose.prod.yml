@@ -15,11 +15,6 @@ services:
     restart: always
     env_file:
       - .env
-    environment:
-      - POSTGRES_USER=${DB_USER:-postgres}
-      - POSTGRES_PASSWORD=${DB_PASSWORD:-allow_Me2Pa3s}
-      - POSTGRES_DB=${DB_NAME:-allowance}
-      - "${DB_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -113,11 +108,6 @@ services:
     restart: always
     env_file:
       - .env
-    environment:
-      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL:-admin@allowance.local}
-      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD:-pgadmin_password}
-      - PGADMIN_CONFIG_SERVER_MODE=${PGADMIN_CONFIG_SERVER_MODE:-False}
-      - SCRIPT_NAME=/pgadmin
     ports:
       - "8080:80"
     volumes:

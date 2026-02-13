@@ -12,6 +12,15 @@ pub struct Product {
     pub name: String,
     pub description: Option<String>,
     pub owner_id: Option<i64>,
+    /// Per-product JWT signing key (HS256, 64 hex chars)
+    /// Used by Allowance to sign tokens, fetched by consumer products to verify
+    #[serde(skip_serializing)]
+    pub jwt_signing_key: String,
+    /// Key rotation version (monotonically increasing)
+    #[serde(skip_serializing)]
+    pub key_version: i32,
+    /// When the key was last rotated
+    pub key_rotated_at: Option<NaiveDateTime>,
     #[sqlx(default)]
     pub created_at: NaiveDateTime,
     #[sqlx(default)]

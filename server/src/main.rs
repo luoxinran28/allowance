@@ -2,11 +2,11 @@ use allowance_server::*;
 
 use axum::{
     extract::DefaultBodyLimit,
-    http::{header, Method},
     routing::{get, post, delete, put},
     Router,
     Extension,
 };
+use sqlx;
 use std::sync::Arc;
 use tower_http::cors::{CorsLayer, Any};
 use tower_http::trace::TraceLayer;
@@ -50,12 +50,29 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing::info!("Database initialized");
 
     // Initialize JWT manager
+    // Load fallback JWT secret from the "allowance" product in DB.
+    // If no product exists yet (first boot before bootstrap), use a random key.
+    let fallback_jwt_secret: String = sqlx::query_scalar(
+        "SELECT jwt_signing_key FROM products WHERE product_slug = 'allowance' LIMIT 1"
+    )
+        .fetch_optional(&pool)
+        .await
+        .ok()
+        .flatten()
+        .unwrap_or_else(|| {
+            eprintln!("⚠️  No 'allowance' product in DB yet — using temp JWT secret (run bootstrap_admin.sql)");
+            format!("temp-jwt-secret-{}", std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap_or_default()
+                .as_millis())
+        });
+
     let jwt = Arc::new(JwtManager::new(
-        config.jwt_secret.clone(),
+        fallback_jwt_secret,
         config.jwt_expiration_hours,
         config.refresh_token_expiration_days,
     ));
-    eprintln!("JWT manager initialized");
+    eprintln!("JWT manager initialized (per-product keys from DB)");
 
     // Initialize Stripe service
     let stripe = Arc::new(StripeService::new(
@@ -167,6 +184,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let product_routes = Router::new()
         .route("/products", get(handlers::product::list_products))
         .route("/products/:upid", get(handlers::product::get_product_by_upid))
+        .route("/products/:slug/auth-key", get(handlers::product::get_product_auth_key))
         .with_state(product_handler.clone());
 
     let app = auth_routes

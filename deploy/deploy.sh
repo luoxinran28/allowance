@@ -217,25 +217,13 @@ check_env_file() {
     
     cd "$PROJECT_DIR"
     
-    local env_files=("server/.env" "client/.env")
-    local missing_files=()
-    
-    for env_file in "${env_files[@]}"; do
-        if [ ! -f "$env_file" ]; then
-            missing_files+=("$env_file")
-        fi
-    done
-    
-    if [ ${#missing_files[@]} -ne 0 ]; then
-        print_error "以下环境变量文件不存在: ${missing_files[*]}"
-        
-        for env_file in "${missing_files[@]}"; do
-            local example_file="${env_file}.example"
-            if [ -f "$example_file" ]; then
-                print_info "发现示例配置文件: $example_file"
-                print_info "请复制并配置: cp $example_file $env_file"
-            fi
-        done
+    # 检查根目录 .env 文件（统一的环境变量来源）
+    if [ ! -f ".env" ] && [ ! -f ".env.prod" ]; then
+        print_error "环境变量文件不存在：需要 .env 或 .env.prod"
+        print_info "请基于模板创建配置文件："
+        print_info "  root/.env 或 root/.env.prod"
+        print_info ""
+        print_info "所有服务（server、client、postgres）的环境变量都从根目录 .env 读取"
         return 1
     fi
     
@@ -385,7 +373,8 @@ show_access_info() {
     echo ""
     
     echo "📝 环境变量配置："
-    echo "   配置文件: $PROJECT_DIR/server/.env 和 $PROJECT_DIR/client/.env"
+    echo "   统一配置文件: $PROJECT_DIR/.env"
+    echo "   所有服务（server、client、postgres）都从根目录 .env 读取"
     echo "   编辑配置后，运行: sudo bash deploy/deploy.sh rebuild"
     echo ""
     
@@ -439,7 +428,7 @@ Allowance 授权管理系统 - 部署脚本
 环境要求:
   - Docker 和 Docker Compose 已安装
   - 代码已通过 git clone 到 /home/admin/allowance
-  - server/.env 和 client/.env 文件已创建并配置
+  - 根目录 .env 文件已创建并配置（所有服务共享）
   - 可选: nginx/ssl/ 目录下有SSL证书（用于HTTPS）
 
 权限说明:
@@ -448,7 +437,8 @@ Allowance 授权管理系统 - 部署脚本
   - 文件操作需要 root 权限
 
 环境变量配置:
-  - 配置文件: server/.env 和 client/.env (基于对应的 .env.example)
+  - 统一配置文件: 根目录 .env（所有服务都从这里读取）
+  - 基于模板: cp .env.example .env（或 cp .env.prod .env）
   - 修改配置后，运行 'sudo bash deploy/deploy.sh rebuild' 以应用更改
 
 EOF
@@ -467,12 +457,13 @@ do_install() {
 
     if ! check_env_file; then
         print_error "环境变量配置不完整，请先配置"
-        print_info "创建配置文件:"
-        print_info "  cp server/.env.example server/.env"
-        print_info "  cp client/.env.example client/.env"
-        print_info "  vi server/.env  # 配置服务器环境变量"
-        print_info "  vi client/.env  # 配置客户端环境变量"
-        print_info "然后编辑这些文件填入真实配置值"
+        print_info "创建根目录配置文件（所有服务共享）:"
+        print_info "  cp .env.example .env"
+        print_info "  # 或用于生产环境:"
+        print_info "  cp .env.prod .env"
+        print_info "  vi .env  # 编辑配置文件填入真实密钥和数据库密码"
+        print_info ""
+        print_info "所有 docker 服务（server、client、postgres）都从根目录 .env 读取配置"
         exit 1
     fi
 

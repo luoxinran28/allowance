@@ -6,9 +6,10 @@ pub struct Config {
     pub server_host: String,
     pub server_port: u16,
     pub database_url: String,
-    pub jwt_secret: String,
+    /// JWT token lifetime in hours (applies to all products)
     pub jwt_expiration_hours: i64,
     pub refresh_token_expiration_days: i64,
+    /// HMAC-SHA256 key for Allowance frontend nonce signing (internal use only)
     pub api_secret_key: String,
     pub stripe_api_key: String,
     pub stripe_webhook_secret: String,
@@ -30,16 +31,11 @@ impl Config {
             }
         };
 
-        let jwt_secret = match env::var("JWT_SECRET") {
-            Ok(val) => {
-                eprintln!("JWT_SECRET found: {}", val);
-                val
-            }
-            Err(e) => {
-                eprintln!("JWT_SECRET not found: {}", e);
-                panic!("JWT_SECRET not set");
-            }
-        };
+        // JWT_SECRET is no longer needed in env — signing keys are per-product in DB.
+        // If JWT_SECRET is still set in .env, log a deprecation warning.
+        if env::var("JWT_SECRET").is_ok() {
+            eprintln!("⚠️  DEPRECATION: JWT_SECRET in .env is ignored. JWT signing keys are now per-product in the database.");
+        }
 
         let api_secret_key = match env::var("API_SECRET") {
             Ok(val) => {
@@ -47,7 +43,7 @@ impl Config {
                 val
             }
             Err(e) => {
-                eprintln!("API_SECRET not found: {}, using default for development", e);
+                eprintln!("API_SECRET not found: {}, this is required for nonce signing", e);
                 panic!("API_SECRET not set");
             }
         };
@@ -56,7 +52,6 @@ impl Config {
             server_host: "0.0.0.0".to_string(),
             server_port: 4040,
             database_url,
-            jwt_secret,
             jwt_expiration_hours: 24,
             refresh_token_expiration_days: 7,
             api_secret_key,
