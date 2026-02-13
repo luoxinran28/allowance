@@ -1,31 +1,52 @@
-# Use the official Rust image as the base image
-FROM rust:1.93-slim-bookworm as builder
+# =============================================================================
+# Allowance Server - Optimized Docker Build
+# =============================================================================
+# Key optimizations:
+#   1. BuildKit cache mounts for cargo registry + target (survives rebuilds)
+#   2. Dependency pre-compilation with dummy source (layer cached)
+#   3. "docker" profile: thin LTO + 16 codegen-units (~3-5x faster link)
+#   4. Multi-stage: slim runtime image
+# =============================================================================
 
-# Install build dependencies
+# --- Stage 1: Builder ---
+FROM rust:1.93-slim-bookworm AS builder
+
 RUN apt-get update && apt-get install -y \
     pkg-config \
     libssl-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Set the working directory
 WORKDIR /app
 
-# Copy the Cargo.toml and Cargo.lock files
+# Copy manifests first (changes rarely → layer cached)
 COPY Cargo.toml Cargo.lock ./
 
-# Copy the source code
-COPY src ./src
+# Create dummy source to pre-build dependencies
+RUN mkdir src && \
+    echo 'fn main() { println!("dummy"); }' > src/main.rs && \
+    echo '' > src/lib.rs
 
-# Copy the migrations directory
+# Pre-build dependencies with BuildKit cache mount
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/usr/local/cargo/git \
+    --mount=type=cache,target=/app/target \
+    cargo build --profile docker 2>/dev/null || true
+
+# Remove dummy source, copy real source + migrations
+RUN rm -rf src
+COPY src ./src
 COPY migrations ./migrations
 
-# Build the application
-RUN cargo build --release
+# Build the real application (only workspace code recompiles, deps are cached)
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/usr/local/cargo/git \
+    --mount=type=cache,target=/app/target \
+    cargo build --profile docker && \
+    cp /app/target/docker/allowance-server /app/allowance-server
 
-# Use a smaller base image for the final stage
+# --- Stage 2: Runtime ---
 FROM debian:bookworm-slim
 
-# Install required dependencies for PostgreSQL client and runtime
 RUN apt-get update && apt-get install -y \
     ca-certificates \
     libpq5 \
@@ -33,30 +54,20 @@ RUN apt-get update && apt-get install -y \
     postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
-# Create a non-root user
 RUN useradd -r -s /bin/false appuser
 
-# Set the working directory
 WORKDIR /app
 
-# Copy the entrypoint script
 COPY entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
 
-# Copy the binary from the builder stage
-COPY --from=builder /app/target/release/allowance-server /app/allowance-server
-
-# Copy the migrations directory
+COPY --from=builder /app/allowance-server /app/allowance-server
 COPY migrations ./migrations
 
-# Change ownership to the non-root user
 RUN chown appuser:appuser /app/allowance-server /app/entrypoint.sh
 
-# Switch to root user for testing (remove this line in production)
 USER root
 
-# Expose the port the app runs on
 EXPOSE 4040
 
-# Command to run the application
 ENTRYPOINT ["/app/entrypoint.sh"]

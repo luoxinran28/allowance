@@ -78,9 +78,16 @@ debug = 1
 debug = 1
 
 [profile.release]
-# Keep release optimized for production
+# Production: full LTO for max performance (slow compile, use only in CI/prod)
 opt-level = 3
 debug = false
 lto = true
 codegen-units = 1
+incremental = false
+
+# Docker dev: fast compile with thin LTO (~3-5x faster than full release)
+[profile.docker]
+inherits = "release"
+lto = "thin"
+codegen-units = 16
 incremental = false
