@@ -2,10 +2,13 @@
 # Allowance Server - Optimized Docker Build
 # =============================================================================
 # Key optimizations:
-#   1. BuildKit cache mounts for cargo registry + target (survives rebuilds)
-#   2. Dependency pre-compilation with dummy source (layer cached)
-#   3. "docker" profile: thin LTO + 16 codegen-units (~3-5x faster link)
-#   4. Multi-stage: slim runtime image
+#   1. Dependency pre-compilation with dummy source (Docker layer cached)
+#   2. "docker" profile: thin LTO + 16 codegen-units (~3-5x faster link)
+#   3. Multi-stage: slim runtime image
+#
+# IMPORTANT: Do NOT use --mount=type=cache on the dep pre-build step.
+# Cache mounts prevent Docker layer caching, causing re-execution every build.
+# Without cache mounts, Docker skips the dep step entirely on rebuilds (CACHED).
 # =============================================================================
 
 # --- Stage 1: Builder ---
@@ -26,23 +29,18 @@ RUN mkdir src && \
     echo 'fn main() { println!("dummy"); }' > src/main.rs && \
     echo '' > src/lib.rs
 
-# Pre-build dependencies with BuildKit cache mount
-RUN --mount=type=cache,target=/usr/local/cargo/registry \
-    --mount=type=cache,target=/usr/local/cargo/git \
-    --mount=type=cache,target=/app/target \
-    cargo build --profile docker 2>/dev/null || true
+# Pre-build ALL dependencies (Docker layer cached unless Cargo.toml/Cargo.lock change)
+# On incremental rebuilds this step shows CACHED → 0 seconds
+RUN cargo build --profile docker || true
 
-# Remove dummy source, copy real source + migrations
+# Copy real source (invalidates cache from here forward when source changes)
 RUN rm -rf src
 COPY src ./src
 COPY migrations ./migrations
 
-# Build the real application (only workspace code recompiles, deps are cached)
-RUN --mount=type=cache,target=/usr/local/cargo/registry \
-    --mount=type=cache,target=/usr/local/cargo/git \
-    --mount=type=cache,target=/app/target \
-    cargo build --profile docker && \
-    cp /app/target/docker/allowance-server /app/allowance-server
+# Build workspace code only (deps already compiled in layer above)
+RUN cargo build --profile docker && \
+    cp target/docker/allowance-server ./allowance-server
 
 # --- Stage 2: Runtime ---
 FROM debian:bookworm-slim
