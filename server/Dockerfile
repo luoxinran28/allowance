@@ -39,7 +39,11 @@ COPY src ./src
 COPY migrations ./migrations
 
 # Build workspace code only (deps already compiled in layer above)
-RUN cargo build --profile docker && \
+# touch all .rs files so cargo detects the source change — Docker COPY
+# preserves original mtimes which may be older than the pre-built dummy binary.
+RUN find src -name '*.rs' -exec touch {} + && \
+    rm -f target/docker/allowance-server && \
+    cargo build --profile docker && \
     cp target/docker/allowance-server ./allowance-server
 
 # --- Stage 2: Runtime ---
