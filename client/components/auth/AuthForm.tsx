@@ -19,7 +19,7 @@ import {
 } from '@/lib/validation';
 
 interface AuthFormProps {
-  mode?: 'login' | 'register';
+  mode?: 'login' | 'register' | 'change-password';
 }
 
 interface ValidationState {
@@ -40,9 +40,11 @@ interface ValidationState {
 export function AuthForm({ mode: initialMode = 'login' }: AuthFormProps) {
   const router = useRouter();
   const { setAuth } = useAuthStore();
-  const [mode, setMode] = useState<'login' | 'register'>(initialMode);
+  const [mode, setMode] = useState<'login' | 'register' | 'change-password'>(initialMode);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [productSlug, setProductSlug] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -172,7 +174,35 @@ export function AuthForm({ mode: initialMode = 'login' }: AuthFormProps) {
       const sanitizedEmail = sanitizeInput(email).trim();
       const sanitizedPassword = sanitizeInput(password);
 
-      if (mode === 'register') {
+      if (mode === 'change-password') {
+        // Validate new password
+        const newPwValidation = validatePassword(newPassword);
+        if (!newPwValidation.isValid) {
+          setError(newPwValidation.message);
+          setLoading(false);
+          return;
+        }
+        if (newPassword !== confirmPassword) {
+          setError('New passwords do not match.');
+          setLoading(false);
+          return;
+        }
+        if (password === newPassword) {
+          setError('New password must be different from current password.');
+          setLoading(false);
+          return;
+        }
+        const sanitizedNewPassword = sanitizeInput(newPassword);
+        await apiClient.changePassword(sanitizedEmail, sanitizedPassword, sanitizedNewPassword);
+        setSuccess('Password changed successfully! You can now sign in with your new password.');
+        setNewPassword('');
+        setConfirmPassword('');
+        setPassword('');
+        setTimeout(() => {
+          setMode('login');
+          setSuccess('');
+        }, 3000);
+      } else if (mode === 'register') {
         // Use product slug from meta tag or default to 'allowance'
         const slug = productSlug || process.env.NEXT_PUBLIC_PRODUCT_SLUG || 'allowance';
         await apiClient.register(sanitizedEmail, sanitizedPassword, slug);
@@ -210,12 +240,14 @@ export function AuthForm({ mode: initialMode = 'login' }: AuthFormProps) {
       <Card>
         <CardHeader className="space-y-2">
           <CardTitle className="text-2xl">
-            {mode === 'login' ? 'Sign In' : 'Create Account'}
+            {mode === 'login' ? 'Sign In' : mode === 'register' ? 'Create Account' : 'Change Password'}
           </CardTitle>
           <CardDescription>
             {mode === 'login'
               ? 'Enter your credentials to access your account'
-              : 'Register for a new account to get started'}
+              : mode === 'register'
+              ? 'Register for a new account to get started'
+              : 'Verify your current password and set a new one'}
           </CardDescription>
         </CardHeader>
 
@@ -243,6 +275,17 @@ export function AuthForm({ mode: initialMode = 'login' }: AuthFormProps) {
               }`}
             >
               Register
+            </button>
+            <button
+              type="button"
+              onClick={() => { setMode('change-password'); setError(''); setSuccess(''); }}
+              className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${
+                mode === 'change-password'
+                  ? 'bg-background shadow text-foreground'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Change PW
             </button>
           </div>
 
@@ -308,7 +351,7 @@ export function AuthForm({ mode: initialMode = 'login' }: AuthFormProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">{mode === 'change-password' ? 'Current Password' : 'Password'}</Label>
               <div className="relative">
                 <Input
                   id="password"
@@ -442,13 +485,101 @@ export function AuthForm({ mode: initialMode = 'login' }: AuthFormProps) {
               )}
             </div>
 
+            {/* New Password + Confirm for change-password mode */}
+            {mode === 'change-password' && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="newPassword">New Password</Label>
+                  <div className="relative">
+                    <Input
+                      id="newPassword"
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="Min. 6 characters"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      required
+                      minLength={6}
+                      disabled={loading}
+                    />
+                  </div>
+                  {newPassword && (() => {
+                    const v = validatePassword(newPassword);
+                    return (
+                      <div className="mt-2 p-3 rounded-lg border border-border bg-muted">
+                        <p className="text-xs font-semibold mb-2">New password requirements:</p>
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            {v.requirements.minLength ? <Check className="h-4 w-4 text-green-600" /> : <X className="h-4 w-4 text-gray-400" />}
+                            <span className={`text-xs ${v.requirements.minLength ? 'text-green-600' : 'text-gray-600'}`}>At least 6 characters ({newPassword.length} entered)</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {v.requirements.hasNumber ? <Check className="h-4 w-4 text-green-600" /> : <X className="h-4 w-4 text-gray-400" />}
+                            <span className={`text-xs ${v.requirements.hasNumber ? 'text-green-600' : 'text-gray-600'}`}>Contains at least one number (0-9)</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {v.requirements.hasUpperCase ? <Check className="h-4 w-4 text-green-600" /> : <X className="h-4 w-4 text-gray-400" />}
+                            <span className={`text-xs ${v.requirements.hasUpperCase ? 'text-green-600' : 'text-gray-600'}`}>Contains uppercase letters (A-Z)</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {v.requirements.hasLowerCase ? <Check className="h-4 w-4 text-green-600" /> : <X className="h-4 w-4 text-gray-400" />}
+                            <span className={`text-xs ${v.requirements.hasLowerCase ? 'text-green-600' : 'text-gray-600'}`}>Contains lowercase letters (a-z)</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {v.requirements.allowedCharacters ? <Check className="h-4 w-4 text-green-600" /> : <X className="h-4 w-4 text-gray-400" />}
+                            <span className={`text-xs ${v.requirements.allowedCharacters ? 'text-green-600' : 'text-gray-600'}`}>Only valid characters allowed</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                  <Input
+                    id="confirmPassword"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Re-enter new password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    minLength={6}
+                    disabled={loading}
+                    className={`${
+                      confirmPassword
+                        ? confirmPassword === newPassword
+                          ? 'border-green-500'
+                          : 'border-red-500'
+                        : ''
+                    }`}
+                  />
+                  {confirmPassword && confirmPassword !== newPassword && (
+                    <p className="text-xs text-red-500 mt-1">Passwords do not match</p>
+                  )}
+                  {confirmPassword && confirmPassword === newPassword && (
+                    <p className="text-xs text-green-600 mt-1">Passwords match</p>
+                  )}
+                </div>
+              </>
+            )}
+
             <Button
               type="submit"
-              disabled={loading || !validationState.email.isValid || !validationState.password.isValid}
+              disabled={
+                loading ||
+                !validationState.email.isValid ||
+                !validationState.password.isValid ||
+                (mode === 'change-password' && (!newPassword || !confirmPassword || newPassword !== confirmPassword || !validatePassword(newPassword).isValid))
+              }
               className="w-full"
             >
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {loading ? 'Loading...' : (mode === 'register' ? 'Create Account' : 'Sign In')}
+              {loading
+                ? 'Loading...'
+                : mode === 'register'
+                ? 'Create Account'
+                : mode === 'change-password'
+                ? 'Change Password'
+                : 'Sign In'}
             </Button>
           </form>
 

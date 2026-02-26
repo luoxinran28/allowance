@@ -5,7 +5,7 @@ use axum::{
 };
 use sqlx::PgPool;
 
-use crate::models::{RegisterRequest, LoginRequest, ActivateRequest, RequestPasswordResetRequest, ResetPasswordRequest, AuthResponse, UserResponse};
+use crate::models::{RegisterRequest, LoginRequest, ActivateRequest, RequestPasswordResetRequest, ResetPasswordRequest, ChangePasswordRequest, AuthResponse, UserResponse};
 use crate::services::AuthService;
 use crate::utils::{JwtManager, AppResult};
 
@@ -128,6 +128,19 @@ pub async fn reset_password(
     Json(req): Json<ResetPasswordRequest>,
 ) -> AppResult<StatusCode> {
     AuthService::reset_password(&state.pool, &req.token, &req.new_password).await?;
+    
+    Ok(StatusCode::OK)
+}
+
+/// Change password
+/// 
+/// Allows a user to change their password by verifying their current password.
+/// No authentication token required - user provides email + current password.
+pub async fn change_password(
+    State(state): State<Arc<AuthHandler>>,
+    Json(req): Json<ChangePasswordRequest>,
+) -> AppResult<StatusCode> {
+    AuthService::change_password(&state.pool, &req.email, &req.current_password, &req.new_password).await?;
     
     Ok(StatusCode::OK)
 }

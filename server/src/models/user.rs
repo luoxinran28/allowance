@@ -169,6 +169,13 @@ pub struct ResetPasswordRequest {
     pub new_password: String,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ChangePasswordRequest {
+    pub email: String,
+    pub current_password: String,
+    pub new_password: String,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
 pub struct EmailToken {
     pub id: i64,

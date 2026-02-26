@@ -115,6 +115,10 @@ class ApiClient {
     return this.client.post('/auth/reset-password', { token, new_password: newPassword });
   }
 
+  async changePassword(email: string, currentPassword: string, newPassword: string) {
+    return this.client.post('/auth/change-password', { email, current_password: currentPassword, new_password: newPassword });
+  }
+
   // ============= User Endpoints =============
 
   async getUserProfile() {

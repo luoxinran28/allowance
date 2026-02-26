@@ -291,6 +291,42 @@ impl AuthService {
         Ok(token)
     }
 
+    /// Change password with current password verification (no token needed)
+    pub async fn change_password(
+        pool: &PgPool,
+        email: &str,
+        current_password: &str,
+        new_password: &str,
+    ) -> AppResult<()> {
+        // Find user by email
+        let user = sqlx::query_as::<_, User>(
+            "SELECT id, uid, email, password_hash, tier, status, organization_id, team_ids, license_status, source_product_slug, profile_data, created_at, updated_at, last_login FROM users WHERE email = $1"
+        )
+            .bind(email)
+            .fetch_optional(pool)
+            .await?
+            .ok_or(AppError::UserNotFound)?;
+
+        // Verify current password
+        if !verify_password(current_password, &user.password_hash)? {
+            return Err(AppError::InvalidCredentials);
+        }
+
+        // Hash and update new password
+        let new_hash = hash_password(new_password)?;
+        sqlx::query(
+            "UPDATE users SET password_hash = $1, updated_at = $2 WHERE id = $3"
+        )
+            .bind(new_hash)
+            .bind(Utc::now().naive_utc())
+            .bind(user.id)
+            .execute(pool)
+            .await?;
+
+        tracing::info!("Password changed for user {}", email);
+        Ok(())
+    }
+
     /// Reset password with token
     pub async fn reset_password(
         pool: &PgPool,

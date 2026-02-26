@@ -121,6 +121,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .route("/auth/activate", post(handlers::auth::activate))
         .route("/auth/request-password-reset", post(handlers::auth::request_password_reset))
         .route("/auth/reset-password", post(handlers::auth::reset_password))
+        .route("/auth/change-password", post(handlers::auth::change_password))
         
         .route("/user/profile", get(handlers::user::get_profile).put(handlers::user::update_profile))
         .route("/user/licenses", get(handlers::user::get_licenses))
