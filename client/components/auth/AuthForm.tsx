@@ -567,8 +567,8 @@ export function AuthForm({ mode: initialMode = 'login' }: AuthFormProps) {
               disabled={
                 loading ||
                 !validationState.email.isValid ||
-                !validationState.password.isValid ||
-                (mode === 'change-password' && (!newPassword || !confirmPassword || newPassword !== confirmPassword || !validatePassword(newPassword).isValid))
+                (mode !== 'change-password' && !validationState.password.isValid) ||
+                (mode === 'change-password' && (!password || !newPassword || !confirmPassword || newPassword !== confirmPassword || !validatePassword(newPassword).isValid))
               }
               className="w-full"
             >
