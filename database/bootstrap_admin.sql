@@ -26,6 +26,22 @@ ON CONFLICT (upid) DO UPDATE SET
     name = EXCLUDED.name,
     description = EXCLUDED.description;
 
+-- Create KwongFu product (consumer product — trading platform)
+-- jwt_signing_key is set to a known dev value for reproducible local testing.
+INSERT INTO products (upid, product_slug, name, description, jwt_signing_key) VALUES
+    ('UKWONGFU0001', 'kwongfu', 'KwongFu Trading', 'Headless automated crypto trading platform',
+     'dev-kwongfu-jwt-signing-key-for-local-testing-only-do-not-use-in-production')
+ON CONFLICT (upid) DO UPDATE SET
+    name = EXCLUDED.name,
+    description = EXCLUDED.description;
+
+-- Create product versions for KwongFu
+INSERT INTO product_versions (product_id, version_name, description, features, tier_required, daily_limit, monthly_limit) VALUES
+    ((SELECT id FROM products WHERE upid = 'UKWONGFU0001'), 'basic', 'Basic trading features', '{"paper_trading": true, "max_symbols": 1}'::jsonb, 'free'::user_tier, 10, 1000),
+    ((SELECT id FROM products WHERE upid = 'UKWONGFU0001'), 'standard', 'Standard trading features', '{"paper_trading": true, "live_trading": true, "max_symbols": 5}'::jsonb, 'standard'::user_tier, 100, 10000),
+    ((SELECT id FROM products WHERE upid = 'UKWONGFU0001'), 'premium', 'Premium trading features', '{"paper_trading": true, "live_trading": true, "max_symbols": "unlimited", "backtesting": true}'::jsonb, 'premium'::user_tier, NULL, NULL)
+ON CONFLICT (product_id, version_name) DO NOTHING;
+
 -- Create product versions for Allowance
 INSERT INTO product_versions (product_id, version_name, description, features, tier_required, daily_limit, monthly_limit) VALUES
     ((SELECT id FROM products WHERE upid = 'UALLOWANCE0001'), 'basic', 'Basic features', '{"max_recipients": 10, "reporting": false}'::jsonb, 'free'::user_tier, 10, 1000),
@@ -49,7 +65,7 @@ SELECT
     '✓ Product created' as status,
     upid,
     name
-FROM products WHERE upid = 'UALLOWANCE0001';
+FROM products WHERE upid IN ('UALLOWANCE0001', 'UKWONGFU0001');
 
 -- ============================================================
 -- IMPORTANT: Post-deployment steps
