@@ -5,7 +5,7 @@ use axum::{
 };
 use serde::{Deserialize, Serialize};
 
-use crate::models::{UserResponse, User, CreateProductAdminRequest, GenerateLicensesRequest, OrgProductLicenseResponse};
+use crate::models::{UserResponse, User, UserStatus, UserTier, CreateProductAdminRequest, GenerateLicensesRequest, OrgProductLicenseResponse};
 use crate::services::{AuthService, ProductService, UserService};
 use crate::utils::{AppResult, AppError};
 use crate::handlers::auth::AuthHandler;
@@ -28,6 +28,12 @@ pub struct AdminCreateUserRequest {
     pub tier: Option<String>,
     pub organization_id: Option<i64>,
     pub activate: Option<bool>,
+}
+
+#[derive(Deserialize)]
+pub struct UpdateUserStatusRequest {
+    pub status: String,
+    pub reason: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -76,6 +82,7 @@ pub struct AdminUserResponse {
     pub tier: String,
     pub status: String,
     pub created_at: chrono::NaiveDateTime,
+    pub last_login: Option<chrono::NaiveDateTime>,
     pub organization_id: Option<i64>,
     pub organization_name: Option<String>,
     pub team_ids: Option<Vec<i64>>,
@@ -173,6 +180,7 @@ pub async fn list_users(
             tier: format!("{:?}", user.tier).to_lowercase(),
             status: format!("{:?}", user.status).to_lowercase(),
             created_at: user.created_at,
+            last_login: user.last_login,
             organization_id: user.organization_id,
             organization_name: org_name,
             team_ids: team_ids_vec,
@@ -259,6 +267,82 @@ pub async fn get_user(
     let user = AuthService::get_user_by_id(&state.pool, user_id).await?;
     let response = UserResponse::from(user);
     Ok(Json(response))
+}
+
+pub async fn update_user_status(
+    State(state): State<Arc<AuthHandler>>,
+    headers: HeaderMap,
+    Path(user_id): Path<i64>,
+    Json(req): Json<UpdateUserStatusRequest>,
+) -> AppResult<Json<serde_json::Value>> {
+    let admin_id = extract_user_from_header(&state, &headers)?;
+    check_admin_permission(&state, admin_id).await?;
+
+    if admin_id == user_id {
+        return Err(AppError::BadRequest("Cannot change your own status".to_string()));
+    }
+
+    let target_user = UserService::get_user(&state.pool, user_id).await?;
+    if target_user.tier == UserTier::Allstar {
+        return Err(AppError::BadRequest("Cannot change status of admin users".to_string()));
+    }
+
+    let new_status: UserStatus = req.status.parse()
+        .map_err(|_| AppError::BadRequest("Invalid status value".to_string()))?;
+
+    if target_user.status == new_status {
+        let response_user = UserResponse::from(target_user);
+        return Ok(Json(serde_json::json!({
+            "success": true,
+            "message": format!("User status already {}", req.status),
+            "user": response_user,
+        })));
+    }
+
+    let updated_user = sqlx::query_as::<_, User>(
+        r#"
+        UPDATE users
+        SET status = $1::user_status, updated_at = NOW()
+        WHERE id = $2
+        RETURNING id, uid, email, password_hash, tier, status, organization_id, team_ids, license_status, source_product_slug,
+               profile_data, created_at, updated_at, last_login
+        "#
+    )
+        .bind(&req.status)
+        .bind(user_id)
+        .fetch_one(&*state.pool)
+        .await?;
+
+    let reason_text = req.reason.unwrap_or_else(|| "status updated by admin".to_string());
+    let old_value = serde_json::json!({
+        "status": target_user.status.to_string(),
+    })
+    .to_string();
+    let new_value = serde_json::json!({
+        "status": updated_user.status.to_string(),
+        "reason": reason_text,
+    })
+    .to_string();
+
+    sqlx::query(
+        r#"
+        INSERT INTO admin_audit_log (admin_user_id, action, target_type, target_id, old_value, new_value, created_at)
+        VALUES ($1, $2, 'user', $3, $4, $5, NOW())
+        "#
+    )
+        .bind(admin_id)
+        .bind("user_status_change")
+        .bind(user_id)
+        .bind(old_value)
+        .bind(new_value)
+        .execute(&*state.pool)
+        .await?;
+
+    Ok(Json(serde_json::json!({
+        "success": true,
+        "message": format!("User status updated to {}", updated_user.status),
+        "user": UserResponse::from(updated_user),
+    })))
 }
 
 // ============= PRODUCT & LICENSE ADMIN ENDPOINTS =============

@@ -48,6 +48,10 @@ impl IntoResponse for AppError {
                 StatusCode::FORBIDDEN,
                 "Permission denied".to_string(),
             ),
+            AppError::AccountDeactivated => (
+                StatusCode::FORBIDDEN,
+                "Your account has been deactivated due to inactivity. Please contact your administrator to reactivate.".to_string(),
+            ),
             AppError::Forbidden => (StatusCode::FORBIDDEN, "Forbidden".to_string()),
             AppError::InvalidRequest(msg) => (StatusCode::BAD_REQUEST, msg),
             AppError::BadRequest(msg) => (StatusCode::BAD_REQUEST, msg),

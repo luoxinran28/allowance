@@ -229,7 +229,15 @@ export function AuthForm({ mode: initialMode = 'login' }: AuthFormProps) {
         router.push('/dashboard');
       }
     } catch (err: any) {
-      setError(err.response?.data?.error || 'An error occurred');
+      const serverError = err.response?.data?.error as string | undefined;
+      if (
+        err.response?.status === 403 &&
+        serverError?.toLowerCase().includes('deactivated')
+      ) {
+        setError('您的账户已因长期未登录而被停用，请联系系统管理员重新激活。');
+      } else {
+        setError(serverError || 'An error occurred');
+      }
     } finally {
       setLoading(false);
     }

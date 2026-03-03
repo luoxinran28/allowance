@@ -296,6 +296,13 @@ class ApiClient {
     return this.client.get(`/admin/users/${userId}`);
   }
 
+  async updateUserStatus(userId: number, status: 'active' | 'inactive' | 'suspended', reason?: string) {
+    return this.client.put(`/admin/users/${userId}/status`, {
+      status,
+      reason,
+    });
+  }
+
   // Team Quota Admin endpoints
   async listTeamQuotas() {
     return this.client.get('/admin/team-quotas');

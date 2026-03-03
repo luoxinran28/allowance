@@ -59,6 +59,9 @@ pub enum AppError {
     #[error("Permission denied")]
     PermissionDenied,
 
+    #[error("Account deactivated")]
+    AccountDeactivated,
+
     #[error("Not implemented: {0}")]
     NotImplemented(String),
 

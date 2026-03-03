@@ -2,7 +2,7 @@ use sqlx::PgPool;
 use chrono::Utc;
 use uuid::Uuid;
 
-use crate::models::{User, UserResponse, EmailToken, UserStatus};
+use crate::models::{User, UserResponse, EmailToken, UserStatus, UserTier};
 use crate::services::free_user_service::FreeUserService;
 use crate::utils::{
     crypto::{hash_password, verify_password, generate_token},
@@ -11,6 +11,14 @@ use crate::utils::{
 
 /// Authentication service
 pub struct AuthService;
+
+fn inactive_threshold_days() -> i64 {
+    std::env::var("INACTIVE_THRESHOLD_DAYS")
+        .ok()
+        .and_then(|v| v.parse::<i64>().ok())
+        .filter(|days| *days > 0)
+        .unwrap_or(90)
+}
 
 impl AuthService {
     /// Register new user
@@ -102,9 +110,42 @@ impl AuthService {
             return Err(AppError::InvalidCredentials);
         }
 
-        // Check if user is active
+        if user.status == UserStatus::Inactive {
+            return Err(AppError::AccountDeactivated);
+        }
+
+        if user.status == UserStatus::Suspended {
+            return Err(AppError::InvalidCredentials);
+        }
+
         if user.status != UserStatus::Active {
             return Err(AppError::InvalidCredentials);
+        }
+
+        if user.tier != UserTier::Allstar {
+            if let Some(last_login) = user.last_login {
+                let base_threshold = inactive_threshold_days();
+                let threshold_days = match user.tier {
+                    UserTier::Free => base_threshold,
+                    UserTier::Standard | UserTier::Premium => base_threshold * 2,
+                    UserTier::Allstar => base_threshold,
+                };
+
+                let now = Utc::now().naive_utc();
+                let elapsed_days = now.signed_duration_since(last_login).num_days();
+
+                if elapsed_days > threshold_days {
+                    sqlx::query(
+                        "UPDATE users SET status = 'inactive', updated_at = $1 WHERE id = $2"
+                    )
+                        .bind(now)
+                        .bind(user.id)
+                        .execute(pool)
+                        .await?;
+
+                    return Err(AppError::AccountDeactivated);
+                }
+            }
         }
 
         // Update last login

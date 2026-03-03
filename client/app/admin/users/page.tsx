@@ -23,6 +23,7 @@ interface User {
   tier: string;
   status: string;
   created_at: string;
+  last_login?: string;
   organization_id?: number;
   organization_name?: string;
   team_ids?: number[];
@@ -67,6 +68,7 @@ export default function AdminUsersPage() {
   const pageSize = 20;
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [statusUpdating, setStatusUpdating] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -172,6 +174,26 @@ export default function AdminUsersPage() {
       await loadUsers();
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to create user');
+    }
+  };
+
+  const handleUpdateStatus = async (status: 'active' | 'inactive' | 'suspended') => {
+    if (!selectedUser) return;
+
+    try {
+      setStatusUpdating(true);
+      setError('');
+      setSuccess('');
+
+      await apiClient.updateUserStatus(selectedUser.id, status);
+      setSuccess(`User status updated to ${status}`);
+
+      await loadUsers();
+      setSelectedUser((prev) => prev ? { ...prev, status } : prev);
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to update user status');
+    } finally {
+      setStatusUpdating(false);
     }
   };
 
@@ -327,6 +349,14 @@ export default function AdminUsersPage() {
               <StatusBadge status={selectedUser?.status || 'inactive'} />
             </div>
             <div>
+              <p className="text-gray-600 font-medium">Last Login</p>
+              <p className="text-gray-900">
+                {selectedUser?.last_login
+                  ? new Date(selectedUser.last_login).toLocaleString()
+                  : 'Never logged in'}
+              </p>
+            </div>
+            <div>
               <p className="text-gray-600 font-medium">Organization</p>
               <p className="text-gray-900">{selectedUser?.organization_name || 'Not Assigned'}</p>
             </div>
@@ -346,6 +376,26 @@ export default function AdminUsersPage() {
               ) : (
                 <p className="text-gray-400">Not Assigned</p>
               )}
+            </div>
+          </div>
+
+          <div className="space-y-3 pt-4 border-t">
+            <p className="text-sm font-medium text-gray-700">User Status Actions</p>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={() => handleUpdateStatus('active')}
+                disabled={statusUpdating || selectedUser?.status === 'active' || selectedUser?.tier === 'allstar'}
+                className="rounded-lg bg-green-600 px-4 py-2 font-medium text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
+              >
+                Activate
+              </button>
+              <button
+                onClick={() => handleUpdateStatus('inactive')}
+                disabled={statusUpdating || selectedUser?.status === 'inactive' || selectedUser?.tier === 'allstar'}
+                className="rounded-lg bg-amber-600 px-4 py-2 font-medium text-white hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
+              >
+                Deactivate
+              </button>
             </div>
           </div>
 
@@ -439,7 +489,7 @@ export default function AdminUsersPage() {
               className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
             />
             <label htmlFor="activate" className="text-sm font-medium text-gray-700">
-              Activate user immediately (skip email verification)
+              Activate user immediately
             </label>
           </div>
 

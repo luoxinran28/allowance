@@ -138,6 +138,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .route("/team/:team_id/licenses/:assignment_id/revoke", post(handlers::team::revoke_license_from_member))
         .route("/admin/users", get(handlers::admin::list_users).post(handlers::admin::create_user))
         .route("/admin/users/:user_id", get(handlers::admin::get_user))
+        .route("/admin/users/:user_id/status", put(handlers::admin::update_user_status))
         .route("/admin/team-quotas", get(handlers::team_quota::list_team_quotas).post(handlers::team_quota::allocate_quota))
         .route("/admin/team-quotas/:team_id/:product_upid", put(handlers::team_quota::update_quota))
         .route("/admin/team-quotas/:team_id", get(handlers::team_quota::get_team_quotas))
