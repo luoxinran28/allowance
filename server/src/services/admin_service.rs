@@ -70,18 +70,23 @@ impl AdminService {
         old_value: Option<String>,
         new_value: Option<String>,
     ) -> AppResult<()> {
+        let details = serde_json::json!({
+            "target_type": target_type,
+            "old_value": old_value,
+            "new_value": new_value,
+        });
+
         sqlx::query(
             r#"
-            INSERT INTO admin_audit_log (admin_user_id, action, target_type, target_id, old_value, new_value, created_at)
-            VALUES ($1, $2, $3, $4, $5, $6, NOW())
+            INSERT INTO audit_logs (user_id, action, resource, resource_id, details, created_at)
+            VALUES ($1, $2, $3, $4, $5::jsonb, NOW())
             "#
         )
             .bind(admin_user_id)
             .bind(action)
             .bind(target_type)
             .bind(target_id)
-            .bind(old_value)
-            .bind(new_value)
+            .bind(details.to_string())
             .execute(pool)
             .await?;
 

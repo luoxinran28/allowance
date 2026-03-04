@@ -299,6 +299,8 @@ pub async fn update_user_status(
         })));
     }
 
+    let mut tx = state.pool.begin().await?;
+
     let updated_user = sqlx::query_as::<_, User>(
         r#"
         UPDATE users
@@ -310,33 +312,31 @@ pub async fn update_user_status(
     )
         .bind(&req.status)
         .bind(user_id)
-        .fetch_one(&*state.pool)
+        .fetch_one(&mut *tx)
         .await?;
 
     let reason_text = req.reason.unwrap_or_else(|| "status updated by admin".to_string());
-    let old_value = serde_json::json!({
-        "status": target_user.status.to_string(),
-    })
-    .to_string();
-    let new_value = serde_json::json!({
-        "status": updated_user.status.to_string(),
+    let details = serde_json::json!({
+        "old_status": target_user.status.to_string(),
+        "new_status": updated_user.status.to_string(),
         "reason": reason_text,
-    })
-    .to_string();
+        "target_user_id": user_id,
+    });
 
     sqlx::query(
         r#"
-        INSERT INTO admin_audit_log (admin_user_id, action, target_type, target_id, old_value, new_value, created_at)
-        VALUES ($1, $2, 'user', $3, $4, $5, NOW())
+        INSERT INTO audit_logs (user_id, action, resource, resource_id, details, created_at)
+        VALUES ($1, $2, 'user', $3, $4::jsonb, NOW())
         "#
     )
         .bind(admin_id)
         .bind("user_status_change")
         .bind(user_id)
-        .bind(old_value)
-        .bind(new_value)
-        .execute(&*state.pool)
+        .bind(details.to_string())
+        .execute(&mut *tx)
         .await?;
+
+    tx.commit().await?;
 
     Ok(Json(serde_json::json!({
         "success": true,
