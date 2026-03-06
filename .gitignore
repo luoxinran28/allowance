@@ -66,11 +66,9 @@ uploads/
 *.md
 !*prompt.md
 !README.md
+!SKILL.md
 !AGENTS.md
-!basic-chat-style.chatmode.md
 !basic-needs.prompt.md
-!CONTRIBUTING.md
-!QUICK_REFERENCE.md
 
 # Testing
 coverage/

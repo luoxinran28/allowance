@@ -74,3 +74,16 @@
 - 不支持跨团队挪用配额
 - 许可证过期后，成员 tier 降级为 free（保留 org/team 关联）
 - 用户只能属于一个组织，可属于同组织下多个团队
+
+## 关键实现文件
+
+### 后端 (Rust/Axum)
+- **Models**: `server/src/models/user.rs`（UserTier enum, organization_id, team_ids）
+- **Tier 推导**: `server/src/utils/tier_helper.rs`
+- **权限服务**: `server/src/services/permission_service.rs`
+
+### 前端 (Next.js/TypeScript)
+- **Types**: `client/lib/types.ts`（User interface 含 tier）
+- **Tier 推导**: `client/lib/tier-helper.ts`
+- **权限 Hook**: `client/lib/hooks/usePermission.ts`
+- **路由保护**: layout.tsx（admin→allstar, org-license→premium+, team-management→standard+）
