@@ -1,6 +1,6 @@
 ---
 name: new-requirement
-description: '**WORKFLOW SKILL** — Handle new application requirements end-to-end. USE FOR: receiving new feature requests; creating requirement docs under .github/prompts/; producing phased implementation plans; updating related prompt files; beginning implementation. TRIGGERS: when user describes a new feature, new requirement, architecture change, or says "新需求".'
+description: '**WORKFLOW SKILL** — Handle new Allowance application requirements end-to-end. USE FOR: receiving new feature requests; creating requirement docs under .github/prompts/; producing phased implementation plans; updating related prompt files; beginning implementation. TRIGGERS: when user describes a new feature, new requirement, architecture change, or says "新需求".'
 argument-hint: 'Describe the new requirement in one sentence'
 ---
 
